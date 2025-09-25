@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { Menu, X, ShoppingCart } from "lucide-react";
 import { useCart } from "../hooks/CartContext";
 
