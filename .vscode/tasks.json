@@ -1,0 +1,62 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "📊 Générer l'arborescence",
+      "type": "shell",
+      "command": "node",
+      "args": ["scripts/generate-tree.js"],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "runOptions": {
+        "runOn": "default"
+      },
+      "detail": "Génère l'arborescence complète du projet dans /docs",
+      "icon": {
+        "id": "files",
+        "color": "terminal.ansiGreen"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "📁 Créer dossier docs",
+      "type": "shell",
+      "command": "mkdir",
+      "args": ["-p", "docs"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "silent",
+        "focus": false,
+        "panel": "shared"
+      },
+      "detail": "Crée le dossier docs s'il n'existe pas"
+    },
+    {
+      "label": "🚀 Setup complet documentation",
+      "dependsOrder": "sequence",
+      "dependsOn": ["📁 Créer dossier docs", "📊 Générer l'arborescence"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      },
+      "detail": "Initialise complètement la documentation du projet"
+    }
+  ]
+}

@@ -3,6 +3,19 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Violet theme colors */
+  --violet: #8b5cf6;
+  --violet-soft: #a78bfa;
+  --violet-subtle: #c4b5fd;
+  --violet-trail: #ddd6fe;
+  --violet-glow: #8b5cf6;
+
+  /* Additional colors */
+  --accent: #8b5cf6;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --secondary: #f8fafc;
 }
 
 @theme inline {
@@ -23,4 +36,178 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Custom font classes */
+.font-brand {
+  font-family: var(--font-geist-sans), Arial, sans-serif;
+  font-weight: 300;
+}
+
+.font-body {
+  font-family: var(--font-geist-sans), Arial, sans-serif;
+}
+
+/* Custom color classes */
+.text-accent {
+  color: var(--accent);
+}
+
+.text-violet {
+  color: var(--violet);
+}
+
+.text-violet-soft {
+  color: var(--violet-soft);
+}
+
+.bg-violet-soft {
+  background-color: var(--violet-soft);
+}
+
+.bg-violet-subtle {
+  background-color: var(--violet-subtle);
+}
+
+.border-violet-soft {
+  border-color: var(--violet-soft);
+}
+
+.shadow-violet-glow {
+  box-shadow: 0 0 20px var(--violet-glow);
+}
+
+/* Custom animations */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes float-alt {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(10px);
+  }
+}
+
+@keyframes letter-appear {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) translate(-50%, -50%);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translate(-50%, -50%);
+  }
+}
+
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 5px var(--accent);
+  }
+  50% {
+    box-shadow: 0 0 20px var(--accent), 0 0 30px var(--accent);
+  }
+}
+
+@keyframes float-detail {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes slide-down {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes strike-appear {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--rotation)) scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--rotation)) scale(1.2);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--rotation)) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--rotation)) scale(0.8);
+  }
+}
+
+@keyframes hover-lift {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Apply animations */
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-alt {
+  animation: float-alt 6s ease-in-out infinite;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.3s ease-out forwards;
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.animate-float-detail {
+  animation: float-detail 8s ease-in-out infinite;
+}
+
+.animate-slide-down {
+  animation: slide-down 0.3s ease-out;
+}
+
+.animate-strike-appear {
+  animation: strike-appear 0.8s ease-out forwards;
+}
+
+.animate-hover-lift:hover {
+  animation: hover-lift 0.3s ease-out forwards;
 }

@@ -1,3 +1,4 @@
+// Types de base
 export interface User {
   id: string;
   name: string;
@@ -15,6 +16,8 @@ export interface Product {
   category: string;
   inStock: boolean;
   featured?: boolean;
+  sizes?: string[];
+  colors?: string[];
 }
 
 export interface Collection {
@@ -24,6 +27,17 @@ export interface Collection {
   image: string;
   products: Product[];
   featured?: boolean;
+}
+
+// ✅ CartItem défini ici - source unique de vérité
+export interface CartItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image?: string;
+  size?: string;
+  color?: string;
 }
 
 export interface Order {
@@ -40,4 +54,46 @@ export interface ContactForm {
   name: string;
   email: string;
   message: string;
+}
+
+export interface NewsletterForm {
+  email: string;
+}
+
+// Types pour l'API
+export interface ApiResponse<T> {
+  data: T;
+  success: boolean;
+  message?: string;
+  error?: string;
+}
+
+export interface PaginatedResponse<T> extends ApiResponse<T[]> {
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+// Types pour les filtres de produits
+export interface ProductFilters {
+  category?: string;
+  priceMin?: number;
+  priceMax?: number;
+  inStock?: boolean;
+  featured?: boolean;
+  colors?: string[];
+  sizes?: string[];
+}
+
+// Types pour les paramètres de recherche
+export interface SearchParams {
+  query?: string;
+  category?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: "name" | "price" | "createdAt";
+  sortOrder?: "asc" | "desc";
 }

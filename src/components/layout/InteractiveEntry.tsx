@@ -11,22 +11,14 @@ interface Letter {
   delay: number;
 }
 
-interface Particle {
-  id: string;
-  x: number;
-  delay: number;
-  duration: number;
-}
-
 interface InteractiveEntryProps {
   onEnter: () => void;
 }
 
 const InteractiveEntry = ({ onEnter }: InteractiveEntryProps) => {
   const [letters, setLetters] = useState<Letter[]>([]);
-  const [particles, setParticles] = useState<Particle[]>([]);
   const [isHoveringCenter, setIsHoveringCenter] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 });
   const containerRef = useRef<HTMLDivElement>(null);
 
   const brandName = ".blancherenaudin";
@@ -53,22 +45,6 @@ const InteractiveEntry = ({ onEnter }: InteractiveEntryProps) => {
 
     setLetters(newLetters);
   }, [brandName]);
-
-  // Generate particles
-  const generateParticles = useCallback(() => {
-    const newParticles: Particle[] = [];
-
-    for (let i = 0; i < 50; i++) {
-      newParticles.push({
-        id: `particle-${i}`,
-        x: Math.random() * 100,
-        delay: Math.random() * 15,
-        duration: 15 + Math.random() * 10,
-      });
-    }
-
-    setParticles(newParticles);
-  }, []);
 
   // Mouse move handler for repulsion effect
   const handleMouseMove = useCallback((e: MouseEvent) => {
@@ -120,8 +96,7 @@ const InteractiveEntry = ({ onEnter }: InteractiveEntryProps) => {
   // Initialize
   useEffect(() => {
     generateLetters();
-    generateParticles();
-  }, [generateLetters, generateParticles]);
+  }, [generateLetters]);
 
   // Add mouse listener
   useEffect(() => {
@@ -155,29 +130,36 @@ const InteractiveEntry = ({ onEnter }: InteractiveEntryProps) => {
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-screen bg-white overflow-hidden cursor-none"
+      className="relative w-full h-screen bg-white overflow-hidden"
+      style={{ cursor: "none" }}
     >
+      {/* Test: Simple text to see if anything renders */}
+      <div className="absolute top-4 left-4 text-black z-50">
+        <p>InteractiveEntry Loaded</p>
+        <p>Letters count: {letters.length}</p>
+        <p>
+          Mouse: {mousePosition.x.toFixed(0)}, {mousePosition.y.toFixed(0)}
+        </p>
+      </div>
+
       {/* Scattered letters */}
       {letters.map((letter, index) => (
         <div
           key={letter.id}
-          className="absolute font-brand text-foreground transition-all duration-300 ease-out hover:scale-150 hover:text-accent hover:drop-shadow-lg cursor-pointer select-none"
+          className="absolute text-black transition-all duration-300 ease-out hover:scale-150 cursor-pointer select-none"
           style={{
             left: `${letter.x}%`,
             top: `${letter.y}%`,
-            fontSize: "clamp(1.2rem, 3.5vw, 2rem)",
+            fontSize: "2rem",
             transform: "translate(-50%, -50%)",
             animationName: "letter-appear",
             animationDuration: "0.5s",
             animationDelay: `${letter.delay}s`,
             animationFillMode: "both",
-            filter: `drop-shadow(2px 2px 4px hsl(var(--violet-trail)))`,
           }}
         >
           <div
-            className={`${
-              index % 2 === 0 ? "animate-float" : "animate-float-alt"
-            }`}
+            className={`${index % 2 === 0 ? "animate-float" : "animate-float"}`}
             style={{ animationDelay: `${letter.delay}s` }}
           >
             {letter.char}
@@ -186,9 +168,9 @@ const InteractiveEntry = ({ onEnter }: InteractiveEntryProps) => {
       ))}
 
       {/* Center point */}
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center z-50">
+      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center z-50">
         <button
-          className="w-7 h-7 bg-foreground cursor-pointer transition-all duration-300 hover:scale-125 hover:border-2 hover:border-accent hover:animate-glow-pulse"
+          className="w-7 h-7 bg-black cursor-pointer transition-all duration-300 hover:scale-125"
           onMouseEnter={() => setIsHoveringCenter(true)}
           onMouseLeave={() => setIsHoveringCenter(false)}
           onClick={handleCenterClick}
@@ -196,7 +178,7 @@ const InteractiveEntry = ({ onEnter }: InteractiveEntryProps) => {
 
         {/* Revealed text on center hover */}
         {isHoveringCenter && (
-          <div className="ml-4 font-brand text-accent text-2xl">
+          <div className="ml-4 text-black text-2xl">
             {brandName.split("").map((char, index) => (
               <span
                 key={`reveal-${index}`}
@@ -215,7 +197,7 @@ const InteractiveEntry = ({ onEnter }: InteractiveEntryProps) => {
 
       {/* Custom cursor */}
       <div
-        className="fixed w-2 h-2 bg-accent rounded-full pointer-events-none z-50 transition-transform duration-75"
+        className="fixed w-2 h-2 bg-black rounded-full pointer-events-none z-50 transition-transform duration-75"
         style={{
           left: `${mousePosition.x}%`,
           top: `${mousePosition.y}%`,

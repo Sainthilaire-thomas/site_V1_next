@@ -1,23 +1,29 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  image?: string;
-}
+import type { CartItem } from "@/lib/types";
 
 interface CartState {
   items: CartItem[];
   totalItems: number;
   totalPrice: number;
+  isOpen: boolean;
   addItem: (item: Omit<CartItem, "quantity">) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
+  toggleCart: () => void;
+  openCart: () => void;
+  closeCart: () => void;
 }
+
+const calculateTotals = (items: CartItem[]) => {
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+  const totalPrice = items.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
+  return { totalItems, totalPrice };
+};
 
 export const useCartStore = create<CartState>()(
   persist(
@@ -25,76 +31,124 @@ export const useCartStore = create<CartState>()(
       items: [],
       totalItems: 0,
       totalPrice: 0,
+      isOpen: false,
 
-      addItem: (item) => {
+      addItem: (newItem) => {
         set((state) => {
-          const existingItem = state.items.find((i) => i.id === item.id);
+          const existingItemIndex = state.items.findIndex(
+            (item) =>
+              item.id === newItem.id &&
+              item.size === newItem.size &&
+              item.color === newItem.color
+          );
+
           let newItems;
 
-          if (existingItem) {
-            newItems = state.items.map((i) =>
-              i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+          if (existingItemIndex > -1) {
+            // Item exists, increment quantity
+            newItems = state.items.map((item, index) =>
+              index === existingItemIndex
+                ? { ...item, quantity: item.quantity + 1 }
+                : item
             );
           } else {
-            newItems = [...state.items, { ...item, quantity: 1 }];
+            // New item, add to cart
+            newItems = [...state.items, { ...newItem, quantity: 1 }];
           }
 
-          const totalItems = newItems.reduce((sum, i) => sum + i.quantity, 0);
-          const totalPrice = newItems.reduce(
-            (sum, i) => sum + i.price * i.quantity,
-            0
-          );
+          const { totalItems, totalPrice } = calculateTotals(newItems);
 
-          return { items: newItems, totalItems, totalPrice };
+          return {
+            items: newItems,
+            totalItems,
+            totalPrice,
+            isOpen: true, // Open cart when item is added
+          };
         });
       },
 
-      removeItem: (id) => {
+      removeItem: (itemId) => {
         set((state) => {
-          const newItems = state.items.filter((i) => i.id !== id);
-          const totalItems = newItems.reduce((sum, i) => sum + i.quantity, 0);
-          const totalPrice = newItems.reduce(
-            (sum, i) => sum + i.price * i.quantity,
-            0
-          );
+          const newItems = state.items.filter((item) => item.id !== itemId);
+          const { totalItems, totalPrice } = calculateTotals(newItems);
 
-          return { items: newItems, totalItems, totalPrice };
+          return {
+            items: newItems,
+            totalItems,
+            totalPrice,
+          };
         });
       },
 
-      updateQuantity: (id, quantity) => {
+      updateQuantity: (itemId, quantity) => {
         set((state) => {
-          const newItems = state.items.map((i) =>
-            i.id === id ? { ...i, quantity } : i
-          );
-          const totalItems = newItems.reduce((sum, i) => sum + i.quantity, 0);
-          const totalPrice = newItems.reduce(
-            (sum, i) => sum + i.price * i.quantity,
-            0
+          if (quantity <= 0) {
+            // Remove item if quantity is 0 or negative
+            const newItems = state.items.filter((item) => item.id !== itemId);
+            const { totalItems, totalPrice } = calculateTotals(newItems);
+            return { items: newItems, totalItems, totalPrice };
+          }
+
+          const newItems = state.items.map((item) =>
+            item.id === itemId ? { ...item, quantity } : item
           );
 
-          return { items: newItems, totalItems, totalPrice };
+          const { totalItems, totalPrice } = calculateTotals(newItems);
+
+          return {
+            items: newItems,
+            totalItems,
+            totalPrice,
+          };
         });
       },
 
-      clearCart: () => set({ items: [], totalItems: 0, totalPrice: 0 }),
+      clearCart: () => {
+        set({
+          items: [],
+          totalItems: 0,
+          totalPrice: 0,
+        });
+      },
+
+      toggleCart: () => {
+        set((state) => ({ isOpen: !state.isOpen }));
+      },
+
+      openCart: () => {
+        set({ isOpen: true });
+      },
+
+      closeCart: () => {
+        set({ isOpen: false });
+      },
     }),
     {
-      name: "cart-storage",
+      name: "blanche-renaudin-cart",
+      // Only persist cart items, not UI state like isOpen
+      partialize: (state) => ({
+        items: state.items,
+        totalItems: state.totalItems,
+        totalPrice: state.totalPrice,
+      }),
     }
   )
 );
 
-// Hook de compatibilité
+// Hook de compatibilité pour l'ancien useCart
 export const useCart = () => {
   const store = useCartStore();
   return {
     items: store.items,
     totalItems: store.totalItems,
     totalPrice: store.totalPrice,
+    isOpen: store.isOpen,
     addItem: store.addItem,
     removeItem: store.removeItem,
     updateQuantity: store.updateQuantity,
     clearCart: store.clearCart,
+    toggleCart: store.toggleCart,
+    openCart: store.openCart,
+    closeCart: store.closeCart,
   };
 };

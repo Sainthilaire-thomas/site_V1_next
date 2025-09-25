@@ -1,0 +1,117 @@
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                          ARBORESCENCE DU PROJET                             ║
+║                                                                              ║
+║  Projet: site_v1_next                                                    ║
+║  Généré: 25/09/2025 17:42:08                                            ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+🌳 Structure du projet :
+
+📁 site_v1_next
+├── 📁 .vscode
+│   └── 📋 tasks.json
+├── 📁 docs
+│   └── 📝 todo_modernistion.md
+├── 📁 public
+│   ├── 🖼️ file.svg
+│   ├── 🖼️ globe.svg
+│   ├── 🖼️ next.svg
+│   ├── 🖼️ vercel.svg
+│   └── 🖼️ window.svg
+├── 📁 scripts
+│   └── 🟨 generate-tree.js
+├── 📁 src
+│   ├── 📁 app
+│   │   ├── 📄 favicon.ico
+│   │   ├── 🎨 globals.css
+│   │   ├── 🔷 layout.tsx
+│   │   └── 🔷 page.tsx
+│   ├── 📁 components
+│   │   ├── 📁 common
+│   │   │   └── 🔷 LazyImage.tsx
+│   │   ├── 📁 features
+│   │   ├── 📁 layout
+│   │   │   ├── 🔷 Header.tsx
+│   │   │   ├── 🔷 Homepage.tsx
+│   │   │   └── 🔷 InteractiveEntry.tsx
+│   │   └── 📁 ui
+│   │       ├── 🔷 accordion.tsx
+│   │       ├── 🔷 alert.tsx
+│   │       ├── 🔷 aspect-ratio.tsx
+│   │       ├── 🔷 avatar.tsx
+│   │       ├── 🔷 badge.tsx
+│   │       ├── 🔷 breadcrumb.tsx
+│   │       ├── 🔷 button.tsx
+│   │       ├── 🔷 calendar.tsx
+│   │       ├── 🔷 card.tsx
+│   │       ├── 🔷 carousel.tsx
+│   │       ├── 🔷 chart.tsx
+│   │       ├── 🔷 checkbox.tsx
+│   │       ├── 🔷 collapsible.tsx
+│   │       ├── 🔷 command.tsx
+│   │       ├── 🔷 context-menu.tsx
+│   │       ├── 🔷 drawer.tsx
+│   │       ├── 🔷 dropdown-menu.tsx
+│   │       ├── 🔷 form.tsx
+│   │       ├── 🔷 hover-card.tsx
+│   │       ├── 🔷 input-otp.tsx
+│   │       ├── 🔷 input.tsx
+│   │       ├── 🔷 label.tsx
+│   │       ├── 🔷 menubar.tsx
+│   │       ├── 🔷 navigation-menu.tsx
+│   │       ├── 🔷 pagination.tsx
+│   │       ├── 🔷 popover.tsx
+│   │       ├── 🔷 progress.tsx
+│   │       ├── 🔷 radio-group.tsx
+│   │       ├── 🔷 resizable.tsx
+│   │       ├── 🔷 scroll-area.tsx
+│   │       ├── 🔷 select.tsx
+│   │       ├── 🔷 separator.tsx
+│   │       ├── 🔷 sheet.tsx
+│   │       ├── 🔷 sidebar.tsx
+│   │       ├── 🔷 skeleton.tsx
+│   │       ├── 🔷 slider.tsx
+│   │       ├── 🔷 sonner.tsx
+│   │       ├── 🔷 switch.tsx
+│   │       ├── 🔷 table.tsx
+│   │       ├── 🔷 tabs.tsx
+│   │       ├── 🔷 textarea.tsx
+│   │       ├── 🔷 toast.tsx
+│   │       ├── 🔷 toaster.tsx
+│   │       ├── 🔷 toggle-group.tsx
+│   │       ├── 🔷 toggle.tsx
+│   │       ├── 🔷 tooltip.tsx
+│   │       └── 🔷 use-toast.ts
+│   ├── 📁 hooks
+│   │   ├── 🔷 use-mobile.ts
+│   │   └── 🔷 use-toast.ts
+│   ├── 📁 lib
+│   │   ├── 🔷 api.ts
+│   │   ├── 🔷 constants.ts
+│   │   ├── 🔷 design-tokens.ts
+│   │   ├── 🔷 types.ts
+│   │   └── 🔷 utils.ts
+│   ├── 📁 store
+│   │   ├── 🔷 index.ts
+│   │   └── 🔷 useCartStore.ts
+│   └── 📁 styles
+│       └── 🎨 components.css
+├── 📄 .gitignore
+├── 🟨 eslint.config.mjs
+├── 🔷 next-env.d.ts
+├── 🔷 next.config.ts
+├── 📋 package-lock.json
+├── 📦 package.json
+├── 🟨 postcss.config.mjs
+├── 📖 README.md
+└── ⚙️ tsconfig.json
+
+
+📈 Statistiques :
+   • Dossiers : 16
+   • Fichiers : 69
+   • Total : 85 éléments
+
+💡 Généré automatiquement - Ne pas modifier manuellement
