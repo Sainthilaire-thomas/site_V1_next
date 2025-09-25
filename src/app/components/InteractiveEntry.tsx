@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+"use client";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 interface Letter {
   char: string;
@@ -28,17 +29,17 @@ const InteractiveEntry = ({ onEnter }: InteractiveEntryProps) => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const brandName = '.blancherenaudin';
+  const brandName = ".blancherenaudin";
 
   // Generate letters with random positions
   const generateLetters = useCallback(() => {
     const newLetters: Letter[] = [];
-    const chars = brandName.split('');
-    
+    const chars = brandName.split("");
+
     chars.forEach((char, index) => {
       const x = Math.random() * 80 + 10; // 10% to 90%
       const y = Math.random() * 80 + 10; // 10% to 90%
-      
+
       newLetters.push({
         char,
         id: `letter-${index}`,
@@ -46,70 +47,70 @@ const InteractiveEntry = ({ onEnter }: InteractiveEntryProps) => {
         y,
         originalX: x,
         originalY: y,
-        delay: index * 0.1
+        delay: index * 0.1,
       });
     });
-    
+
     setLetters(newLetters);
   }, [brandName]);
 
   // Generate particles
   const generateParticles = useCallback(() => {
     const newParticles: Particle[] = [];
-    
+
     for (let i = 0; i < 50; i++) {
       newParticles.push({
         id: `particle-${i}`,
         x: Math.random() * 100,
         delay: Math.random() * 15,
-        duration: 15 + Math.random() * 10
+        duration: 15 + Math.random() * 10,
       });
     }
-    
+
     setParticles(newParticles);
   }, []);
 
   // Mouse move handler for repulsion effect
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!containerRef.current) return;
-    
+
     const rect = containerRef.current.getBoundingClientRect();
     const mouseX = ((e.clientX - rect.left) / rect.width) * 100;
     const mouseY = ((e.clientY - rect.top) / rect.height) * 100;
-    
+
     setMousePosition({ x: mouseX, y: mouseY });
-    
-    setLetters(prevLetters => 
-      prevLetters.map(letter => {
+
+    setLetters((prevLetters) =>
+      prevLetters.map((letter) => {
         const distance = Math.sqrt(
-          Math.pow(mouseX - letter.originalX, 2) + 
-          Math.pow(mouseY - letter.originalY, 2)
+          Math.pow(mouseX - letter.originalX, 2) +
+            Math.pow(mouseY - letter.originalY, 2)
         );
-        
+
         const repulsionRadius = 20; // 20% of screen
-        
+
         if (distance < repulsionRadius) {
           const force = (repulsionRadius - distance) / repulsionRadius;
           const angle = Math.atan2(
-            letter.originalY - mouseY, 
+            letter.originalY - mouseY,
             letter.originalX - mouseX
           );
-          
+
           const repulsionDistance = force * 10; // Maximum 10% displacement
           const newX = letter.originalX + Math.cos(angle) * repulsionDistance;
           const newY = letter.originalY + Math.sin(angle) * repulsionDistance;
-          
+
           return {
             ...letter,
             x: Math.max(5, Math.min(95, newX)),
-            y: Math.max(5, Math.min(95, newY))
+            y: Math.max(5, Math.min(95, newY)),
           };
         } else {
           // Return to original position
           return {
             ...letter,
             x: letter.originalX,
-            y: letter.originalY
+            y: letter.originalY,
           };
         }
       })
@@ -126,25 +127,25 @@ const InteractiveEntry = ({ onEnter }: InteractiveEntryProps) => {
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-    
-    container.addEventListener('mousemove', handleMouseMove);
-    
+
+    container.addEventListener("mousemove", handleMouseMove);
+
     return () => {
-      container.removeEventListener('mousemove', handleMouseMove);
+      container.removeEventListener("mousemove", handleMouseMove);
     };
   }, [handleMouseMove]);
 
   // Handle center point click
   const handleCenterClick = () => {
     // Animate letters out and transition to main site
-    setLetters(prevLetters =>
-      prevLetters.map(letter => ({
+    setLetters((prevLetters) =>
+      prevLetters.map((letter) => ({
         ...letter,
         x: 50, // Move all letters to center
-        y: 50
+        y: 50,
       }))
     );
-    
+
     // After animation, transition to homepage
     setTimeout(() => {
       onEnter();
@@ -152,11 +153,10 @@ const InteractiveEntry = ({ onEnter }: InteractiveEntryProps) => {
   };
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className="relative w-full h-screen bg-white overflow-hidden cursor-none"
     >
-
       {/* Scattered letters */}
       {letters.map((letter, index) => (
         <div
@@ -165,17 +165,19 @@ const InteractiveEntry = ({ onEnter }: InteractiveEntryProps) => {
           style={{
             left: `${letter.x}%`,
             top: `${letter.y}%`,
-            fontSize: 'clamp(1.2rem, 3.5vw, 2rem)',
-            transform: 'translate(-50%, -50%)',
-            animationName: 'letter-appear',
-            animationDuration: '0.5s',
+            fontSize: "clamp(1.2rem, 3.5vw, 2rem)",
+            transform: "translate(-50%, -50%)",
+            animationName: "letter-appear",
+            animationDuration: "0.5s",
             animationDelay: `${letter.delay}s`,
-            animationFillMode: 'both',
-            filter: `drop-shadow(2px 2px 4px hsl(var(--violet-trail)))`
+            animationFillMode: "both",
+            filter: `drop-shadow(2px 2px 4px hsl(var(--violet-trail)))`,
           }}
         >
-          <div 
-            className={`${index % 2 === 0 ? 'animate-float' : 'animate-float-alt'}`}
+          <div
+            className={`${
+              index % 2 === 0 ? "animate-float" : "animate-float-alt"
+            }`}
             style={{ animationDelay: `${letter.delay}s` }}
           >
             {letter.char}
@@ -191,17 +193,17 @@ const InteractiveEntry = ({ onEnter }: InteractiveEntryProps) => {
           onMouseLeave={() => setIsHoveringCenter(false)}
           onClick={handleCenterClick}
         />
-        
+
         {/* Revealed text on center hover */}
         {isHoveringCenter && (
           <div className="ml-4 font-brand text-accent text-2xl">
-            {brandName.split('').map((char, index) => (
+            {brandName.split("").map((char, index) => (
               <span
                 key={`reveal-${index}`}
                 className="inline-block animate-fade-in-up"
-                style={{ 
+                style={{
                   animationDelay: `${index * 0.05}s`,
-                  animationFillMode: 'both'
+                  animationFillMode: "both",
                 }}
               >
                 {char}
@@ -217,7 +219,7 @@ const InteractiveEntry = ({ onEnter }: InteractiveEntryProps) => {
         style={{
           left: `${mousePosition.x}%`,
           top: `${mousePosition.y}%`,
-          transform: 'translate(-50%, -50%)'
+          transform: "translate(-50%, -50%)",
         }}
       />
     </div>

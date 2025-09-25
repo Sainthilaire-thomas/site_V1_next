@@ -1,18 +1,20 @@
-import { useState, useEffect } from 'react';
-import { Menu, X } from 'lucide-react';
+"use client";
+
+import { useState, useEffect } from "react";
+import { Menu, X } from "lucide-react";
 
 const Homepage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEasterEggActive, setIsEasterEggActive] = useState(false);
 
   const menuItems = [
-    'Collection',
-    'Femme', 
-    'Homme',
-    'Accessoires',
-    'Maroquinerie',
-    'Atelier',
-    'Contact'
+    "Collection",
+    "Femme",
+    "Homme",
+    "Accessoires",
+    "Maroquinerie",
+    "Atelier",
+    "Contact",
   ];
 
   const handleLogoClick = () => {
@@ -27,7 +29,7 @@ const Homepage = () => {
       const randomY = Math.random() * 100;
       const randomRotation = Math.random() * 360;
       const randomDelay = Math.random() * 0.5;
-      
+
       elements.push(
         <div
           key={i}
@@ -36,7 +38,7 @@ const Homepage = () => {
             left: `${randomX}%`,
             top: `${randomY}%`,
             transform: `translate(-50%, -50%) rotate(${randomRotation}deg)`,
-            animationDelay: `${randomDelay}s`
+            animationDelay: `${randomDelay}s`,
           }}
         >
           BLANCHE
@@ -52,16 +54,31 @@ const Homepage = () => {
       <div className="fixed inset-0 pointer-events-none z-0">
         {/* Vertical lines */}
         <div className="absolute left-1/4 top-0 w-px h-full bg-violet-subtle animate-float-detail" />
-        <div className="absolute right-1/3 top-0 w-px h-full bg-violet-subtle animate-float-detail" style={{ animationDelay: '2s' }} />
-        
+        <div
+          className="absolute right-1/3 top-0 w-px h-full bg-violet-subtle animate-float-detail"
+          style={{ animationDelay: "2s" }}
+        />
+
         {/* Horizontal lines */}
-        <div className="absolute top-1/4 left-0 h-px w-full bg-violet-subtle animate-float-detail" style={{ animationDelay: '4s' }} />
-        <div className="absolute bottom-1/3 left-0 h-px w-full bg-violet-subtle animate-float-detail" style={{ animationDelay: '6s' }} />
-        
+        <div
+          className="absolute top-1/4 left-0 h-px w-full bg-violet-subtle animate-float-detail"
+          style={{ animationDelay: "4s" }}
+        />
+        <div
+          className="absolute bottom-1/3 left-0 h-px w-full bg-violet-subtle animate-float-detail"
+          style={{ animationDelay: "6s" }}
+        />
+
         {/* Floating points */}
         <div className="absolute top-1/5 left-1/5 w-2 h-2 bg-violet-soft rounded-full animate-float-detail" />
-        <div className="absolute bottom-1/4 right-1/4 w-3 h-3 bg-violet-soft rounded-full animate-float-detail" style={{ animationDelay: '3s' }} />
-        <div className="absolute top-3/4 left-3/4 w-1 h-1 bg-violet-soft rounded-full animate-float-detail" style={{ animationDelay: '5s' }} />
+        <div
+          className="absolute bottom-1/4 right-1/4 w-3 h-3 bg-violet-soft rounded-full animate-float-detail"
+          style={{ animationDelay: "3s" }}
+        />
+        <div
+          className="absolute top-3/4 left-3/4 w-1 h-1 bg-violet-soft rounded-full animate-float-detail"
+          style={{ animationDelay: "5s" }}
+        />
       </div>
 
       {/* Easter Egg Strike Animation */}
@@ -75,7 +92,7 @@ const Homepage = () => {
       <header className="fixed top-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-sm border-b border-violet-soft">
         <nav className="container mx-auto px-6 py-4 flex items-center justify-between">
           {/* Logo */}
-          <button 
+          <button
             onClick={handleLogoClick}
             className="font-brand text-2xl md:text-3xl text-foreground hover:text-violet transition-colors duration-300 cursor-pointer"
           >
