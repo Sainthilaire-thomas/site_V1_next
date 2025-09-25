@@ -1,20 +1,21 @@
+// src/components/layout/Homepage.tsx - VERSION CORRIGÉE
 "use client";
 
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
+import Link from "next/link"; // ✅ Import Next.js Link
 
 const Homepage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEasterEggActive, setIsEasterEggActive] = useState(false);
 
+  // ✅ Mapping vers les vraies routes Next.js
   const menuItems = [
-    "Collection",
-    "Femme",
-    "Homme",
-    "Accessoires",
-    "Maroquinerie",
-    "Atelier",
-    "Contact",
+    { name: "Collections", href: "/collections" },
+    { name: "Produits", href: "/products" },
+    { name: "À Propos", href: "/about" },
+    { name: "Contact", href: "/contact" },
+    { name: "Panier", href: "/cart" },
   ];
 
   const handleLogoClick = () => {
@@ -51,9 +52,8 @@ const Homepage = () => {
 
   return (
     <div className="min-h-screen bg-white text-gray-900 relative overflow-x-hidden">
-      {/* Floating subtle details - Much more discrete */}
+      {/* Floating subtle details */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        {/* Very subtle floating points instead of lines */}
         <div className="absolute top-1/5 left-1/5 w-1 h-1 bg-gray-200 rounded-full opacity-30 animate-pulse" />
         <div
           className="absolute bottom-1/4 right-1/4 w-1 h-1 bg-gray-200 rounded-full opacity-20 animate-pulse"
@@ -72,7 +72,7 @@ const Homepage = () => {
         </div>
       )}
 
-      {/* Header/Navigation */}
+      {/* Header/Navigation - ✅ CORRIGÉ */}
       <header className="fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-sm border-b border-gray-100">
         <nav className="container mx-auto px-6 py-4 flex items-center justify-between">
           {/* Logo */}
@@ -92,19 +92,19 @@ const Homepage = () => {
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
 
-          {/* Dropdown menu */}
+          {/* Dropdown menu - ✅ CORRIGÉ avec Next.js Link */}
           {isMenuOpen && (
             <div className="absolute top-full right-0 bg-white/95 backdrop-blur-sm min-w-[200px] py-4 px-6 shadow-lg border border-gray-100 rounded-lg mt-2">
               <ul className="space-y-3 text-right">
                 {menuItems.map((item, index) => (
                   <li key={index}>
-                    <a
-                      href={`#${item.toLowerCase()}`}
+                    <Link
+                      href={item.href}
                       className="block py-2 text-gray-900 hover:text-purple-600 hover:-translate-x-2 transition-all duration-300 font-medium"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      {item}
-                    </a>
+                      {item.name}
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -113,12 +113,15 @@ const Homepage = () => {
         </nav>
       </header>
 
-      {/* Hero Section */}
+      {/* Hero Section - ✅ Ajoutons des liens aux images */}
       <section className="h-screen pt-20 px-6">
         <div className="container mx-auto h-full">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 h-full">
-            {/* Large image left (2 rows) - Hero principale */}
-            <div className="md:col-span-2 md:row-span-2 relative hover:scale-[1.01] hover:shadow-xl transition-all duration-500 group overflow-hidden rounded-lg">
+            {/* Large image left - avec lien vers collections */}
+            <Link
+              href="/collections"
+              className="md:col-span-2 md:row-span-2 relative hover:scale-[1.01] hover:shadow-xl transition-all duration-500 group overflow-hidden rounded-lg block"
+            >
               <img
                 src="https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=800&h=1200&fit=crop&crop=center"
                 alt="Collection Automne"
@@ -133,10 +136,13 @@ const Homepage = () => {
                   Découvrez nos dernières créations
                 </p>
               </div>
-            </div>
+            </Link>
 
             {/* Medium image top right - Collection Femme */}
-            <div className="relative hover:scale-[1.02] hover:shadow-lg transition-all duration-500 group overflow-hidden rounded-lg">
+            <Link
+              href="/products"
+              className="relative hover:scale-[1.02] hover:shadow-lg transition-all duration-500 group overflow-hidden rounded-lg block"
+            >
               <img
                 src="https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=400&h=600&fit=crop&crop=faces"
                 alt="Collection Femme"
@@ -146,10 +152,13 @@ const Homepage = () => {
               <div className="absolute bottom-4 left-4">
                 <h3 className="text-white text-xl font-light">Femme</h3>
               </div>
-            </div>
+            </Link>
 
             {/* Medium image bottom right - Collection Homme */}
-            <div className="relative hover:scale-[1.02] hover:shadow-lg transition-all duration-500 group overflow-hidden rounded-lg">
+            <Link
+              href="/products"
+              className="relative hover:scale-[1.02] hover:shadow-lg transition-all duration-500 group overflow-hidden rounded-lg block"
+            >
               <img
                 src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop&crop=faces"
                 alt="Collection Homme"
@@ -159,7 +168,7 @@ const Homepage = () => {
               <div className="absolute bottom-4 left-4">
                 <h3 className="text-white text-xl font-light">Homme</h3>
               </div>
-            </div>
+            </Link>
           </div>
         </div>
       </section>
@@ -197,9 +206,10 @@ const Homepage = () => {
                 title: "Veste Premium",
               },
             ].map((item) => (
-              <div
+              <Link
                 key={item.id}
-                className="aspect-[3/4] relative hover:scale-[1.02] hover:shadow-lg transition-all duration-300 group overflow-hidden rounded-lg"
+                href="/products"
+                className="aspect-[3/4] relative hover:scale-[1.02] hover:shadow-lg transition-all duration-300 group overflow-hidden rounded-lg block"
               >
                 <img
                   src={item.image}
@@ -212,7 +222,7 @@ const Homepage = () => {
                     {item.title}
                   </h3>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -226,7 +236,10 @@ const Homepage = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_2fr] gap-10">
             {/* Photo large gauche - Editorial */}
-            <div className="h-[600px] relative hover:scale-[1.01] hover:shadow-lg transition-all duration-500 group overflow-hidden rounded-lg">
+            <Link
+              href="/collections"
+              className="h-[600px] relative hover:scale-[1.01] hover:shadow-lg transition-all duration-500 group overflow-hidden rounded-lg block"
+            >
               <img
                 src="https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=600&h=800&fit=crop"
                 alt="Editorial Automne"
@@ -239,10 +252,13 @@ const Homepage = () => {
                 </h3>
                 <p className="text-white/90">Automne/Hiver 2024</p>
               </div>
-            </div>
+            </Link>
 
             {/* Photo moyenne centre décalée - Accessoires */}
-            <div className="h-[400px] mt-32 relative hover:scale-[1.02] hover:shadow-lg transition-all duration-500 group overflow-hidden rounded-lg">
+            <Link
+              href="/products"
+              className="h-[400px] mt-32 relative hover:scale-[1.02] hover:shadow-lg transition-all duration-500 group overflow-hidden rounded-lg block"
+            >
               <img
                 src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=500&fit=crop"
                 alt="Accessoires"
@@ -252,10 +268,13 @@ const Homepage = () => {
               <div className="absolute bottom-4 left-4">
                 <h3 className="text-white text-lg font-light">Accessoires</h3>
               </div>
-            </div>
+            </Link>
 
             {/* Photo large droite - Atelier */}
-            <div className="h-[600px] relative hover:scale-[1.01] hover:shadow-lg transition-all duration-500 group overflow-hidden rounded-lg">
+            <Link
+              href="/about"
+              className="h-[600px] relative hover:scale-[1.01] hover:shadow-lg transition-all duration-500 group overflow-hidden rounded-lg block"
+            >
               <img
                 src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=600&h=800&fit=crop"
                 alt="Atelier Blanche Renaudin"
@@ -268,7 +287,7 @@ const Homepage = () => {
                 </h3>
                 <p className="text-white/90">Savoir-faire artisanal</p>
               </div>
-            </div>
+            </Link>
           </div>
         </div>
       </section>
