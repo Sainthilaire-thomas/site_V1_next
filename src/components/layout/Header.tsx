@@ -1,14 +1,15 @@
+// src/components/layout/Header.tsx - VERSION MISE À JOUR
 "use client";
 
-import Link from "next/link"; // ✅ Next.js Link au lieu de React Router
+import Link from "next/link";
 import { useState } from "react";
-import { useCartStore } from "@/store/useCartStore"; // ✅ Nouveau store Zustand
+import { useCartStore } from "@/store/useCartStore";
 import { Menu, X, ShoppingBag } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { totalItems } = useCartStore(); // ✅ Utilise le store Zustand
+  const { totalItems } = useCartStore();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -21,7 +22,7 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
             <span className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-violet-800 bg-clip-text text-transparent">
-              Blanche Renaudin
+              .blancherenaudin
             </span>
           </Link>
 
@@ -32,6 +33,12 @@ export default function Header() {
               className="text-gray-700 hover:text-violet-600 transition-colors"
             >
               Collections
+            </Link>
+            <Link
+              href="/products"
+              className="text-gray-700 hover:text-violet-600 transition-colors"
+            >
+              Produits
             </Link>
             <Link
               href="/about"
@@ -101,6 +108,13 @@ export default function Header() {
               className="block text-gray-700 hover:text-violet-600 transition-colors"
             >
               Collections
+            </Link>
+            <Link
+              href="/products"
+              onClick={toggleMenu}
+              className="block text-gray-700 hover:text-violet-600 transition-colors"
+            >
+              Produits
             </Link>
             <Link
               href="/about"
