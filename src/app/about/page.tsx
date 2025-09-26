@@ -18,8 +18,8 @@ export default function AboutPage() {
             </h1>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
               .blancherenaudin est née de la passion pour la mode contemporaine
-              et l'artisanat d'exception. Chaque pièce est pensée pour sublimer
-              la femme moderne.
+              et l’artisanat d&rsquo;exception. Chaque pièce est pensée pour
+              sublimer la femme moderne.
             </p>
           </div>
         </section>
@@ -35,18 +35,18 @@ export default function AboutPage() {
                 <div className="space-y-6 text-gray-600 leading-relaxed">
                   <p>
                     Fondée en 2020, .blancherenaudin puise son inspiration dans
-                    l'héritage de la haute couture française tout en embrassant
-                    une vision résolument contemporaine.
+                    l&rsquo;héritage de la haute couture française tout en
+                    embrassant une vision résolument contemporaine.
                   </p>
                   <p>
                     Notre atelier parisien perpétue les techniques
                     traditionnelles du savoir-faire français, adaptées aux
-                    besoins de la femme d'aujourd'hui qui recherche l'élégance
-                    sans compromis.
+                    besoins de la femme d&rsquo;aujourd&rsquo;hui qui recherche
+                    l’élégance sans compromis.
                   </p>
                   <p>
-                    Chaque création est le fruit d'un travail minutieux où se
-                    rencontrent innovation et tradition, modernité et
+                    Chaque création est le fruit d&rsquo;un travail minutieux où
+                    se rencontrent innovation et tradition, modernité et
                     intemporalité.
                   </p>
                 </div>
@@ -106,8 +106,8 @@ export default function AboutPage() {
               Découvrez nos Collections
             </h2>
             <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-              Explorez l'univers .blancherenaudin et trouvez les pièces qui
-              révéleront votre style unique.
+              Explorez l&rsquo;univers .blancherenaudin et trouvez les pièces
+              qui révéleront votre style unique.
             </p>
             <Link
               href="/collections"
