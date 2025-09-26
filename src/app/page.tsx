@@ -1,8 +1,10 @@
+// src/app/page.tsx - VERSION ADAPTÉE SELON LE DESIGN
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import Homepage from "../components/layout/Homepage";
-// Improved InteractiveEntry with working CSS
+
+// Composant d'entrée interactive selon les consignes design
 const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
   const [letters, setLetters] = useState<
     Array<{
@@ -21,7 +23,7 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
 
   const brandName = ".blancherenaudin";
 
-  // Generate letters with random positions
+  // Génération des lettres avec positions aléatoires
   const generateLetters = useCallback(() => {
     const newLetters: Array<{
       char: string;
@@ -35,8 +37,8 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
     const chars = brandName.split("");
 
     chars.forEach((char, index) => {
-      const x = Math.random() * 80 + 10; // 10% to 90%
-      const y = Math.random() * 80 + 10; // 10% to 90%
+      const x = Math.random() * 80 + 10; // 10% à 90%
+      const y = Math.random() * 80 + 10; // 10% à 90%
 
       newLetters.push({
         char,
@@ -52,7 +54,7 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
     setLetters(newLetters);
   }, [brandName]);
 
-  // Mouse move handler for repulsion effect
+  // Gestion du mouvement de souris pour l'effet de répulsion
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!containerRef.current) return;
 
@@ -69,7 +71,7 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
             Math.pow(mouseY - letter.originalY, 2)
         );
 
-        const repulsionRadius = 20; // 20% of screen
+        const repulsionRadius = 20; // 20% de l'écran
 
         if (distance < repulsionRadius) {
           const force = (repulsionRadius - distance) / repulsionRadius;
@@ -78,7 +80,7 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
             letter.originalX - mouseX
           );
 
-          const repulsionDistance = force * 10; // Maximum 10% displacement
+          const repulsionDistance = force * 10; // Maximum 10% de déplacement
           const newX = letter.originalX + Math.cos(angle) * repulsionDistance;
           const newY = letter.originalY + Math.sin(angle) * repulsionDistance;
 
@@ -88,7 +90,7 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
             y: Math.max(5, Math.min(95, newY)),
           };
         } else {
-          // Return to original position
+          // Retour à la position originale
           return {
             ...letter,
             x: letter.originalX,
@@ -99,12 +101,12 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
     );
   }, []);
 
-  // Initialize
+  // Initialisation
   useEffect(() => {
     generateLetters();
   }, [generateLetters]);
 
-  // Add mouse listener
+  // Ajout du listener de souris
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -116,18 +118,18 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
     };
   }, [handleMouseMove]);
 
-  // Handle center point click
+  // Gestion du clic sur le point central
   const handleCenterClick = () => {
-    // Animate letters out and transition to main site
+    // Animation de convergence des lettres vers le centre
     setLetters((prevLetters) =>
       prevLetters.map((letter) => ({
         ...letter,
-        x: 50, // Move all letters to center
+        x: 50, // Convergence vers le centre
         y: 50,
       }))
     );
 
-    // After animation, transition to homepage
+    // Transition vers la homepage après l'animation
     setTimeout(() => {
       onEnter();
     }, 1500);
@@ -136,29 +138,27 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-screen bg-white overflow-hidden"
-      style={{ cursor: "none" }}
+      className="relative w-full h-screen bg-background overflow-hidden cursor-none"
     >
-      {/* Scattered letters */}
+      {/* Lettres dispersées flottantes */}
       {letters.map((letter, index) => (
         <div
           key={letter.id}
-          className="absolute text-gray-800 transition-all duration-300 ease-out hover:scale-150 hover:text-purple-600 cursor-pointer select-none font-light"
+          className="floating-letter text-foreground"
           style={{
             left: `${letter.x}%`,
             top: `${letter.y}%`,
             fontSize: "clamp(1.2rem, 3.5vw, 2rem)",
-            transform: "translate(-50%, -50%)",
             opacity: 0,
-            animation: `fadeInFloat 0.5s ease-out ${letter.delay}s forwards`,
+            animation: `letter-appear 0.5s ease-out ${letter.delay}s forwards`,
           }}
         >
           <div
-            className="hover:drop-shadow-lg"
+            className={`${
+              index % 2 === 0 ? "animate-float" : "animate-float-alt"
+            }`}
             style={{
-              animation: `float${
-                index % 2 === 0 ? "A" : "B"
-              } 6s ease-in-out infinite ${letter.delay}s`,
+              animationDelay: `${letter.delay}s`,
             }}
           >
             {letter.char}
@@ -166,24 +166,25 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
         </div>
       ))}
 
-      {/* Center point */}
+      {/* Point central - carré noir selon les consignes */}
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center z-50">
         <button
-          className="w-7 h-7 bg-gray-800 hover:bg-purple-600 cursor-pointer transition-all duration-300 hover:scale-125 hover:shadow-lg hover:shadow-purple-500/50"
+          className="central-trigger"
           onMouseEnter={() => setIsHoveringCenter(true)}
           onMouseLeave={() => setIsHoveringCenter(false)}
           onClick={handleCenterClick}
         />
 
-        {/* Revealed text on center hover */}
+        {/* Révélation du nom complet au survol du carré central */}
         {isHoveringCenter && (
-          <div className="ml-4 text-purple-600 text-2xl font-light">
+          <div className="ml-4 text-violet text-2xl font-light">
             {brandName.split("").map((char, index) => (
               <span
                 key={`reveal-${index}`}
-                className="inline-block opacity-0"
+                className="inline-block animate-fade-in-up"
                 style={{
-                  animation: `fadeInUp 0.3s ease-out ${index * 0.05}s forwards`,
+                  animationDelay: `${index * 0.05}s`,
+                  animationFillMode: "both",
                 }}
               >
                 {char}
@@ -193,9 +194,9 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
         )}
       </div>
 
-      {/* Custom cursor */}
+      {/* Curseur personnalisé - petit cercle violet */}
       <div
-        className="fixed w-2 h-2 bg-purple-600 rounded-full pointer-events-none z-50 transition-transform duration-75"
+        className="custom-cursor"
         style={{
           left: `${mousePosition.x}%`,
           top: `${mousePosition.y}%`,
@@ -203,44 +204,16 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
         }}
       />
 
-      {/* Add keyframes via style tag */}
+      {/* Styles CSS intégrés pour les animations */}
       <style jsx>{`
-        @keyframes fadeInFloat {
+        @keyframes letter-appear {
           0% {
             opacity: 0;
-            transform: translate(-50%, -50%) scale(0.5);
+            transform: scale(0.5) translate(-50%, -50%);
           }
           100% {
             opacity: 1;
-            transform: translate(-50%, -50%) scale(1);
-          }
-        }
-        @keyframes floatA {
-          0%,
-          100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-10px);
-          }
-        }
-        @keyframes floatB {
-          0%,
-          100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(10px);
-          }
-        }
-        @keyframes fadeInUp {
-          0% {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0);
+            transform: scale(1) translate(-50%, -50%);
           }
         }
       `}</style>

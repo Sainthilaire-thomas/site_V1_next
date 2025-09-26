@@ -1,64 +1,93 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* === COULEURS PRINCIPALES === */
+  --background: hsl(0 0% 100%); /* blanc pur */
+  --foreground: hsl(18 16% 17%); /* brun très sombre */
 
-  /* Violet theme colors */
-  --violet: #8b5cf6;
-  --violet-soft: #a78bfa;
-  --violet-subtle: #c4b5fd;
-  --violet-trail: #ddd6fe;
-  --violet-glow: #8b5cf6;
+  /* Violet marque avec déclinaisons */
+  --violet: hsl(271 74% 37%);
+  --violet-soft: hsl(271 74% 45%);
+  --violet-glow: hsl(271 74% 37%);
+  --violet-subtle: hsl(271 30% 85%);
+  --violet-trail: hsl(271 20% 90%);
 
-  /* Additional colors */
-  --accent: #8b5cf6;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --secondary: #f8fafc;
-}
+  /* Accent pour interactions */
+  --accent: hsl(276 86% 36%);
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Backgrounds et bordures */
+  --muted: hsl(0 0% 96%); /* gris très clair pour cartes */
+  --muted-foreground: hsl(0 0% 45%);
+  --border: hsl(0 0% 90%); /* gris moyen pour bordures */
+  --secondary: hsl(0 0% 98%);
+
+  /* Couleurs système */
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(18 16% 17%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(18 16% 17%);
+  --primary: hsl(18 16% 17%); /* noir/brun pour boutons principaux */
+  --primary-foreground: hsl(0 0% 100%);
+  --destructive: hsl(0 84% 60%);
+  --destructive-foreground: hsl(0 0% 98%);
+  --ring: hsl(271 74% 37%);
+  --radius: 0.75rem;
+
+  /* === POLICES === */
+  --font-brand: var(--font-geist-sans), "Archivo Black", sans-serif;
+  --font-body: var(--font-geist-sans), "Archivo Narrow", sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: hsl(18 16% 17%);
+    --foreground: hsl(0 0% 100%);
+    --card: hsl(18 16% 20%);
+    --card-foreground: hsl(0 0% 95%);
+    --popover: hsl(18 16% 20%);
+    --popover-foreground: hsl(0 0% 95%);
+    --primary: hsl(0 0% 100%);
+    --primary-foreground: hsl(18 16% 17%);
+    --secondary: hsl(18 10% 25%);
+    --muted: hsl(18 10% 25%);
+    --muted-foreground: hsl(0 0% 65%);
+    --border: hsl(18 10% 30%);
+    --accent: hsl(276 86% 45%);
+    --ring: hsl(271 74% 45%);
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
+  font-weight: 300; /* Style sobre */
 }
 
-/* Custom font classes */
+/* === CLASSES PERSONNALISÉES === */
+
+/* Polices de marque */
 .font-brand {
-  font-family: var(--font-geist-sans), Arial, sans-serif;
-  font-weight: 300;
+  font-family: var(--font-brand);
+  font-weight: 900; /* Archivo Black effet */
 }
 
 .font-body {
-  font-family: var(--font-geist-sans), Arial, sans-serif;
+  font-family: var(--font-body);
+  font-weight: 300;
 }
 
-/* Custom color classes */
-.text-accent {
-  color: var(--accent);
-}
-
+/* Couleurs violet */
 .text-violet {
   color: var(--violet);
 }
 
 .text-violet-soft {
   color: var(--violet-soft);
+}
+
+.bg-violet {
+  background-color: var(--violet);
 }
 
 .bg-violet-soft {
@@ -69,15 +98,25 @@ body {
   background-color: var(--violet-subtle);
 }
 
+.border-violet {
+  border-color: var(--violet);
+}
+
 .border-violet-soft {
   border-color: var(--violet-soft);
 }
 
+/* Effets glow violet */
 .shadow-violet-glow {
   box-shadow: 0 0 20px var(--violet-glow);
 }
 
-/* Custom animations */
+.drop-shadow-violet {
+  filter: drop-shadow(0 4px 8px hsl(271 74% 37% / 0.3));
+}
+
+/* === ANIMATIONS PERSONNALISÉES === */
+
 @keyframes float {
   0%,
   100% {
@@ -130,16 +169,6 @@ body {
   }
 }
 
-@keyframes float-detail {
-  0%,
-  100% {
-    opacity: 0.3;
-  }
-  50% {
-    opacity: 0.6;
-  }
-}
-
 @keyframes slide-down {
   0% {
     opacity: 0;
@@ -148,25 +177,6 @@ body {
   100% {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-@keyframes strike-appear {
-  0% {
-    opacity: 0;
-    transform: translate(-50%, -50%) rotate(var(--rotation)) scale(0.5);
-  }
-  20% {
-    opacity: 1;
-    transform: translate(-50%, -50%) rotate(var(--rotation)) scale(1.2);
-  }
-  80% {
-    opacity: 1;
-    transform: translate(-50%, -50%) rotate(var(--rotation)) scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(-50%, -50%) rotate(var(--rotation)) scale(0.8);
   }
 }
 
@@ -179,7 +189,7 @@ body {
   }
 }
 
-/* Apply animations */
+/* Classes d'animation */
 .animate-float {
   animation: float 6s ease-in-out infinite;
 }
@@ -196,18 +206,187 @@ body {
   animation: glow-pulse 2s ease-in-out infinite;
 }
 
-.animate-float-detail {
-  animation: float-detail 8s ease-in-out infinite;
-}
-
 .animate-slide-down {
   animation: slide-down 0.3s ease-out;
 }
 
-.animate-strike-appear {
-  animation: strike-appear 0.8s ease-out forwards;
-}
-
 .animate-hover-lift:hover {
   animation: hover-lift 0.3s ease-out forwards;
+}
+
+/* === STYLES SPÉCIFIQUES BLANCHE RENAUDIN === */
+
+/* Curseur personnalisé pour landing page */
+.cursor-none {
+  cursor: none;
+}
+
+.custom-cursor {
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  pointer-events: none;
+  position: fixed;
+  z-index: 9999;
+  transition: transform 75ms ease-out;
+}
+
+/* Lettres flottantes landing page */
+.floating-letter {
+  position: absolute;
+  font-family: var(--font-body);
+  font-weight: 300;
+  transition: all 0.3s ease-out;
+  cursor: pointer;
+  user-select: none;
+  transform: translate(-50%, -50%);
+}
+
+.floating-letter:hover {
+  transform: translate(-50%, -50%) scale(1.5);
+  color: var(--accent);
+  filter: drop-shadow(0 4px 12px hsl(271 74% 37% / 0.4));
+}
+
+/* Point central landing page */
+.central-trigger {
+  width: 28px;
+  height: 28px;
+  background: var(--foreground);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.central-trigger:hover {
+  background: var(--violet);
+  transform: scale(1.25);
+  box-shadow: 0 4px 16px hsl(271 74% 37% / 0.5);
+}
+
+/* Menu hamburger stylé */
+.menu-panel {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+}
+
+/* Cartes produits avec effet hover */
+.product-card {
+  background: var(--muted);
+  transition: all 0.3s ease;
+  border-radius: 0.5rem;
+}
+
+.product-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+/* Boutons style Blanche Renaudin */
+.btn-primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+  font-family: var(--font-body);
+  font-weight: 400;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: hsl(18 16% 25%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  transition: all 0.3s ease;
+}
+
+.btn-outline:hover {
+  border-color: var(--violet);
+  color: var(--violet);
+  background: var(--violet-subtle);
+}
+
+/* Sections pleine hauteur */
+.section-fullscreen {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Logo flottant avec scroll */
+.floating-logo {
+  position: fixed;
+  z-index: 40;
+  transition: all 0.3s ease;
+  font-family: var(--font-brand);
+  font-weight: 300;
+  color: var(--foreground);
+}
+
+.floating-logo:hover {
+  color: var(--violet);
+  transform: scale(1.05);
+}
+
+/* Espacements généreux */
+.spacing-generous {
+  margin-top: 8rem; /* mt-32 equivalent */
+}
+
+/* Typographie responsive */
+.text-hero {
+  font-size: clamp(2rem, 8vw, 6rem);
+  font-family: var(--font-brand);
+  font-weight: 300;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.text-display {
+  font-size: clamp(1.5rem, 4vw, 3rem);
+  font-family: var(--font-brand);
+  font-weight: 300;
+  line-height: 1.2;
+}
+
+/* Mode sombre amélioré */
+@media (prefers-color-scheme: dark) {
+  .product-card {
+    background: var(--muted);
+    border: 1px solid var(--border);
+  }
+
+  .menu-panel {
+    background: rgba(30, 25, 25, 0.95);
+    border-color: var(--border);
+  }
+
+  .floating-logo {
+    color: var(--foreground);
+  }
+}
+
+/* Scrollbar personnalisée */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--muted);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--violet);
 }
