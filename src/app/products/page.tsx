@@ -1,4 +1,4 @@
-// src/app/products/page.tsx - Version Supabase
+// src/app/products/page.tsx - Version Supabase corrigée
 "use client";
 
 import { useEffect } from "react";
@@ -24,6 +24,16 @@ export default function ProductsPage() {
       price: product.price,
       image: product.images?.[0]?.url,
     });
+  };
+
+  // ✅ Fonction helper pour gérer stock_quantity null/undefined
+  const getStockQuantity = (product: any): number => {
+    return product.stock_quantity ?? 0;
+  };
+
+  // ✅ Fonction helper pour vérifier si le produit est en stock
+  const isInStock = (product: any): boolean => {
+    return getStockQuantity(product) > 0;
   };
 
   if (error) {
@@ -96,9 +106,10 @@ export default function ProductsPage() {
                           onClick={() => handleAddToCart(product)}
                           size="sm"
                           className="bg-white text-gray-900 hover:bg-gray-100"
-                          disabled={product.stock_quantity === 0}
+                          disabled={!isInStock(product)} // ✅ Utilisation de la fonction helper
                         >
-                          {product.stock_quantity > 0 ? "Panier" : "Épuisé"}
+                          {isInStock(product) ? "Panier" : "Épuisé"} // ✅
+                          Utilisation de la fonction helper
                         </Button>
                         <Link href={`/products/${product.id}`}>
                           <Button
@@ -143,12 +154,13 @@ export default function ProductsPage() {
                         </div>
                         <span
                           className={`text-xs px-2 py-1 rounded-full ${
-                            product.stock_quantity > 0
+                            isInStock(product) // ✅ Utilisation de la fonction helper
                               ? "bg-green-100 text-green-800"
                               : "bg-red-100 text-red-800"
                           }`}
                         >
-                          {product.stock_quantity > 0 ? "En stock" : "Épuisé"}
+                          {isInStock(product) ? "En stock" : "Épuisé"} // ✅
+                          Utilisation de la fonction helper
                         </span>
                       </div>
                     </div>

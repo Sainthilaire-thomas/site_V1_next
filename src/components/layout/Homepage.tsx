@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
-import Link from "next/link"; // ✅ Import Next.js Link
+import Link from "next/link";
 
 const Homepage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -75,13 +75,14 @@ const Homepage = () => {
       {/* Header/Navigation - ✅ CORRIGÉ */}
       <header className="fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-sm border-b border-gray-100">
         <nav className="container mx-auto px-6 py-4 flex items-center justify-between">
-          {/* Logo */}
-          <button
+          {/* Logo - ✅ CORRIGÉ: Link vers "/" au lieu de button avec easter egg */}
+          <Link
+            href="/"
+            className="text-2xl md:text-3xl text-gray-900 hover:text-purple-600 transition-colors duration-300 font-light"
             onClick={handleLogoClick}
-            className="text-2xl md:text-3xl text-gray-900 hover:text-purple-600 transition-colors duration-300 cursor-pointer font-light"
           >
             .blancherenaudin
-          </button>
+          </Link>
 
           {/* Menu hamburger */}
           <button
@@ -92,7 +93,7 @@ const Homepage = () => {
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
 
-          {/* Dropdown menu - ✅ CORRIGÉ avec Next.js Link */}
+          {/* Dropdown menu */}
           {isMenuOpen && (
             <div className="absolute top-full right-0 bg-white/95 backdrop-blur-sm min-w-[200px] py-4 px-6 shadow-lg border border-gray-100 rounded-lg mt-2">
               <ul className="space-y-3 text-right">
@@ -113,7 +114,7 @@ const Homepage = () => {
         </nav>
       </header>
 
-      {/* Hero Section - ✅ Ajoutons des liens aux images */}
+      {/* Hero Section */}
       <section className="h-screen pt-20 px-6">
         <div className="container mx-auto h-full">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 h-full">

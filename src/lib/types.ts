@@ -38,6 +38,7 @@ export interface CartItem {
   image?: string;
   size?: string;
   color?: string;
+  sku?: string;
 }
 
 export interface Order {

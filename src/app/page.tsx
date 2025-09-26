@@ -1,7 +1,8 @@
-// src/app/page.tsx - VERSION ADAPTÉE SELON LE DESIGN
+// src/app/page.tsx - VERSION CORRIGÉE
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Homepage from "../components/layout/Homepage";
 
 // Composant d'entrée interactive selon les consignes design
@@ -223,10 +224,29 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
 
 export default function Home() {
   const [showHomepage, setShowHomepage] = useState(false);
+  const searchParams = useSearchParams();
+
+  // ✅ NOUVEAU: Vérifier si on doit afficher directement la homepage
+  useEffect(() => {
+    // Si il y a un paramètre "skip-intro" ou si l'utilisateur revient à la page d'accueil
+    // depuis une autre page, on affiche directement la homepage
+    const skipIntro = searchParams.get("skip-intro");
+    const hasVisited = sessionStorage.getItem("hasVisitedHomepage");
+
+    if (skipIntro === "true" || hasVisited === "true") {
+      setShowHomepage(true);
+    }
+  }, [searchParams]);
+
+  // ✅ NOUVEAU: Marquer que l'utilisateur a visité la homepage
+  const handleEnterHomepage = () => {
+    sessionStorage.setItem("hasVisitedHomepage", "true");
+    setShowHomepage(true);
+  };
 
   if (showHomepage) {
     return <Homepage />;
   }
 
-  return <InteractiveEntry onEnter={() => setShowHomepage(true)} />;
+  return <InteractiveEntry onEnter={handleEnterHomepage} />;
 }
