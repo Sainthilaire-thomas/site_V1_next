@@ -3,7 +3,7 @@
 ║                          ARBORESCENCE DU PROJET                             ║
 ║                                                                              ║
 ║  Projet: site_v1_next                                                    ║
-║  Généré: 25/09/2025 18:02:58                                            ║
+║  Généré: 26/09/2025 09:17:41                                            ║
 ║                                                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -13,8 +13,11 @@
 ├── 📁 .vscode
 │   └── 📋 tasks.json
 ├── 📁 docs
+│   ├── 📝 description-projet.md
 │   ├── 📄 project-structure.txt
-│   └── 📝 todo_modernistion.md
+│   └── 📝 roadmap-site.md
+├── 📁 lib
+│   └── 🔷 database.types.ts
 ├── 📁 public
 │   ├── 🖼️ file.svg
 │   ├── 🖼️ globe.svg
@@ -22,7 +25,8 @@
 │   ├── 🖼️ vercel.svg
 │   └── 🖼️ window.svg
 ├── 📁 scripts
-│   └── 🟨 generate-tree.js
+│   ├── 🟨 generate-tree.js
+│   └── 🔷 migrate-to-supabase.ts
 ├── 📁 src
 │   ├── 📁 app
 │   │   ├── 📁 about
@@ -101,7 +105,8 @@
 │   │       └── 🔷 use-toast.ts
 │   ├── 📁 hooks
 │   │   ├── 🔷 use-mobile.ts
-│   │   └── 🔷 use-toast.ts
+│   │   ├── 🔷 use-toast.ts
+│   │   └── 🔷 useSupabaseAuth.ts
 │   ├── 📁 lib
 │   │   ├── 🔷 api.ts
 │   │   ├── 🔷 constants.ts
@@ -111,9 +116,23 @@
 │   │   └── 🔷 utils.ts
 │   ├── 📁 store
 │   │   ├── 🔷 index.ts
-│   │   └── 🔷 useCartStore.ts
+│   │   ├── 🔷 useAuthStore.ts
+│   │   ├── 🔷 useCartStore.ts
+│   │   ├── 🔷 useCollectionStore.ts
+│   │   ├── 🔷 useProductStore.ts
+│   │   └── 🔷 useWishListStore.ts
 │   └── 📁 styles
 │       └── 🎨 components.css
+├── 📁 supabase
+│   └── 📁 .temp
+│       ├── 📄 cli-latest
+│       ├── 📄 gotrue-version
+│       ├── 📄 pooler-url
+│       ├── 📄 postgres-version
+│       ├── 📄 project-ref
+│       ├── 📄 rest-version
+│       └── 📄 storage-version
+├── 📋 .eslintrc.json
 ├── 📄 .gitignore
 ├── 🟨 eslint.config.mjs
 ├── 🔷 next-env.d.ts
@@ -122,12 +141,15 @@
 ├── 📦 package.json
 ├── 🟨 postcss.config.mjs
 ├── 📖 README.md
-└── ⚙️ tsconfig.json
+├── 📋 tsconfig.base.json
+├── ⚙️ tsconfig.json
+├── 📋 tsconfig.scripts.json
+└── 📄 tsconfig.tsbuildinfo
 
 
 📈 Statistiques :
-   • Dossiers : 23
-   • Fichiers : 78
-   • Total : 101 éléments
+   • Dossiers : 26
+   • Fichiers : 93
+   • Total : 119 éléments
 
 💡 Généré automatiquement - Ne pas modifier manuellement

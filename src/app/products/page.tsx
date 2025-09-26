@@ -1,31 +1,47 @@
-// src/app/products/page.tsx
+// src/app/products/page.tsx - Version Supabase
 "use client";
 
-import { useState } from "react";
-import { mockProducts } from "@/lib/mock-data";
-import Header from "@/components/layout/Header";
+import { useEffect } from "react";
+import { useProductStore } from "@/store/useProductStore";
 import { useCartStore } from "@/store/useCartStore";
+import Header from "@/components/layout/Header";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ProductsPage() {
-  const [filter, setFilter] = useState("all");
+  const { products, isLoading, error, fetchProducts } = useProductStore();
   const { addItem } = useCartStore();
 
-  const categories = ["all", ...new Set(mockProducts.map((p) => p.category))];
-  const filteredProducts =
-    filter === "all"
-      ? mockProducts
-      : mockProducts.filter((p) => p.category === filter);
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
 
   const handleAddToCart = (product: any) => {
     addItem({
       id: product.id,
       name: product.name,
       price: product.price,
-      image: product.images[0],
+      image: product.images?.[0]?.url,
     });
   };
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Header />
+        <main className="pt-20">
+          <div className="container mx-auto px-6 py-20 text-center">
+            <h1 className="text-2xl font-medium text-red-600 mb-4">
+              Erreur de chargement
+            </h1>
+            <p className="text-gray-600 mb-8">{error}</p>
+            <Button onClick={() => fetchProducts()}>Réessayer</Button>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -45,89 +61,109 @@ export default function ProductsPage() {
           </div>
         </section>
 
-        {/* Filtres */}
-        <section className="py-8 px-6 border-y bg-gray-50">
-          <div className="container mx-auto">
-            <div className="flex flex-wrap gap-4 justify-center">
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  onClick={() => setFilter(category)}
-                  className={`px-6 py-2 rounded-full transition-colors ${
-                    filter === category
-                      ? "bg-violet-600 text-white"
-                      : "bg-white text-gray-600 hover:bg-gray-100"
-                  }`}
-                >
-                  {category === "all" ? "Tout" : category}
-                </button>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* Grille produits */}
         <section className="py-12 px-6">
           <div className="container mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {filteredProducts.map((product) => (
-                <div key={product.id} className="group">
-                  <div className="aspect-[3/4] rounded-lg overflow-hidden mb-4 relative">
-                    <img
-                      src={product.images[0]}
-                      alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
-                      <Button
-                        onClick={() => handleAddToCart(product)}
-                        size="sm"
-                        className="bg-white text-gray-900 hover:bg-gray-100"
-                      >
-                        Panier
-                      </Button>
-                      <Link href={`/products/${product.id}`}>
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="space-y-4">
+                    <Skeleton className="aspect-[3/4] rounded-lg" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-4 w-1/4" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                {products.map((product) => (
+                  <div key={product.id} className="group">
+                    <div className="aspect-[3/4] rounded-lg overflow-hidden mb-4 relative">
+                      {product.images && product.images[0] ? (
+                        <img
+                          src={product.images[0].url}
+                          alt={product.images[0].alt_text || product.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                          <span className="text-gray-400">Pas d'image</span>
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
                         <Button
+                          onClick={() => handleAddToCart(product)}
                           size="sm"
-                          variant="outline"
-                          className="border-white text-white hover:bg-white hover:text-gray-900"
+                          className="bg-white text-gray-900 hover:bg-gray-100"
+                          disabled={product.stock_quantity === 0}
                         >
-                          Voir
+                          {product.stock_quantity > 0 ? "Panier" : "Épuisé"}
                         </Button>
-                      </Link>
+                        <Link href={`/products/${product.id}`}>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-white text-white hover:bg-white hover:text-gray-900"
+                          >
+                            Voir
+                          </Button>
+                        </Link>
+                      </div>
                     </div>
-                  </div>
 
-                  <div>
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-medium text-gray-900 group-hover:text-violet-600 transition-colors">
-                        {product.name}
-                      </h3>
-                      <span className="text-sm text-gray-500">
-                        {product.category}
-                      </span>
-                    </div>
-                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                      {product.description}
-                    </p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-lg font-medium text-gray-900">
-                        {product.price}€
-                      </span>
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full ${
-                          product.inStock
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {product.inStock ? "En stock" : "Épuisé"}
-                      </span>
+                    <div>
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-medium text-gray-900 group-hover:text-violet-600 transition-colors">
+                          {product.name}
+                        </h3>
+                        <span className="text-sm text-gray-500">
+                          {product.category?.name}
+                        </span>
+                      </div>
+                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                        {product.short_description}
+                      </p>
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          {product.sale_price ? (
+                            <>
+                              <span className="text-lg font-medium text-violet-600">
+                                {product.sale_price}€
+                              </span>
+                              <span className="text-sm text-gray-500 line-through">
+                                {product.price}€
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-lg font-medium text-gray-900">
+                              {product.price}€
+                            </span>
+                          )}
+                        </div>
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full ${
+                            product.stock_quantity > 0
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {product.stock_quantity > 0 ? "En stock" : "Épuisé"}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
+
+            {!isLoading && products.length === 0 && (
+              <div className="text-center py-20">
+                <p className="text-gray-500 text-lg">
+                  Aucun produit disponible pour le moment.
+                </p>
+              </div>
+            )}
           </div>
         </section>
       </main>
