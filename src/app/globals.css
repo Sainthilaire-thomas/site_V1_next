@@ -2,391 +2,140 @@
 
 :root {
   /* === COULEURS PRINCIPALES === */
-  --background: hsl(0 0% 100%); /* blanc pur */
-  --foreground: hsl(18 16% 17%); /* brun très sombre */
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(18 16% 17%);
 
-  /* Violet marque avec déclinaisons */
+  /* Violet marque - plus subtil selon design */
   --violet: hsl(271 74% 37%);
   --violet-soft: hsl(271 74% 45%);
-  --violet-glow: hsl(271 74% 37%);
-  --violet-subtle: hsl(271 30% 85%);
-  --violet-trail: hsl(271 20% 90%);
+  --violet-subtle: hsl(271 30% 92%); /* Plus subtil */
 
   /* Accent pour interactions */
   --accent: hsl(276 86% 36%);
 
-  /* Backgrounds et bordures */
-  --muted: hsl(0 0% 96%); /* gris très clair pour cartes */
+  /* Backgrounds et bordures - plus doux */
+  --muted: hsl(0 0% 98%); /* Plus proche du blanc */
   --muted-foreground: hsl(0 0% 45%);
-  --border: hsl(0 0% 90%); /* gris moyen pour bordures */
-  --secondary: hsl(0 0% 98%);
+  --border: hsl(0 0% 95%); /* Bordures plus discrètes */
+  --secondary: hsl(0 0% 99%);
 
-  /* Couleurs système */
+  /* Variables système existantes */
   --card: hsl(0 0% 100%);
   --card-foreground: hsl(18 16% 17%);
   --popover: hsl(0 0% 100%);
   --popover-foreground: hsl(18 16% 17%);
-  --primary: hsl(18 16% 17%); /* noir/brun pour boutons principaux */
+  --primary: hsl(18 16% 17%);
   --primary-foreground: hsl(0 0% 100%);
   --destructive: hsl(0 84% 60%);
   --destructive-foreground: hsl(0 0% 98%);
   --ring: hsl(271 74% 37%);
   --radius: 0.75rem;
 
-  /* === POLICES === */
-  --font-brand: var(--font-geist-sans), "Archivo Black", sans-serif;
-  --font-body: var(--font-geist-sans), "Archivo Narrow", sans-serif;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: hsl(18 16% 17%);
-    --foreground: hsl(0 0% 100%);
-    --card: hsl(18 16% 20%);
-    --card-foreground: hsl(0 0% 95%);
-    --popover: hsl(18 16% 20%);
-    --popover-foreground: hsl(0 0% 95%);
-    --primary: hsl(0 0% 100%);
-    --primary-foreground: hsl(18 16% 17%);
-    --secondary: hsl(18 10% 25%);
-    --muted: hsl(18 10% 25%);
-    --muted-foreground: hsl(0 0% 65%);
-    --border: hsl(18 10% 30%);
-    --accent: hsl(276 86% 45%);
-    --ring: hsl(271 74% 45%);
-  }
+  /* === POLICES - Garder Geist mais ajuster === */
+  --font-brand: var(--font-geist-sans);
+  --font-body: var(--font-geist-sans);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-body);
-  font-weight: 300; /* Style sobre */
+  font-weight: 400; /* Légèrement plus léger */
+  letter-spacing: -0.01em; /* Espacement plus serré = plus sobre */
 }
 
-/* === CLASSES PERSONNALISÉES === */
+/* === CLASSES POUR SOBRIÉTÉ === */
 
-/* Polices de marque */
-.font-brand {
-  font-family: var(--font-brand);
-  font-weight: 900; /* Archivo Black effet */
-}
-
-.font-body {
-  font-family: var(--font-body);
+/* Typographie sobre */
+.text-subtle {
+  color: hsl(0 0% 60%);
   font-weight: 300;
 }
 
-/* Couleurs violet */
-.text-violet {
-  color: var(--violet);
+.text-minimal {
+  font-size: 0.875rem;
+  color: hsl(0 0% 50%);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
-.text-violet-soft {
-  color: var(--violet-soft);
+/* Effets hover très discrets */
+.hover-subtle:hover {
+  transform: translateY(-1px);
+  transition: transform 0.2s ease;
 }
 
-.bg-violet {
-  background-color: var(--violet);
+/* Bordures minimalistes */
+.border-minimal {
+  border: 1px solid hsl(0 0% 96%);
 }
 
-.bg-violet-soft {
-  background-color: var(--violet-soft);
+/* Espacements généreux selon design */
+.spacing-minimal {
+  padding: 1rem 1.5rem;
 }
 
-.bg-violet-subtle {
-  background-color: var(--violet-subtle);
+.spacing-generous {
+  margin: 3rem 0;
 }
 
-.border-violet {
-  border-color: var(--violet);
-}
+/* === AJUSTEMENTS EXISTANTS === */
 
-.border-violet-soft {
-  border-color: var(--violet-soft);
-}
-
-/* Effets glow violet */
-.shadow-violet-glow {
-  box-shadow: 0 0 20px var(--violet-glow);
-}
-
-.drop-shadow-violet {
-  filter: drop-shadow(0 4px 8px hsl(271 74% 37% / 0.3));
-}
-
-/* === ANIMATIONS PERSONNALISÉES === */
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes float-alt {
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(10px);
-  }
-}
-
-@keyframes letter-appear {
-  0% {
-    opacity: 0;
-    transform: scale(0.5) translate(-50%, -50%);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translate(-50%, -50%);
-  }
-}
-
-@keyframes fade-in-up {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes glow-pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 5px var(--accent);
-  }
-  50% {
-    box-shadow: 0 0 20px var(--accent), 0 0 30px var(--accent);
-  }
-}
-
-@keyframes slide-down {
-  0% {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes hover-lift {
-  0% {
-    transform: translateY(0);
-  }
-  100% {
-    transform: translateY(-5px);
-  }
-}
-
-/* Classes d'animation */
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-.animate-float-alt {
-  animation: float-alt 6s ease-in-out infinite;
-}
-
-.animate-fade-in-up {
-  animation: fade-in-up 0.3s ease-out forwards;
-}
-
-.animate-glow-pulse {
-  animation: glow-pulse 2s ease-in-out infinite;
-}
-
-.animate-slide-down {
-  animation: slide-down 0.3s ease-out;
-}
-
-.animate-hover-lift:hover {
-  animation: hover-lift 0.3s ease-out forwards;
-}
-
-/* === STYLES SPÉCIFIQUES BLANCHE RENAUDIN === */
-
-/* Curseur personnalisé pour landing page */
-.cursor-none {
-  cursor: none;
-}
-
-.custom-cursor {
-  width: 8px;
-  height: 8px;
-  background: var(--accent);
-  border-radius: 50%;
-  pointer-events: none;
-  position: fixed;
-  z-index: 9999;
-  transition: transform 75ms ease-out;
-}
-
-/* Lettres flottantes landing page */
-.floating-letter {
-  position: absolute;
-  font-family: var(--font-body);
-  font-weight: 300;
-  transition: all 0.3s ease-out;
-  cursor: pointer;
-  user-select: none;
-  transform: translate(-50%, -50%);
-}
-
-.floating-letter:hover {
-  transform: translate(-50%, -50%) scale(1.5);
-  color: var(--accent);
-  filter: drop-shadow(0 4px 12px hsl(271 74% 37% / 0.4));
-}
-
-/* Point central landing page */
-.central-trigger {
-  width: 28px;
-  height: 28px;
-  background: var(--foreground);
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.central-trigger:hover {
-  background: var(--violet);
-  transform: scale(1.25);
-  box-shadow: 0 4px 16px hsl(271 74% 37% / 0.5);
-}
-
-/* Menu hamburger stylé */
+/* Menu moins visible */
 .menu-panel {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(8px);
+  border: 1px solid hsl(0 0% 96%);
 }
 
-/* Cartes produits avec effet hover */
+/* Cartes plus discrètes */
 .product-card {
-  background: var(--muted);
-  transition: all 0.3s ease;
-  border-radius: 0.5rem;
+  background: hsl(0 0% 99%);
+  border: 1px solid hsl(0 0% 96%);
+  transition: all 0.2s ease;
 }
 
 .product-card:hover {
-  transform: scale(1.02);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-color: hsl(0 0% 92%);
 }
 
-/* Boutons style Blanche Renaudin */
-.btn-primary {
-  background: var(--primary);
-  color: var(--primary-foreground);
-  border: none;
-  font-family: var(--font-body);
-  font-weight: 400;
-  transition: all 0.3s ease;
-}
-
-.btn-primary:hover {
-  background: hsl(18 16% 25%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.btn-outline {
+/* Boutons plus sobres */
+.btn-minimal {
   background: transparent;
-  border: 1px solid var(--border);
-  color: var(--foreground);
-  transition: all 0.3s ease;
+  border: 1px solid hsl(0 0% 90%);
+  color: hsl(0 0% 30%);
+  padding: 0.5rem 1rem;
+  font-weight: 400;
+  transition: all 0.2s ease;
 }
 
-.btn-outline:hover {
-  border-color: var(--violet);
-  color: var(--violet);
-  background: var(--violet-subtle);
+.btn-minimal:hover {
+  background: hsl(0 0% 98%);
+  border-color: hsl(271 74% 37%);
+  color: hsl(271 74% 37%);
 }
 
-/* Sections pleine hauteur */
-.section-fullscreen {
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+/* === ANIMATIONS PLUS DISCRÈTES === */
 
-/* Logo flottant avec scroll */
-.floating-logo {
-  position: fixed;
-  z-index: 40;
-  transition: all 0.3s ease;
-  font-family: var(--font-brand);
-  font-weight: 300;
-  color: var(--foreground);
-}
-
-.floating-logo:hover {
-  color: var(--violet);
-  transform: scale(1.05);
-}
-
-/* Espacements généreux */
-.spacing-generous {
-  margin-top: 8rem; /* mt-32 equivalent */
-}
-
-/* Typographie responsive */
-.text-hero {
-  font-size: clamp(2rem, 8vw, 6rem);
-  font-family: var(--font-brand);
-  font-weight: 300;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-}
-
-.text-display {
-  font-size: clamp(1.5rem, 4vw, 3rem);
-  font-family: var(--font-brand);
-  font-weight: 300;
-  line-height: 1.2;
-}
-
-/* Mode sombre amélioré */
-@media (prefers-color-scheme: dark) {
-  .product-card {
-    background: var(--muted);
-    border: 1px solid var(--border);
+@keyframes subtle-float {
+  0%,
+  100% {
+    transform: translateY(0px);
   }
-
-  .menu-panel {
-    background: rgba(30, 25, 25, 0.95);
-    border-color: var(--border);
-  }
-
-  .floating-logo {
-    color: var(--foreground);
+  50% {
+    transform: translateY(-3px);
   }
 }
 
-/* Scrollbar personnalisée */
-::-webkit-scrollbar {
-  width: 8px;
+.animate-subtle-float {
+  animation: subtle-float 8s ease-in-out infinite;
 }
 
-::-webkit-scrollbar-track {
-  background: var(--muted);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--violet);
+/* Réduire l'intensité des effets existants */
+.floating-letter:hover {
+  transform: translate(-50%, -50%) scale(1.2); /* Moins agressif */
+  color: var(--accent);
+  filter: drop-shadow(0 2px 8px hsl(271 74% 37% / 0.2)); /* Plus subtil */
 }

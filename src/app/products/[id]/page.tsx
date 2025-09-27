@@ -1,4 +1,4 @@
-// src/app/products/[id]/page.tsx
+// src/app/products/[id]/page.tsx - Avec UnifiedHeader
 "use client";
 
 import { use, useEffect, useMemo, useState } from "react";
@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useCartStore } from "@/store/useCartStore";
 import { useProductStore } from "@/store/useProductStore";
 import { LazyImage } from "@/components/common/LazyImage";
+import UnifiedHeader from "@/components/layout/UnifiedHeader"; // 👈 Import du header unifié
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -40,29 +41,16 @@ interface Props {
 type RawPV = {
   id: string;
   product_id: string;
-  name: string; // "color" | "size" (ou autre)
-  value: string; // "Blanc", "M", ...
+  name: string; // "color" | "size"
+  value: string; // "Blanc", "XS", etc.
   stock_quantity: number | null;
-  price_modifier: number | null; // +10 / -5 (optionnel)
+  price_modifier: number | null;
   sku: string | null;
   is_active: boolean | null;
-  image_url?: string | null; // si présent dans ta table
-};
-
-// Variante normalisée pour l'UI
-type Variant = {
-  id: string;
-  sku?: string | null;
-  color?: string;
-  size?: string;
-  stock_quantity: number; // 0 si null
-  price?: number | null; // prix final si modificateur appliqué
-  image_url?: string | null;
 };
 
 /* ---------- Helpers UI ---------- */
 
-// mapping FR -> hex + fallback
 const toHex = (c?: string) => {
   const map: Record<string, string> = {
     blanc: "#ffffff",
@@ -90,79 +78,89 @@ const toHex = (c?: string) => {
   return map[k] || (/#|rgb|hsl/.test(k) ? k : "#d1d5db");
 };
 
-// détection simple des couleurs claires pour ajouter un anneau
 const isLight = (hex: string) => {
   const h = hex.replace("#", "");
   const r = parseInt(h.slice(0, 2), 16) || 0;
   const g = parseInt(h.slice(2, 4), 16) || 0;
   const b = parseInt(h.slice(4, 6), 16) || 0;
   const L = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-  return L > 190; // ~ clair
+  return L > 190;
 };
 
-/* ---------- Normalisation des variantes ---------- */
+/* ---------- Parsing des variantes pour votre structure ---------- */
 
-const normalizeVariants = (
-  rows: RawPV[] | undefined,
-  basePrice: number
-): Variant[] => {
-  if (!rows || rows.length === 0) return [];
+const parseVariants = (rows: RawPV[] | undefined) => {
+  if (!rows || rows.length === 0)
+    return { colors: [], sizes: [], stockByVariant: new Map() };
 
-  // On groupe par SKU (si présent), sinon par couple color|size pour garder des combinaisons cohérentes
-  const groups = new Map<string, RawPV[]>();
+  const colors = new Set<string>();
+  const sizes = new Set<string>();
+  const stockByVariant = new Map<string, number>(); // "color|size" -> stock
 
-  for (const r of rows) {
-    const name = r.name?.toLowerCase();
-    if (name !== "color" && name !== "size") {
-      // ignore autres attributs pour l'instant
-    }
-    const color = rows.find(
-      (x) =>
-        (x.sku || x.id) === (r.sku || r.id) && x.name?.toLowerCase() === "color"
-    )?.value;
-    const size = rows.find(
-      (x) =>
-        (x.sku || x.id) === (r.sku || r.id) && x.name?.toLowerCase() === "size"
-    )?.value;
+  // Séparer les couleurs et tailles
+  const colorRows = rows.filter(
+    (r) => r.name?.toLowerCase() === "color" && r.is_active !== false
+  );
+  const sizeRows = rows.filter(
+    (r) => r.name?.toLowerCase() === "size" && r.is_active !== false
+  );
 
-    // clé préférée: sku ; fallback: color|size ; dernier fallback: id brut
-    const key =
-      r.sku || (color || size ? `${color ?? ""}|${size ?? ""}` : "") || r.id;
+  colorRows.forEach((row) => colors.add(row.value));
+  sizeRows.forEach((row) => sizes.add(row.value));
 
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key)!.push(r);
-  }
+  // Pour le stock, on doit faire des hypothèses car votre structure ne lie pas directement color+size
+  // Option 1: Si vous avez des SKU qui lient color et size
+  if (colorRows.some((r) => r.sku) && sizeRows.some((r) => r.sku)) {
+    const skuGroups = new Map<
+      string,
+      { color?: string; size?: string; stock: number }
+    >();
 
-  const result: Variant[] = [];
-  for (const [key, items] of groups.entries()) {
-    const color = items.find((i) => i.name?.toLowerCase() === "color")?.value;
-    const size = items.find((i) => i.name?.toLowerCase() === "size")?.value;
+    rows.forEach((row) => {
+      if (!row.sku) return;
+      if (!skuGroups.has(row.sku)) {
+        skuGroups.set(row.sku, { stock: 0 });
+      }
+      const group = skuGroups.get(row.sku)!;
 
-    // stock: on prend la première valeur définie, sinon 0
-    const stock =
-      items.find((i) => typeof i.stock_quantity === "number")?.stock_quantity ??
-      0;
+      if (row.name?.toLowerCase() === "color") group.color = row.value;
+      if (row.name?.toLowerCase() === "size") group.size = row.value;
+      if (typeof row.stock_quantity === "number") {
+        group.stock = Math.max(group.stock, row.stock_quantity);
+      }
+    });
 
-    const priceMod =
-      items.find((i) => typeof i.price_modifier === "number")?.price_modifier ??
-      0;
-
-    const active = items.every((i) => i.is_active !== false);
-
-    if (!active) continue;
-
-    result.push({
-      id: items[0].id,
-      sku: items[0].sku,
-      color,
-      size,
-      stock_quantity: Math.max(0, stock || 0),
-      price: basePrice + Number(priceMod || 0),
-      image_url: items.find((i) => i.image_url)?.image_url ?? null,
+    // Remplir stockByVariant
+    skuGroups.forEach((group) => {
+      if (group.color && group.size) {
+        stockByVariant.set(`${group.color}|${group.size}`, group.stock);
+      }
     });
   }
 
-  return result;
+  // Option 2: Fallback - utiliser le stock individuel de chaque variante
+  if (stockByVariant.size === 0) {
+    // Si pas de SKU, on assume que chaque combinaison color/size a le stock min des deux
+    colors.forEach((color) => {
+      sizes.forEach((size) => {
+        const colorRow = colorRows.find((r) => r.value === color);
+        const sizeRow = sizeRows.find((r) => r.value === size);
+
+        const colorStock = colorRow?.stock_quantity ?? 0;
+        const sizeStock = sizeRow?.stock_quantity ?? 0;
+
+        // Prendre le minimum (goulot d'étranglement) ou la moyenne
+        const stock = Math.min(Math.max(0, colorStock), Math.max(0, sizeStock));
+        stockByVariant.set(`${color}|${size}`, stock);
+      });
+    });
+  }
+
+  return {
+    colors: Array.from(colors),
+    sizes: Array.from(sizes),
+    stockByVariant,
+  };
 };
 
 /* ====================== Composant ====================== */
@@ -171,7 +169,7 @@ export default function ProductDetailPage({ params }: Props) {
   const { id } = use(params);
   const router = useRouter();
 
-  const { addItem, totalItems } = useCartStore();
+  const { addItem } = useCartStore();
   const { fetchProductById } = useProductStore();
 
   const [product, setProduct] = useState<any>(null);
@@ -179,12 +177,9 @@ export default function ProductDetailPage({ params }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-
-  // Sélections
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [quantity, setQuantity] = useState(1);
-  const [isWishlisted, setIsWishlisted] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -206,104 +201,78 @@ export default function ProductDetailPage({ params }: Props) {
     load();
   }, [id, fetchProductById]);
 
-  // Variantes normalisées depuis product.variants (table product_variants)
-  const variants: Variant[] = useMemo(() => {
-    const base = product?.sale_price ?? product?.price ?? 0;
-    return normalizeVariants(product?.variants as RawPV[] | undefined, base);
+  // Parser les variantes selon votre structure
+  const variantData = useMemo(() => {
+    return parseVariants(product?.variants as RawPV[] | undefined);
   }, [product]);
 
-  const allColors = useMemo(
-    () =>
-      Array.from(
-        new Set(variants.map((v) => v.color).filter(Boolean))
-      ) as string[],
-    [variants]
-  );
-  const allSizes = useMemo(
-    () =>
-      Array.from(
-        new Set(variants.map((v) => v.size).filter(Boolean))
-      ) as string[],
-    [variants]
-  );
+  const { colors, sizes, stockByVariant } = variantData;
 
-  // Disponibilités croisées
-  const availableColors = useMemo(() => {
-    if (!selectedSize) return allColors;
-    return allColors.filter((c) =>
-      variants.some(
-        (v) => v.color === c && v.size === selectedSize && v.stock_quantity > 0
-      )
-    );
-  }, [allColors, variants, selectedSize]);
-
-  const availableSizes = useMemo(() => {
-    if (!selectedColor) return allSizes;
-    return allSizes.filter((s) =>
-      variants.some(
-        (v) => v.size === s && v.color === selectedColor && v.stock_quantity > 0
-      )
-    );
-  }, [allSizes, variants, selectedColor]);
-
-  // Variante actuelle
-  const currentVariant: Variant | null = useMemo(
-    () =>
-      variants.find(
-        (v) => v.color === selectedColor && v.size === selectedSize
-      ) || null,
-    [variants, selectedColor, selectedSize]
-  );
-
-  // Corrections si une sélection devient invalide
+  // Auto-sélection si une seule option disponible
   useEffect(() => {
-    if (selectedColor && !availableColors.includes(selectedColor)) {
-      setSelectedColor("");
+    if (colors.length === 1 && !selectedColor) {
+      setSelectedColor(colors[0]);
     }
-  }, [availableColors, selectedColor]);
-  useEffect(() => {
-    if (selectedSize && !availableSizes.includes(selectedSize)) {
-      setSelectedSize("");
+    if (sizes.length === 1 && !selectedSize) {
+      setSelectedSize(sizes[0]);
     }
-  }, [availableSizes, selectedSize]);
+  }, [colors, sizes, selectedColor, selectedSize]);
 
-  // Stock / Prix
-  const variantStock = Math.max(0, currentVariant?.stock_quantity ?? 0);
+  // Stock pour la combinaison sélectionnée
+  const currentVariantStock = useMemo(() => {
+    if (!selectedColor || !selectedSize) return 0;
+    return stockByVariant.get(`${selectedColor}|${selectedSize}`) ?? 0;
+  }, [selectedColor, selectedSize, stockByVariant]);
+
+  // Stock total disponible
   const productStock = Math.max(0, product?.stock_quantity ?? 0);
-  const maxStock = variantStock || productStock;
+  const maxStock = Math.max(currentVariantStock, productStock);
   const inStock = maxStock > 0;
 
-  const displayPrice =
-    currentVariant?.price ?? product?.sale_price ?? product?.price;
+  // Prix
+  const basePrice = product?.sale_price ?? product?.price ?? 0;
+  const displayPrice = basePrice; // Vous pouvez ajouter price_modifier ici si nécessaire
+
+  // Debug info (temporaire)
+  console.log("Debug Supabase variants:", {
+    rawVariants: product?.variants,
+    parsedColors: colors,
+    parsedSizes: sizes,
+    stockByVariant: Object.fromEntries(stockByVariant),
+    selectedColor,
+    selectedSize,
+    currentVariantStock,
+    maxStock,
+    inStock,
+  });
 
   /* ---------- Actions ---------- */
 
   const handleAddToCart = () => {
     if (!product) return;
 
-    // si variants, forcer les deux choix valides
-    if (variants.length > 0) {
-      if (!selectedColor) return toast.error("Choisissez une couleur");
-      if (!selectedSize) return toast.error("Choisissez une taille");
-      if (!currentVariant || currentVariant.stock_quantity <= 0)
-        return toast.error("Variante indisponible");
+    // Vérifications
+    if (colors.length > 0 && !selectedColor) {
+      return toast.error("Choisissez une couleur");
+    }
+    if (sizes.length > 0 && !selectedSize) {
+      return toast.error("Choisissez une taille");
+    }
+    if (!inStock) {
+      return toast.error("Produit non disponible");
     }
 
     const qty = Math.min(Math.max(1, quantity), Math.max(1, maxStock));
 
-    // Ton store ajoute +1 à chaque appel → on boucle qty fois
+    // Ajouter au panier
     for (let i = 0; i < qty; i++) {
       addItem({
         id: product.id,
         name: product.name,
         price: displayPrice,
-        image:
-          currentVariant?.image_url ||
-          product.images?.[0]?.url ||
-          "/placeholder.jpg",
+        image: product.images?.[0]?.url || "/placeholder.jpg",
         size: selectedSize || undefined,
         color: selectedColor || undefined,
-        sku: currentVariant?.sku || undefined,
       });
     }
 
@@ -328,19 +297,8 @@ export default function ProductDetailPage({ params }: Props) {
   if (loading) {
     return (
       <div className="min-h-screen bg-white">
-        <header className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-gray-100 z-50">
-          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-            <Link href="/" className="text-2xl font-light text-gray-900">
-              .blancherenaudin
-            </Link>
-            <Link href="/cart">
-              <Button variant="outline" size="sm">
-                <ShoppingBag className="w-4 h-4 mr-2" />
-                Panier
-              </Button>
-            </Link>
-          </div>
-        </header>
+        {/* 👈 Header unifié pour le loading */}
+        <UnifiedHeader variant="default" showNavigation={true} />
 
         <div className="container mx-auto px-4 py-6">
           <div className="grid lg:grid-cols-2 gap-12 max-w-7xl mx-auto">
@@ -362,19 +320,8 @@ export default function ProductDetailPage({ params }: Props) {
   if (error || !product) {
     return (
       <div className="min-h-screen bg-white">
-        <header className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-gray-100 z-50">
-          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-            <Link href="/" className="text-2xl font-light text-gray-900">
-              .blancherenaudin
-            </Link>
-            <Link href="/cart">
-              <Button variant="outline" size="sm">
-                <ShoppingBag className="w-4 h-4 mr-2" />
-                Panier
-              </Button>
-            </Link>
-          </div>
-        </header>
+        {/* 👈 Header unifié pour l'erreur */}
+        <UnifiedHeader variant="default" showNavigation={true} />
 
         <div className="container mx-auto px-4 py-20 text-center">
           <h1 className="text-3xl font-light text-gray-900 mb-4">
@@ -392,33 +339,17 @@ export default function ProductDetailPage({ params }: Props) {
     );
   }
 
+  const canAddToCart =
+    inStock &&
+    (colors.length === 0 || selectedColor) &&
+    (sizes.length === 0 || selectedSize);
+
   /* ---------- Page ---------- */
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-gray-100 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link
-            href="/"
-            className="text-2xl font-light text-gray-900 hover:text-violet-600 transition-colors"
-          >
-            .blancherenaudin
-          </Link>
-
-          <Link href="/cart">
-            <Button variant="outline" size="sm" className="relative">
-              <ShoppingBag className="w-4 h-4 mr-2" />
-              Panier
-              {totalItems > 0 && (
-                <Badge className="absolute -top-2 -right-2 bg-violet-600 text-white min-w-[20px] h-5 text-xs flex items-center justify-center">
-                  {totalItems}
-                </Badge>
-              )}
-            </Button>
-          </Link>
-        </div>
-      </header>
+      {/* 👈 Header unifié principal */}
+      <UnifiedHeader variant="default" showNavigation={true} />
 
       {/* Contenu */}
       <div className="container mx-auto px-4 py-6">
@@ -440,7 +371,6 @@ export default function ProductDetailPage({ params }: Props) {
             <div className="relative group">
               <LazyImage
                 src={
-                  currentVariant?.image_url ||
                   product.images?.[selectedImageIndex]?.url ||
                   "/placeholder.jpg"
                 }
@@ -533,7 +463,7 @@ export default function ProductDetailPage({ params }: Props) {
                   <span className="text-3xl font-light text-violet-600">
                     {displayPrice}€
                   </span>
-                  {product.sale_price && !currentVariant?.price && (
+                  {product.sale_price && (
                     <span className="text-xl text-gray-500 line-through">
                       {product.price}€
                     </span>
@@ -557,87 +487,81 @@ export default function ProductDetailPage({ params }: Props) {
 
             <Separator />
 
-            {/* Sélecteurs basés sur variants */}
-            {variants.length > 0 && (
+            {/* Sélecteurs */}
+            {(colors.length > 0 || sizes.length > 0) && (
               <div className="space-y-8">
                 {/* Couleur */}
-                <div>
-                  <h3 className="font-medium text-gray-900 mb-3">Couleur</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {allColors.map((c) => {
-                      const enabled = availableColors.includes(c);
-                      const selected = selectedColor === c;
-                      const hex = toHex(c);
-                      const light = isLight(hex);
-                      return (
-                        <button
-                          key={c}
-                          onClick={() => enabled && setSelectedColor(c)}
-                          className={`inline-flex items-center gap-2 px-3 py-2 rounded-full border text-sm transition
-                            ${
-                              selected
-                                ? "bg-violet-600 text-white border-violet-600"
-                                : "bg-white"
-                            }
-                            ${
-                              enabled
-                                ? "border-gray-300 hover:border-violet-300"
-                                : "border-gray-200 text-gray-400 cursor-not-allowed opacity-60"
-                            }`}
-                          aria-pressed={selected}
-                          title={c}
-                        >
-                          <span
-                            className={`w-4 h-4 rounded-full ${
-                              light ? "ring-1 ring-gray-300" : ""
-                            }`}
-                            style={{ backgroundColor: hex }}
-                          />
-                          <span className="capitalize">{c}</span>
-                        </button>
-                      );
-                    })}
+                {colors.length > 0 && (
+                  <div>
+                    <h3 className="font-medium text-gray-900 mb-3">Couleur</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {colors.map((color) => {
+                        const selected = selectedColor === color;
+                        const hex = toHex(color);
+                        const light = isLight(hex);
+                        return (
+                          <button
+                            key={color}
+                            onClick={() => setSelectedColor(color)}
+                            className={`inline-flex items-center gap-2 px-3 py-2 rounded-full border text-sm transition
+                              ${
+                                selected
+                                  ? "bg-violet-600 text-white border-violet-600"
+                                  : "bg-white border-gray-300 hover:border-violet-300"
+                              }`}
+                            aria-pressed={selected}
+                            title={color}
+                          >
+                            <span
+                              className={`w-4 h-4 rounded-full ${
+                                light ? "ring-1 ring-gray-300" : ""
+                              }`}
+                              style={{ backgroundColor: hex }}
+                            />
+                            <span className="capitalize">{color}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Taille */}
-                <div>
-                  <h3 className="font-medium text-gray-900 mb-3">Taille</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {allSizes.map((s) => {
-                      const enabled = availableSizes.includes(s);
-                      const selected = selectedSize === s;
-                      return (
-                        <button
-                          key={s}
-                          onClick={() => enabled && setSelectedSize(s)}
-                          className={`px-4 py-2 rounded-lg text-sm border transition min-w-[3.5rem] text-center
-                            ${
-                              selected
-                                ? "bg-violet-600 text-white border-violet-600"
-                                : "bg-white"
-                            }
-                            ${
-                              enabled
-                                ? "border-gray-300 hover:border-violet-300"
-                                : "border-gray-200 text-gray-400 cursor-not-allowed opacity-60"
-                            }`}
-                          aria-pressed={selected}
-                          title={`Taille ${s}`}
-                        >
-                          {s}
-                        </button>
-                      );
-                    })}
-                  </div>
+                {sizes.length > 0 && (
+                  <div>
+                    <h3 className="font-medium text-gray-900 mb-3">Taille</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {sizes.map((size) => {
+                        const selected = selectedSize === size;
+                        return (
+                          <button
+                            key={size}
+                            onClick={() => setSelectedSize(size)}
+                            className={`px-4 py-2 rounded-lg text-sm border transition min-w-[3.5rem] text-center
+                              ${
+                                selected
+                                  ? "bg-violet-600 text-white border-violet-600"
+                                  : "bg-white border-gray-300 hover:border-violet-300"
+                              }`}
+                            aria-pressed={selected}
+                            title={`Taille ${size}`}
+                          >
+                            {size}
+                          </button>
+                        );
+                      })}
+                    </div>
 
-                  {currentVariant && (
-                    <p className="mt-2 text-xs text-gray-500">
-                      Stock pour {selectedColor} / {selectedSize} :{" "}
-                      <span className="font-medium">{variantStock}</span>
-                    </p>
-                  )}
-                </div>
+                    {selectedColor && selectedSize && (
+                      <p className="mt-2 text-xs text-gray-500">
+                        Stock pour {selectedColor} / {selectedSize} :{" "}
+                        <span className="font-medium">
+                          {currentVariantStock}
+                        </span>
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
@@ -698,14 +622,7 @@ export default function ProductDetailPage({ params }: Props) {
             <div className="space-y-4">
               <Button
                 onClick={handleAddToCart}
-                disabled={
-                  !inStock ||
-                  (variants.length > 0 &&
-                    (!selectedColor ||
-                      !selectedSize ||
-                      !currentVariant ||
-                      variantStock === 0))
-                }
+                disabled={!canAddToCart}
                 className="w-full bg-violet-600 hover:bg-violet-700 text-white py-4 text-lg font-medium rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
               >
                 <ShoppingBag className="w-5 h-5 mr-2" />
@@ -776,17 +693,17 @@ export default function ProductDetailPage({ params }: Props) {
                       {product.category?.name || "N/A"}
                     </span>
                   </div>
-                  {allSizes.length > 0 && (
+                  {sizes.length > 0 && (
                     <div className="flex justify-between">
                       <span>Tailles</span>
-                      <span className="font-medium">{allSizes.join(", ")}</span>
+                      <span className="font-medium">{sizes.join(", ")}</span>
                     </div>
                   )}
-                  {allColors.length > 0 && (
+                  {colors.length > 0 && (
                     <div className="flex justify-between">
                       <span>Couleurs</span>
                       <span className="font-medium capitalize">
-                        {allColors.join(", ")}
+                        {colors.join(", ")}
                       </span>
                     </div>
                   )}

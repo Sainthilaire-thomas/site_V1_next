@@ -1,15 +1,71 @@
-// src/app/collections/page.tsx - Version Supabase
+// src/app/collections/page.tsx - Version Supabase corrigée
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useCollectionStore } from "@/store/useCollectionStore";
-import Header from "@/components/layout/Header";
+import UnifiedHeader from "@/components/layout/UnifiedHeader";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function CollectionsPage() {
+  const mountedRef = useRef(false);
   const { collections, isLoading, error, fetchCollections } =
     useCollectionStore();
+
+  useEffect(() => {
+    console.groupCollapsed(
+      "%c[CollectionsPage] mount",
+      "color:#2563eb;font-weight:600"
+    );
+    console.time("⏱ CollectionsPage:firstLoad");
+    mountedRef.current = true;
+
+    (async () => {
+      console.log("→ call fetchCollections()");
+      await fetchCollections();
+      console.log("← fetchCollections done");
+      console.timeEnd("⏱ CollectionsPage:firstLoad");
+      console.groupEnd();
+    })().catch((e) => {
+      console.error("[CollectionsPage] fetch error:", e);
+      console.groupEnd();
+    });
+
+    return () => {
+      console.log("[CollectionsPage] unmount");
+      mountedRef.current = false;
+    };
+  }, [fetchCollections]);
+
+  useEffect(() => {
+    console.log("[CollectionsPage] state change:", {
+      isLoading,
+      error,
+      collectionsCount: collections.length,
+    });
+  }, [collections.length, isLoading, error]);
+
+  if (error) {
+    console.warn("[CollectionsPage] rendering error screen:", error);
+    return (
+      <div className="min-h-screen bg-white">
+        <UnifiedHeader variant="default" showNavigation={true} />
+        <main className="pt-6">
+          <div className="container mx-auto px-6 py-20 text-center">
+            <h1 className="text-2xl font-medium text-red-600 mb-4">
+              Erreur de chargement
+            </h1>
+            <p className="text-gray-600">{error}</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  console.log("[CollectionsPage] render", {
+    isLoading,
+    collections: collections.map((c) => c.slug),
+  });
 
   useEffect(() => {
     fetchCollections();
@@ -18,8 +74,8 @@ export default function CollectionsPage() {
   if (error) {
     return (
       <div className="min-h-screen bg-white">
-        <Header />
-        <main className="pt-20">
+        <UnifiedHeader variant="default" showNavigation={true} />
+        <main className="pt-6">
           <div className="container mx-auto px-6 py-20 text-center">
             <h1 className="text-2xl font-medium text-red-600 mb-4">
               Erreur de chargement
@@ -33,9 +89,9 @@ export default function CollectionsPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
+      <UnifiedHeader variant="default" showNavigation={true} />
 
-      <main className="pt-20">
+      <main className="pt-6">
         {/* Hero */}
         <section className="py-20 px-6">
           <div className="container mx-auto text-center">
@@ -67,6 +123,7 @@ export default function CollectionsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                 {collections.map((collection) => (
                   <Link
+                    prefetch={false} // ← ajouter ceci
                     key={collection.id}
                     href={`/collections/${collection.slug}`}
                     className="group block"

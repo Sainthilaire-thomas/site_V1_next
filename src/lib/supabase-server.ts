@@ -3,10 +3,6 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import type { Database } from "../../lib/database.types";
 import { cookies } from "next/headers";
 
-/**
- * Next 15: cookies() -> Promise<ReadonlyRequestCookies>
- * => rendre la fonction async et await cookies()
- */
 export async function getServerSupabase() {
   const cookieStore = await cookies();
 
@@ -15,15 +11,22 @@ export async function getServerSupabase() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
+        // ✅ nouvelle API attendue par @supabase/ssr
+        getAll() {
+          return cookieStore.getAll();
         },
-        set(name: string, value: string, options: CookieOptions) {
-          // set via l'API cookies() de Next
-          cookieStore.set({ name, value, ...options });
-        },
-        remove(name: string, options: CookieOptions) {
-          cookieStore.set({ name, value: "", ...options });
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set({
+                name,
+                value,
+                ...(options as CookieOptions | undefined),
+              });
+            });
+          } catch {
+            // Appelé depuis un Server Component pur -> on ne peut pas écrire des cookies ici, c'est OK.
+          }
         },
       },
     }

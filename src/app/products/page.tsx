@@ -4,7 +4,7 @@
 import { useEffect } from "react";
 import { useProductStore } from "@/store/useProductStore";
 import { useCartStore } from "@/store/useCartStore";
-import Header from "@/components/layout/Header";
+import UnifiedHeader from "@/components/layout/UnifiedHeader";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,12 +26,12 @@ export default function ProductsPage() {
     });
   };
 
-  // ✅ Fonction helper pour gérer stock_quantity null/undefined
+  // Fonction helper pour gérer stock_quantity null/undefined
   const getStockQuantity = (product: any): number => {
     return product.stock_quantity ?? 0;
   };
 
-  // ✅ Fonction helper pour vérifier si le produit est en stock
+  // Fonction helper pour vérifier si le produit est en stock
   const isInStock = (product: any): boolean => {
     return getStockQuantity(product) > 0;
   };
@@ -39,7 +39,7 @@ export default function ProductsPage() {
   if (error) {
     return (
       <div className="min-h-screen bg-white">
-        <Header />
+        <UnifiedHeader variant="default" showNavigation={true} />
         <main className="pt-20">
           <div className="container mx-auto px-6 py-20 text-center">
             <h1 className="text-2xl font-medium text-red-600 mb-4">
@@ -55,7 +55,7 @@ export default function ProductsPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
+      <UnifiedHeader variant="default" showNavigation={true} />
 
       <main className="pt-20">
         {/* Hero */}
@@ -106,10 +106,9 @@ export default function ProductsPage() {
                           onClick={() => handleAddToCart(product)}
                           size="sm"
                           className="bg-white text-gray-900 hover:bg-gray-100"
-                          disabled={!isInStock(product)} // ✅ Utilisation de la fonction helper
+                          disabled={!isInStock(product)}
                         >
-                          {isInStock(product) ? "Panier" : "Épuisé"} // ✅
-                          Utilisation de la fonction helper
+                          {isInStock(product) ? "Panier" : "Épuisé"}
                         </Button>
                         <Link href={`/products/${product.id}`}>
                           <Button
@@ -154,13 +153,12 @@ export default function ProductsPage() {
                         </div>
                         <span
                           className={`text-xs px-2 py-1 rounded-full ${
-                            isInStock(product) // ✅ Utilisation de la fonction helper
+                            isInStock(product)
                               ? "bg-green-100 text-green-800"
                               : "bg-red-100 text-red-800"
                           }`}
                         >
-                          {isInStock(product) ? "En stock" : "Épuisé"} // ✅
-                          Utilisation de la fonction helper
+                          {isInStock(product) ? "En stock" : "Épuisé"}
                         </span>
                       </div>
                     </div>
