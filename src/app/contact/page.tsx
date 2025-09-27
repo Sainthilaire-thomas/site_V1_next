@@ -1,33 +1,67 @@
-// src/app/contact/page.tsx
-"use client";
+// src/app/contact/page.tsx - Version avec Sanity
+'use client'
 
-import { useState } from "react";
-import Header from "@/components/layout/Header";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
+import { useState, useEffect } from 'react'
+import UnifiedHeader from '@/components/layout/UnifiedHeader'
+import RichTextRenderer from '@/components/common/RichTextRenderer'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { toast } from 'sonner'
+import { sanityClient } from '@/lib/sanity.client'
+import { PAGE_QUERY } from '@/lib/queries'
+
+interface PageData {
+  _id: string
+  title: string
+  slug: { current: string }
+  content?: any[]
+  seo?: {
+    title?: string
+    description?: string
+    image?: any
+  }
+}
 
 export default function ContactPage() {
+  const [pageData, setPageData] = useState<PageData | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    subject: "",
-    message: "",
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+    name: '',
+    email: '',
+    subject: '',
+    message: '',
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Charger les données Sanity
+  useEffect(() => {
+    const fetchContactPage = async () => {
+      try {
+        setIsLoading(true)
+        const data = await sanityClient.fetch(PAGE_QUERY, { slug: 'contact' })
+        setPageData(data || null)
+      } catch (error) {
+        console.error('Erreur lors du fetch de la page Contact:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchContactPage()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+    e.preventDefault()
+    setIsSubmitting(true)
 
     // Simulation d'envoi
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await new Promise((resolve) => setTimeout(resolve, 1500))
 
-    toast.success("Message envoyé avec succès !");
-    setFormData({ name: "", email: "", subject: "", message: "" });
-    setIsSubmitting(false);
-  };
+    toast.success('Message envoyé avec succès !')
+    setFormData({ name: '', email: '', subject: '', message: '' })
+    setIsSubmitting(false)
+  }
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -35,26 +69,45 @@ export default function ContactPage() {
     setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
-    }));
-  };
+    }))
+  }
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
+      <UnifiedHeader variant="default" showNavigation={true} />
 
-      <main className="pt-20">
+      <main className="pt-6">
         {/* Hero */}
         <section className="py-20 px-6">
           <div className="container mx-auto text-center">
             <h1 className="text-4xl md:text-6xl font-light text-gray-900 mb-6">
-              Contact
+              {pageData?.title || 'Contact'}
             </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Une question ? Un projet sur mesure ? Notre équipe est à votre
-              écoute pour vous accompagner dans vos choix.
-            </p>
+            {pageData?.seo?.description && (
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                {pageData.seo.description}
+              </p>
+            )}
+            {!pageData?.seo?.description && (
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Une question ? Un projet sur mesure ? Notre équipe est à votre
+                écoute pour vous accompagner dans vos choix.
+              </p>
+            )}
           </div>
         </section>
+
+        {/* Contenu personnalisé depuis Sanity */}
+        {pageData?.content && (
+          <section className="py-12 px-6 bg-gray-50">
+            <div className="container mx-auto max-w-4xl">
+              <RichTextRenderer
+                content={pageData.content}
+                className="text-gray-600"
+              />
+            </div>
+          </section>
+        )}
 
         {/* Contact Form & Info */}
         <section className="py-12 px-6">
@@ -143,7 +196,7 @@ export default function ContactPage() {
                     className="w-full bg-violet-600 hover:bg-violet-700"
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? "Envoi en cours..." : "Envoyer le message"}
+                    {isSubmitting ? 'Envoi en cours...' : 'Envoyer le message'}
                   </Button>
                 </form>
               </div>
@@ -207,7 +260,7 @@ export default function ContactPage() {
           </div>
         </section>
 
-        {/* Map Section (Optionnel) */}
+        {/* Map Section */}
         <section className="py-12 px-6 bg-gray-50">
           <div className="container mx-auto text-center">
             <div className="bg-gray-200 rounded-lg h-64 flex items-center justify-center">
@@ -219,7 +272,19 @@ export default function ContactPage() {
             </div>
           </div>
         </section>
+
+        {/* Message pour l'admin */}
+        {!pageData && !isLoading && (
+          <section className="py-8 px-6 bg-yellow-50 border-t border-yellow-200">
+            <div className="container mx-auto text-center">
+              <p className="text-sm text-yellow-800">
+                <strong>Admin :</strong> Créez une page "Contact" dans Sanity
+                Studio avec le slug "contact" pour personnaliser ce contenu.
+              </p>
+            </div>
+          </section>
+        )}
       </main>
     </div>
-  );
+  )
 }

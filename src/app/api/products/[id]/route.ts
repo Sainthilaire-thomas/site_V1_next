@@ -3,13 +3,13 @@ import { getServerSupabase } from "@/lib/supabase-server";
 
 export async function GET(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const supabase = await getServerSupabase();
-  const { id } = await params;
+  const { id } = await params
+  const supabase = await getServerSupabase()
 
   const { data: product, error } = await supabase
-    .from("products")
+    .from('products')
     .select(
       `
       *,
@@ -18,12 +18,11 @@ export async function GET(
       category:categories(*)
     `
     )
-    .eq("id", id)
-    .maybeSingle();
+    .eq('id', id)
+    .maybeSingle()
 
-  if (error)
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   if (!product)
-    return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
-  return NextResponse.json({ product });
+    return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 })
+  return NextResponse.json({ product })
 }

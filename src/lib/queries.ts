@@ -1,3 +1,4 @@
+// src/lib/queries.ts - Version étendue
 import { groq } from 'next-sanity'
 
 export const HOMEPAGE_QUERY = groq`*[_type=="homepage"][0]{
@@ -50,6 +51,15 @@ export const LOOKBOOK_QUERY = groq`*[_type=="lookbook" && slug.current == $slug]
 
 // Query pour les pages statiques
 export const PAGE_QUERY = groq`*[_type=="page" && slug.current == $slug][0]{
+  _id,
+  title,
+  slug,
+  content,
+  seo
+}`
+
+// Query pour toutes les pages
+export const PAGES_QUERY = groq`*[_type=="page"] | order(_createdAt desc) {
   _id,
   title,
   slug,
