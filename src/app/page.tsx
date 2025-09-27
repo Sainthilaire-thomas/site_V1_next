@@ -171,6 +171,8 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center z-50">
         <button
           className="central-trigger"
+          aria-label="Entrer sur le site"
+          title="Entrer"
           onMouseEnter={() => setIsHoveringCenter(true)}
           onMouseLeave={() => setIsHoveringCenter(false)}
           onClick={handleCenterClick}

@@ -139,3 +139,75 @@ body {
   color: var(--accent);
   filter: drop-shadow(0 2px 8px hsl(271 74% 37% / 0.2)); /* Plus subtil */
 }
+
+/* === INTRO LANDING – styles nécessaires === */
+.floating-letter {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  will-change: transform, opacity;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.central-trigger {
+  width: 24px;
+  height: 24px;
+  background: #111; /* carré noir discret */
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.custom-cursor {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  background: var(--violet);
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  z-index: 50;
+}
+
+/* animations utilisées par la page d’intro */
+@keyframes float {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) translateY(0);
+  }
+  50% {
+    transform: translate(-50%, -50%) translateY(-6px);
+  }
+}
+@keyframes floatAlt {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) translateY(0);
+  }
+  50% {
+    transform: translate(-50%, -50%) translateY(6px);
+  }
+}
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+.animate-float-alt {
+  animation: floatAlt 7s ease-in-out infinite;
+}
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease-out both;
+}

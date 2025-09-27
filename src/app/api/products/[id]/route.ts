@@ -6,7 +6,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   const supabase = await getServerSupabase();
-  const { id } = params;
+  const { id } = await params;
 
   const { data: product, error } = await supabase
     .from("products")

@@ -6,8 +6,7 @@ export async function GET(
   { params }: { params: { slug: string } }
 ) {
   const supabase = await getServerSupabase(); // ⬅️ init par requête
-  const { slug } = params;
-
+  const { slug } = await params;
   const { data: coll, error: collErr } = await supabase
     .from("collections")
     .select("*")
