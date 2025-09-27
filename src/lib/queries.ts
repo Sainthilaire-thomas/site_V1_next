@@ -9,3 +9,50 @@ export const HOMEPAGE_QUERY = groq`*[_type=="homepage"][0]{
   },
   seo
 }`
+
+// Nouvelles queries pour les collections éditoriales
+export const COLLECTIONS_EDITORIALES_QUERY = groq`*[_type=="collectionEditoriale"] | order(_createdAt desc) {
+  _id,
+  name,
+  slug,
+  intro,
+  gallery[0],
+  seo
+}`
+
+export const COLLECTION_EDITORIALE_QUERY = groq`*[_type=="collectionEditoriale" && slug.current == $slug][0]{
+  _id,
+  name,
+  slug,
+  intro,
+  gallery,
+  seo
+}`
+
+// Nouvelles queries pour les lookbooks
+export const LOOKBOOKS_QUERY = groq`*[_type=="lookbook"] | order(_createdAt desc) {
+  _id,
+  title,
+  season,
+  slug,
+  images[0],
+  seo
+}`
+
+export const LOOKBOOK_QUERY = groq`*[_type=="lookbook" && slug.current == $slug][0]{
+  _id,
+  title,
+  season,
+  slug,
+  images,
+  seo
+}`
+
+// Query pour les pages statiques
+export const PAGE_QUERY = groq`*[_type=="page" && slug.current == $slug][0]{
+  _id,
+  title,
+  slug,
+  content,
+  seo
+}`

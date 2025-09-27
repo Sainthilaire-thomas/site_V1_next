@@ -3,7 +3,7 @@
 ║                          ARBORESCENCE DU PROJET                             ║
 ║                                                                              ║
 ║  Projet: site_v1_next                                                    ║
-║  Généré: 26/09/2025 09:17:41                                            ║
+║  Généré: 27/09/2025 10:48:44                                            ║
 ║                                                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -14,8 +14,11 @@
 │   └── 📋 tasks.json
 ├── 📁 docs
 │   ├── 📝 description-projet.md
+│   ├── 📝 elements-desing-brouillon-blanche.md
+│   ├── 📝 installation-sanity.md
 │   ├── 📄 project-structure.txt
-│   └── 📝 roadmap-site.md
+│   ├── 📝 roadmap-site.md
+│   └── 📝 supabase-desc.md
 ├── 📁 lib
 │   └── 🔷 database.types.ts
 ├── 📁 public
@@ -24,6 +27,18 @@
 │   ├── 🖼️ next.svg
 │   ├── 🖼️ vercel.svg
 │   └── 🖼️ window.svg
+├── 📁 sanity
+│   ├── 📁 schemas
+│   │   ├── 📁 types
+│   │   │   ├── 🔷 blockContent.ts
+│   │   │   ├── 🔷 collectionEditoriale.ts
+│   │   │   ├── 🔷 homepage.ts
+│   │   │   ├── 🔷 lookbook.ts
+│   │   │   ├── 🔷 page.ts
+│   │   │   └── 🔷 seo.ts
+│   │   └── 🔷 index.ts
+│   ├── 🔷 sanity.config.ts
+│   └── 🔷 structure.ts
 ├── 📁 scripts
 │   ├── 🟨 generate-tree.js
 │   └── 🔷 migrate-to-supabase.ts
@@ -31,30 +46,52 @@
 │   ├── 📁 app
 │   │   ├── 📁 about
 │   │   │   └── 🔷 page.tsx
+│   │   ├── 📁 api
+│   │   │   ├── 📁 admin
+│   │   │   │   └── 📁 coupons
+│   │   │   ├── 📁 collections
+│   │   │   │   ├── 📁 [slug]
+│   │   │   │   │   └── 🔷 route.ts
+│   │   │   │   └── 🔷 route.ts
+│   │   │   └── 📁 products
+│   │   │       ├── 📁 [id]
+│   │   │       │   └── 🔷 route.ts
+│   │   │       └── 🔷 route.ts
 │   │   ├── 📁 cart
 │   │   │   └── 🔷 page.tsx
 │   │   ├── 📁 collections
-│   │   │   ├── 📁 [id]
-│   │   │   │   └── 🔷 page.tsx
+│   │   │   ├── 📁 [slug]
+│   │   │   │   ├── 🔷 page.tsx
+│   │   │   │   └── 🔷 product-grid-client.tsx
 │   │   │   └── 🔷 page.tsx
 │   │   ├── 📁 contact
 │   │   │   └── 🔷 page.tsx
 │   │   ├── 📁 products
 │   │   │   ├── 📁 [id]
-│   │   │   │   └── 🔷 page.tsx
-│   │   │   └── 🔷 page.tsx
+│   │   │   │   ├── 🔷 page.tsx
+│   │   │   │   └── 🔷 ProductDetailClient.tsx
+│   │   │   ├── 🔷 page.tsx
+│   │   │   └── 🔷 ProductCardClient.tsx
+│   │   ├── 📁 studio
+│   │   │   └── 📁 [[...index]]
+│   │   │       └── 🔷 page.tsx
 │   │   ├── 📄 favicon.ico
 │   │   ├── 🎨 globals.css
 │   │   ├── 🔷 layout.tsx
 │   │   └── 🔷 page.tsx
 │   ├── 📁 components
+│   │   ├── 📁 auth
+│   │   │   └── 🔷 AuthModal.tsx
 │   │   ├── 📁 common
 │   │   │   └── 🔷 LazyImage.tsx
+│   │   ├── 📁 editorial
+│   │   │   └── 🔷 EditorialProductSection.tsx
 │   │   ├── 📁 features
 │   │   ├── 📁 layout
 │   │   │   ├── 🔷 Header.tsx
 │   │   │   ├── 🔷 Homepage.tsx
-│   │   │   └── 🔷 InteractiveEntry.tsx
+│   │   │   ├── 🔷 InteractiveEntry.tsx
+│   │   │   └── 🔷 UnifiedHeader.tsx
 │   │   └── 📁 ui
 │   │       ├── 🔷 accordion.tsx
 │   │       ├── 🔷 alert.tsx
@@ -112,6 +149,13 @@
 │   │   ├── 🔷 constants.ts
 │   │   ├── 🔷 design-tokens.ts
 │   │   ├── 🔷 mock-data.ts
+│   │   ├── 🔷 products.ts
+│   │   ├── 🔷 queries.ts
+│   │   ├── 🔷 sanity.client.ts
+│   │   ├── 🔷 sanity.image.ts
+│   │   ├── 🔷 supabase-admin.ts
+│   │   ├── 🔷 supabase-server.ts
+│   │   ├── 🔷 supabase.ts
 │   │   ├── 🔷 types.ts
 │   │   └── 🔷 utils.ts
 │   ├── 📁 store
@@ -134,6 +178,7 @@
 │       └── 📄 storage-version
 ├── 📋 .eslintrc.json
 ├── 📄 .gitignore
+├── 📋 .prettierrc.json
 ├── 🟨 eslint.config.mjs
 ├── 🔷 next-env.d.ts
 ├── 🔷 next.config.ts
@@ -148,8 +193,8 @@
 
 
 📈 Statistiques :
-   • Dossiers : 26
-   • Fichiers : 93
-   • Total : 119 éléments
+   • Dossiers : 40
+   • Fichiers : 120
+   • Total : 160 éléments
 
 💡 Généré automatiquement - Ne pas modifier manuellement

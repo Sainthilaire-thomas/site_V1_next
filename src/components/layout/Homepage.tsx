@@ -1,12 +1,12 @@
-// src/components/layout/Homepage.tsx - VERSION SANITY
+// src/components/layout/Homepage.tsx - VERSION AVEC UnifiedHeader
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import { sanityClient } from '@/lib/sanity.client'
 import { HOMEPAGE_QUERY } from '@/lib/queries'
 import { urlFor } from '@/lib/sanity.image'
+import UnifiedHeader from './UnifiedHeader'
 
 // Types pour les données Sanity
 interface SanityHomepageData {
@@ -31,18 +31,9 @@ interface SanityHomepageData {
 }
 
 const Homepage = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isEasterEggActive, setIsEasterEggActive] = useState(false)
   const [sanityData, setSanityData] = useState<SanityHomepageData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-
-  const menuItems = [
-    { name: 'Collections', href: '/collections' },
-    { name: 'Produits', href: '/products' },
-    { name: 'À Propos', href: '/about' },
-    { name: 'Contact', href: '/contact' },
-    { name: 'Panier', href: '/cart' },
-  ]
 
   // Charger les données Sanity
   useEffect(() => {
@@ -130,47 +121,11 @@ const Homepage = () => {
         </div>
       )}
 
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-40 bg-white/98 backdrop-blur-sm border-b border-gray-50">
-        <nav className="container mx-auto px-8 py-6 flex items-center justify-between">
-          <Link
-            href="/"
-            className="text-xl text-gray-900 hover:text-violet transition-colors duration-300 font-light tracking-tight"
-            onClick={handleLogoClick}
-          >
-            {sanityData?.heroTitle || '.blancherenaudin'}
-          </Link>
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="relative z-50 p-3 hover:text-violet transition-colors duration-300"
-            aria-label="Toggle menu"
-          >
-            {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
-
-          {/* Menu */}
-          {isMenuOpen && (
-            <div className="menu-panel absolute top-full right-0 min-w-[180px] py-6 px-8 shadow-sm border border-gray-50 rounded-lg mt-4">
-              <ul className="space-y-4 text-right">
-                {menuItems.map((item, index) => (
-                  <li key={index}>
-                    <Link
-                      href={item.href}
-                      className="block py-1 text-gray-700 hover:text-violet hover:-translate-x-1 transition-all duration-200 font-normal text-sm tracking-wide"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      {item.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </nav>
-      </header>
+      {/* Header unifié */}
+      <UnifiedHeader variant="transparent" showNavigation={true} />
 
       {/* Hero Section */}
-      <section className="h-screen pt-24 px-8">
+      <section className="h-screen pt-20 px-8">
         <div className="container mx-auto h-full">
           {/* Hero avec image Sanity si disponible */}
           {sanityData?.heroImage ? (

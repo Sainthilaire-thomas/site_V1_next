@@ -33,11 +33,13 @@ export default function UnifiedHeader({
   };
 
   const navigation = [
-    { name: "Collections", href: "/collections" },
-    { name: "Produits", href: "/products" },
-    { name: "À Propos", href: "/about" },
-    { name: "Contact", href: "/contact" },
-  ];
+    { name: 'Collections', href: '/collections' },
+    { name: 'Produits', href: '/products' },
+    { name: 'Lookbooks', href: '/lookbooks' },
+    { name: 'Collections éditoriales', href: '/collections-editoriales' },
+    { name: 'À Propos', href: '/about' },
+    { name: 'Contact', href: '/contact' },
+  ]
 
   return (
     <header className={headerClasses[variant]}>
