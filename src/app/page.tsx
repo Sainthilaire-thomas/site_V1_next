@@ -1,264 +1,259 @@
-// src/app/page.tsx - VERSION CORRIGÉE
-"use client";
+// src/app/page.tsx
+'use client'
 
 import { useState, useRef, useCallback, useEffect, Suspense } from 'react'
-import { useSearchParams } from "next/navigation";
-import Homepage from "../components/layout/Homepage";
+import { useSearchParams } from 'next/navigation'
+import Homepage from '../components/layout/Homepage'
 
-// Composant d'entrée interactive selon les consignes design
+const DURATIONS = {
+  arrangeMs: 600,
+  staggerMs: 70,
+  holdMs: 500,
+  fadeOutMs: 300, // NEW: durée du fondu avant le passage à la Home
+}
+const LINE_SPACING_PCT = 2.8
+
 const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
+  const brandName = '.blancherenaudin'
   const [letters, setLetters] = useState<
     Array<{
-      char: string;
-      id: string;
-      x: number;
-      y: number;
-      originalX: number;
-      originalY: number;
-      delay: number;
+      char: string
+      id: string
+      x: number
+      y: number
+      originalX: number
+      originalY: number
+      delay: number
     }>
-  >([]);
-  const [isHoveringCenter, setIsHoveringCenter] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 });
-  const containerRef = useRef<HTMLDivElement>(null);
+  >([])
+  const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 })
+  const [isArranging, setIsArranging] = useState(false)
+  const [hideCenter, setHideCenter] = useState(false)
+  const [isFading, setIsFading] = useState(false) // NEW
+  const containerRef = useRef<HTMLDivElement>(null)
 
-  const brandName = ".blancherenaudin";
-
-  // Génération des lettres avec positions aléatoires
   const generateLetters = useCallback(() => {
-    const newLetters: Array<{
-      char: string;
-      id: string;
-      x: number;
-      y: number;
-      originalX: number;
-      originalY: number;
-      delay: number;
-    }> = [];
-    const chars = brandName.split("");
-
-    chars.forEach((char, index) => {
-      const x = Math.random() * 80 + 10; // 10% à 90%
-      const y = Math.random() * 80 + 10; // 10% à 90%
-
-      newLetters.push({
-        char,
-        id: `letter-${index}`,
-        x,
-        y,
-        originalX: x,
-        originalY: y,
-        delay: index * 0.1,
-      });
-    });
-
-    setLetters(newLetters);
-  }, [brandName]);
-
-  // Gestion du mouvement de souris pour l'effet de répulsion
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!containerRef.current) return;
-
-    const rect = containerRef.current.getBoundingClientRect();
-    const mouseX = ((e.clientX - rect.left) / rect.width) * 100;
-    const mouseY = ((e.clientY - rect.top) / rect.height) * 100;
-
-    setMousePosition({ x: mouseX, y: mouseY });
-
-    setLetters((prevLetters) =>
-      prevLetters.map((letter) => {
-        const distance = Math.sqrt(
-          Math.pow(mouseX - letter.originalX, 2) +
-            Math.pow(mouseY - letter.originalY, 2)
-        );
-
-        const repulsionRadius = 20; // 20% de l'écran
-
-        if (distance < repulsionRadius) {
-          const force = (repulsionRadius - distance) / repulsionRadius;
-          const angle = Math.atan2(
-            letter.originalY - mouseY,
-            letter.originalX - mouseX
-          );
-
-          const repulsionDistance = force * 10; // Maximum 10% de déplacement
-          const newX = letter.originalX + Math.cos(angle) * repulsionDistance;
-          const newY = letter.originalY + Math.sin(angle) * repulsionDistance;
-
-          return {
-            ...letter,
-            x: Math.max(5, Math.min(95, newX)),
-            y: Math.max(5, Math.min(95, newY)),
-          };
-        } else {
-          // Retour à la position originale
-          return {
-            ...letter,
-            x: letter.originalX,
-            y: letter.originalY,
-          };
+    const chars = brandName.split('')
+    setLetters(
+      chars.map((char, index) => {
+        const x = Math.random() * 80 + 10
+        const y = Math.random() * 80 + 10
+        return {
+          char,
+          id: `letter-${index}`,
+          x,
+          y,
+          originalX: x,
+          originalY: y,
+          delay: index * 0.06,
         }
       })
-    );
-  }, []);
+    )
+  }, [brandName])
 
-  // Initialisation
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (!containerRef.current || isArranging) return
+      const rect = containerRef.current.getBoundingClientRect()
+      const mouseX = ((e.clientX - rect.left) / rect.width) * 100
+      const mouseY = ((e.clientY - rect.top) / rect.height) * 100
+      setMousePosition({ x: mouseX, y: mouseY })
+
+      setLetters((prev) =>
+        prev.map((letter) => {
+          const dx = mouseX - letter.originalX
+          const dy = mouseY - letter.originalY
+          const distance = Math.sqrt(dx * dx + dy * dy)
+          const repulsionRadius = 20
+          if (distance < repulsionRadius) {
+            const force = (repulsionRadius - distance) / repulsionRadius
+            const angle = Math.atan2(
+              letter.originalY - mouseY,
+              letter.originalX - mouseX
+            )
+            const repulsionDistance = force * 10
+            const newX = letter.originalX + Math.cos(angle) * repulsionDistance
+            const newY = letter.originalY + Math.sin(angle) * repulsionDistance
+            return {
+              ...letter,
+              x: Math.max(5, Math.min(95, newX)),
+              y: Math.max(5, Math.min(95, newY)),
+            }
+          }
+          return { ...letter, x: letter.originalX, y: letter.originalY }
+        })
+      )
+    },
+    [isArranging]
+  )
+
   useEffect(() => {
-    generateLetters();
-  }, [generateLetters]);
+    generateLetters()
+  }, [generateLetters])
 
-  // Ajout du listener de souris
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
+    const container = containerRef.current
+    if (!container) return
+    container.addEventListener('mousemove', handleMouseMove)
+    return () => container.removeEventListener('mousemove', handleMouseMove)
+  }, [handleMouseMove])
 
-    container.addEventListener("mousemove", handleMouseMove);
-
-    return () => {
-      container.removeEventListener("mousemove", handleMouseMove);
-    };
-  }, [handleMouseMove]);
-
-  // Gestion du clic sur le point central
   const handleCenterClick = () => {
-    // Animation de convergence des lettres vers le centre
-    setLetters((prevLetters) =>
-      prevLetters.map((letter) => ({
-        ...letter,
-        x: 50, // Convergence vers le centre
+    if (isArranging) return
+    setHideCenter(true)
+    setIsArranging(true)
+
+    // positions cibles alignées
+    const n = brandName.length
+    const mid = (n - 1) / 2
+    setLetters((prev) =>
+      prev.map((l, i) => ({
+        ...l,
+        x: 50 + (i - mid) * LINE_SPACING_PCT,
         y: 50,
       }))
-    );
+    )
 
-    // Transition vers la homepage après l'animation
-    setTimeout(() => {
-      onEnter();
-    }, 1500);
-  };
+    // NEW: on lance un fade-out juste avant le switch
+    const totalMs =
+      DURATIONS.arrangeMs + DURATIONS.staggerMs * (n - 1) + DURATIONS.holdMs
+    window.setTimeout(
+      () => setIsFading(true),
+      Math.max(0, totalMs - DURATIONS.fadeOutMs)
+    )
+    window.setTimeout(onEnter, totalMs)
+  }
+
+  const handleCenterKey = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      handleCenterClick()
+    }
+  }
 
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-screen bg-background overflow-hidden cursor-none"
+      className="relative w-full h-screen bg-white overflow-hidden"
     >
-      {/* Lettres dispersées flottantes */}
+      {/* Lettres */}
       {letters.map((letter, index) => (
         <div
           key={letter.id}
-          className="floating-letter text-foreground"
+          className="text-foreground pointer-events-none"
           style={{
+            position: 'absolute',
             left: `${letter.x}%`,
             top: `${letter.y}%`,
-            fontSize: "clamp(1.2rem, 3.5vw, 2rem)",
+            transform: 'translate(-50%, -50%)',
+            fontSize: 'clamp(1.6rem, 5vw, 3rem)', // un peu plus grand pour le mot final
             opacity: 0,
-            animation: `letter-appear 0.5s ease-out ${letter.delay}s forwards`,
+            animation: `letter-appear 0.35s ease-out ${letter.delay}s forwards`,
+            willChange: 'left, top, opacity, transform',
+            transition: `left ${DURATIONS.arrangeMs}ms ease, top ${DURATIONS.arrangeMs}ms ease, opacity ${DURATIONS.fadeOutMs}ms ease`, // NEW
+            transitionDelay: isArranging
+              ? `${index * DURATIONS.staggerMs}ms`
+              : '0ms',
+            ...(isFading ? { opacity: 0 } : {}), // NEW: fondu des lettres
           }}
         >
-          <div
-            className={`${
-              index % 2 === 0 ? "animate-float" : "animate-float-alt"
-            }`}
-            style={{
-              animationDelay: `${letter.delay}s`,
-            }}
-          >
-            {letter.char}
-          </div>
+          {letter.char}
         </div>
       ))}
 
-      {/* Point central - carré noir selon les consignes */}
-      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center z-50">
-        <button
-          className="central-trigger"
-          aria-label="Entrer sur le site"
-          title="Entrer"
-          onMouseEnter={() => setIsHoveringCenter(true)}
-          onMouseLeave={() => setIsHoveringCenter(false)}
-          onClick={handleCenterClick}
+      {/* Carré central */}
+      {!hideCenter && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <button
+            aria-label="Entrer sur le site"
+            title="Entrer"
+            onClick={handleCenterClick}
+            onKeyDown={handleCenterKey}
+            style={{
+              width: 44,
+              height: 44,
+              background: 'black',
+              borderRadius: 4,
+              cursor: 'pointer',
+              boxShadow: '0 0 0 1px rgba(255,255,255,0.25) inset',
+            }}
+          />
+        </div>
+      )}
+
+      {/* Curseur custom (désactivé pendant le fade pour éviter tout flash) */}
+      {!isArranging && !isFading && (
+        <div
+          className="pointer-events-none"
+          style={{
+            position: 'fixed',
+            left: `${mousePosition.x}%`,
+            top: `${mousePosition.y}%`,
+            transform: 'translate(-50%, -50%)',
+            width: 10,
+            height: 10,
+            borderRadius: '9999px',
+            background: 'rgba(111, 76, 255, 0.9)',
+            zIndex: 40,
+          }}
         />
+      )}
 
-        {/* Révélation du nom complet au survol du carré central */}
-        {isHoveringCenter && (
-          <div className="ml-4 text-violet text-2xl font-light">
-            {brandName.split("").map((char, index) => (
-              <span
-                key={`reveal-${index}`}
-                className="inline-block animate-fade-in-up"
-                style={{
-                  animationDelay: `${index * 0.05}s`,
-                  animationFillMode: "both",
-                }}
-              >
-                {char}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Curseur personnalisé - petit cercle violet */}
+      {/* NEW: voile blanc qui fade-in avant le switch pour éviter tout « flash » */}
       <div
-        className="custom-cursor"
+        className={`fixed inset-0 pointer-events-none transition-opacity duration-[${DURATIONS.fadeOutMs}ms]`}
         style={{
-          left: `${mousePosition.x}%`,
-          top: `${mousePosition.y}%`,
-          transform: "translate(-50%, -50%)",
+          background: 'white',
+          opacity: isFading ? 1 : 0,
+          zIndex: 60,
         }}
       />
 
-      {/* Styles CSS intégrés pour les animations */}
       <style jsx>{`
         @keyframes letter-appear {
           0% {
             opacity: 0;
-            transform: scale(0.5) translate(-50%, -50%);
+            transform: translate(-50%, -50%) scale(0.88);
           }
           100% {
             opacity: 1;
-            transform: scale(1) translate(-50%, -50%);
+            transform: translate(-50%, -50%) scale(1);
           }
         }
       `}</style>
     </div>
-  );
-};
+  )
+}
 
-// ✅ NOUVEAU: Composant séparé qui utilise useSearchParams
 function HomeContent() {
   const [showHomepage, setShowHomepage] = useState(false)
   const searchParams = useSearchParams()
 
-  // ✅ Vérifier si on doit afficher directement la homepage
   useEffect(() => {
-    // Si il y a un paramètre "skip-intro" ou si l'utilisateur revient à la page d'accueil
-    // depuis une autre page, on affiche directement la homepage
     const skipIntro = searchParams.get('skip-intro')
-    const hasVisited = sessionStorage.getItem('hasVisitedHomepage')
-
-    if (skipIntro === 'true' || hasVisited === 'true') {
-      setShowHomepage(true)
-    }
+    const hasVisited =
+      typeof window !== 'undefined' &&
+      sessionStorage.getItem('hasVisitedHomepage')
+    if (skipIntro === 'true' || hasVisited === 'true') setShowHomepage(true)
   }, [searchParams])
 
-  // ✅ Marquer que l'utilisateur a visité la homepage
   const handleEnterHomepage = () => {
-    sessionStorage.setItem('hasVisitedHomepage', 'true')
+    try {
+      sessionStorage.setItem('hasVisitedHomepage', 'true')
+    } catch {}
     setShowHomepage(true)
   }
 
-  if (showHomepage) {
-    return <Homepage />
-  }
-
+  if (showHomepage) return <Homepage />
   return <InteractiveEntry onEnter={handleEnterHomepage} />
 }
 
-// ✅ NOUVEAU: Composant principal avec Suspense
 export default function Home() {
   return (
-    <Suspense fallback={<div className="w-full h-screen bg-background animate-pulse" />}>
+    <Suspense
+      fallback={<div className="w-full h-screen bg-white animate-pulse" />}
+    >
       <HomeContent />
     </Suspense>
-  );
+  )
 }

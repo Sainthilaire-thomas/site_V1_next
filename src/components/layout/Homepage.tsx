@@ -1,4 +1,4 @@
-// src/components/layout/Homepage.tsx - VERSION AVEC UnifiedHeader
+// src/components/layout/Homepage.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -8,7 +8,6 @@ import { HOMEPAGE_QUERY } from '@/lib/queries'
 import { urlFor } from '@/lib/sanity.image'
 import UnifiedHeader from './UnifiedHeader'
 
-// Types pour les données Sanity
 interface SanityHomepageData {
   heroTitle?: string
   heroSubtitle?: string
@@ -23,19 +22,24 @@ interface SanityHomepageData {
     images?: any[]
     productIds?: string[]
   }>
-  seo?: {
-    title?: string
-    description?: string
-    image?: any
-  }
+  seo?: { title?: string; description?: string; image?: any }
 }
 
 const Homepage = () => {
-  const [isEasterEggActive, setIsEasterEggActive] = useState(false)
   const [sanityData, setSanityData] = useState<SanityHomepageData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [skipSplash, setSkipSplash] = useState(false) // ⇐ nouveau
 
-  // Charger les données Sanity
+  // Savoir si on vient de l’intro
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem('hasVisitedHomepage') === 'true') {
+        setSkipSplash(true)
+      }
+    } catch {}
+  }, [])
+
+  // Charger Sanity
   useEffect(() => {
     const fetchHomepageData = async () => {
       try {
@@ -43,8 +47,7 @@ const Homepage = () => {
         const data = await sanityClient.fetch(HOMEPAGE_QUERY)
         setSanityData(data)
       } catch (error) {
-        console.error('Erreur lors du chargement des données Sanity:', error)
-        // Fallback vers des données par défaut si Sanity échoue
+        console.error('Erreur Sanity:', error)
         setSanityData({
           heroTitle: '.blancherenaudin',
           heroSubtitle: "Mode contemporaine & savoir-faire d'exception",
@@ -53,51 +56,37 @@ const Homepage = () => {
         setIsLoading(false)
       }
     }
-
     fetchHomepageData()
   }, [])
 
-  const handleLogoClick = () => {
-    setIsEasterEggActive(true)
-    setTimeout(() => setIsEasterEggActive(false), 3000)
-  }
-
-  const generateStrikeElements = () => {
-    const elements = []
-    for (let i = 0; i < 6; i++) {
-      const randomX = Math.random() * 100
-      const randomY = Math.random() * 100
-      const randomRotation = Math.random() * 360
-      const randomDelay = Math.random() * 0.5
-
-      elements.push(
-        <div
-          key={i}
-          className="fixed text-violet text-4xl md:text-6xl font-light pointer-events-none z-50 opacity-0 animate-pulse"
-          style={{
-            left: `${randomX}%`,
-            top: `${randomY}%`,
-            transform: `translate(-50%, -50%) rotate(${randomRotation}deg)`,
-            animationDelay: `${randomDelay}s`,
-            animationDuration: '0.6s',
-          }}
-        >
-          BLANCHE
+  // --- Loader : version SANS TEXTE (pas de flash de ".blancherenaudin")
+  // Si on vient de l’intro (skipSplash), on montre juste un squelette discret
+  if (isLoading) {
+    if (skipSplash) {
+      return (
+        <div className="min-h-screen bg-white text-gray-900 relative">
+          <UnifiedHeader variant="transparent" showNavigation={true} />
+          <section className="h-screen pt-20 px-8">
+            <div className="container mx-auto h-full grid place-items-center">
+              {/* spinner seul, sans texte */}
+              <div
+                aria-label="Chargement"
+                className="w-8 h-8 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"
+              />
+            </div>
+          </section>
         </div>
       )
     }
-    return elements
-  }
 
-  // Afficher un loader pendant le chargement
-  if (isLoading) {
+    // Arrivée directe : tu peux garder un loader, mais sans le nom
     return (
       <div className="min-h-screen bg-white text-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-2xl font-light text-gray-800 tracking-tight mb-4">
-            .blancherenaudin
-          </div>
-          <div className="w-8 h-8 border-2 border-violet border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <div
+            aria-label="Chargement"
+            className="w-8 h-8 border-2 border-gray-300 border-t-transparent rounded-full animate-spin mx-auto"
+          />
         </div>
       </div>
     )
@@ -105,7 +94,6 @@ const Homepage = () => {
 
   return (
     <div className="min-h-screen bg-white text-gray-900 relative">
-      {/* Détails flottants plus discrets */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-1/4 left-1/6 w-0.5 h-0.5 bg-gray-100 rounded-full opacity-20 animate-subtle-float" />
         <div
@@ -114,20 +102,11 @@ const Homepage = () => {
         />
       </div>
 
-      {/* Easter Egg */}
-      {isEasterEggActive && (
-        <div className="fixed inset-0 pointer-events-none z-50">
-          {generateStrikeElements()}
-        </div>
-      )}
-
-      {/* Header unifié */}
       <UnifiedHeader variant="transparent" showNavigation={true} />
 
-      {/* Hero Section */}
+      {/* Hero */}
       <section className="h-screen pt-20 px-8">
         <div className="container mx-auto h-full">
-          {/* Hero avec image Sanity si disponible */}
           {sanityData?.heroImage ? (
             <div className="relative w-full h-full flex items-center justify-center">
               <img
@@ -149,7 +128,7 @@ const Homepage = () => {
               </div>
             </div>
           ) : (
-            // Fallback vers la grille existante si pas d'image hero
+            // Fallback grille
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
               <Link
                 href="/collections"
@@ -170,6 +149,7 @@ const Homepage = () => {
                   </p>
                 </div>
               </Link>
+
               <Link
                 href="/products"
                 className="relative hover-subtle transition-all duration-300 group overflow-hidden rounded-md block"
@@ -186,6 +166,7 @@ const Homepage = () => {
                   </h3>
                 </div>
               </Link>
+
               <Link
                 href="/products"
                 className="relative hover-subtle transition-all duration-300 group overflow-hidden rounded-md block"
@@ -207,93 +188,89 @@ const Homepage = () => {
         </div>
       </section>
 
-      {/* Sections dynamiques depuis Sanity */}
-      {sanityData?.sections &&
-        sanityData.sections.map((section, index) => (
-          <section key={index} className="py-24 px-8">
-            <div className="container mx-auto">
-              {section._type === 'banner' && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                  {section.image && (
-                    <div className="aspect-[4/3] rounded-lg overflow-hidden">
+      {/* Sections dynamiques */}
+      {sanityData?.sections?.map((section, index) => (
+        <section key={index} className="py-24 px-8">
+          <div className="container mx-auto">
+            {section._type === 'banner' && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                {section.image && (
+                  <div className="aspect-[4/3] rounded-lg overflow-hidden">
+                    <img
+                      src={urlFor(section.image).width(1200).height(900).url()}
+                      alt={section.title || 'Banner'}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                <div>
+                  {section.title && (
+                    <h2 className="text-3xl font-light text-gray-800 tracking-tight mb-6">
+                      {section.title}
+                    </h2>
+                  )}
+                  {section.text && (
+                    <p className="text-gray-600 text-lg leading-relaxed mb-8">
+                      {section.text}
+                    </p>
+                  )}
+                  {section.ctaHref && (
+                    <Link
+                      href={section.ctaHref}
+                      className="inline-block px-8 py-3 border border-violet text-violet hover:bg-violet hover:text-white transition-colors duration-300"
+                    >
+                      {section.ctaLabel || 'Découvrir'}
+                    </Link>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {section._type === 'carousel' && section.images && (
+              <div>
+                {section.title && (
+                  <h2 className="text-3xl font-light text-center mb-20 text-gray-800 tracking-tight">
+                    {section.title}
+                  </h2>
+                )}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                  {section.images.map((image, imgIndex) => (
+                    <div
+                      key={imgIndex}
+                      className="aspect-[3/4] rounded-lg overflow-hidden border border-gray-50"
+                    >
                       <img
-                        src={urlFor(section.image)
-                          .width(1200)
-                          .height(900)
-                          .url()}
-                        alt={section.title || 'Banner'}
-                        className="w-full h-full object-cover"
+                        src={urlFor(image).width(800).height(1066).url()}
+                        alt={`Carousel ${imgIndex + 1}`}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                       />
                     </div>
-                  )}
-                  <div>
-                    {section.title && (
-                      <h2 className="text-3xl font-light text-gray-800 tracking-tight mb-6">
-                        {section.title}
-                      </h2>
-                    )}
-                    {section.text && (
-                      <p className="text-gray-600 text-lg leading-relaxed mb-8">
-                        {section.text}
-                      </p>
-                    )}
-                    {section.ctaHref && (
-                      <Link
-                        href={section.ctaHref}
-                        className="inline-block px-8 py-3 border border-violet text-violet hover:bg-violet hover:text-white transition-colors duration-300"
-                      >
-                        {section.ctaLabel || 'Découvrir'}
-                      </Link>
-                    )}
-                  </div>
+                  ))}
                 </div>
-              )}
+              </div>
+            )}
 
-              {section._type === 'carousel' && section.images && (
-                <div>
-                  {section.title && (
-                    <h2 className="text-3xl font-light text-center mb-20 text-gray-800 tracking-tight">
-                      {section.title}
-                    </h2>
-                  )}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                    {section.images.map((image, imgIndex) => (
-                      <div
-                        key={imgIndex}
-                        className="aspect-[3/4] rounded-lg overflow-hidden border border-gray-50"
-                      >
-                        <img
-                          src={urlFor(image).width(800).height(1066).url()}
-                          alt={`Carousel ${imgIndex + 1}`}
-                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                        />
-                      </div>
-                    ))}
-                  </div>
+            {section._type === 'editorialPicks' && section.productIds && (
+              <div>
+                {section.title && (
+                  <h2 className="text-3xl font-light text-center mb-20 text-gray-800 tracking-tight">
+                    {section.title}
+                  </h2>
+                )}
+                <div className="text-center text-gray-500">
+                  Sélection éditoriale - {section.productIds.length} produits
+                  <br />
+                  <small>
+                    Connectez votre store Supabase pour afficher les produits
+                  </small>
                 </div>
-              )}
+              </div>
+            )}
+          </div>
+        </section>
+      ))}
 
-              {section._type === 'editorialPicks' && section.productIds && (
-                <div>
-                  {section.title && (
-                    <h2 className="text-3xl font-light text-center mb-20 text-gray-800 tracking-tight">
-                      {section.title}
-                    </h2>
-                  )}
-                  <div className="text-center text-gray-500">
-                    Sélection éditoriale - {section.productIds.length} produits
-                    <br />
-                    <small>
-                      Connectez votre store Supabase pour afficher les produits
-                    </small>
-                  </div>
-                </div>
-              )}
-            </div>
-          </section>
-        ))}
-
-      {/* Section produits par défaut si pas de sections Sanity */}
+      {/* Section par défaut */}
       {(!sanityData?.sections || sanityData.sections.length === 0) && (
         <section className="py-24 px-8">
           <div className="container mx-auto">
@@ -337,7 +314,7 @@ const Homepage = () => {
                     alt={item.title}
                     className="w-full h-full object-cover filter brightness-105"
                   />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-200"></div>
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-200" />
                   <div className="absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <h3 className="text-white text-xs font-light tracking-wide uppercase">
                       {item.title}
@@ -350,7 +327,6 @@ const Homepage = () => {
         </section>
       )}
 
-      {/* Footer */}
       <footer className="py-16 px-8 border-t border-gray-50 bg-white">
         <div className="container mx-auto text-center">
           <h2 className="text-2xl text-gray-700 mb-3 font-light tracking-tight">
