@@ -1,7 +1,7 @@
 // src/app/page.tsx - VERSION CORRIGÉE
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, Suspense } from 'react'
 import { useSearchParams } from "next/navigation";
 import Homepage from "../components/layout/Homepage";
 
@@ -224,31 +224,41 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
   );
 };
 
-export default function Home() {
-  const [showHomepage, setShowHomepage] = useState(false);
-  const searchParams = useSearchParams();
+// ✅ NOUVEAU: Composant séparé qui utilise useSearchParams
+function HomeContent() {
+  const [showHomepage, setShowHomepage] = useState(false)
+  const searchParams = useSearchParams()
 
-  // ✅ NOUVEAU: Vérifier si on doit afficher directement la homepage
+  // ✅ Vérifier si on doit afficher directement la homepage
   useEffect(() => {
     // Si il y a un paramètre "skip-intro" ou si l'utilisateur revient à la page d'accueil
     // depuis une autre page, on affiche directement la homepage
-    const skipIntro = searchParams.get("skip-intro");
-    const hasVisited = sessionStorage.getItem("hasVisitedHomepage");
+    const skipIntro = searchParams.get('skip-intro')
+    const hasVisited = sessionStorage.getItem('hasVisitedHomepage')
 
-    if (skipIntro === "true" || hasVisited === "true") {
-      setShowHomepage(true);
+    if (skipIntro === 'true' || hasVisited === 'true') {
+      setShowHomepage(true)
     }
-  }, [searchParams]);
+  }, [searchParams])
 
-  // ✅ NOUVEAU: Marquer que l'utilisateur a visité la homepage
+  // ✅ Marquer que l'utilisateur a visité la homepage
   const handleEnterHomepage = () => {
-    sessionStorage.setItem("hasVisitedHomepage", "true");
-    setShowHomepage(true);
-  };
-
-  if (showHomepage) {
-    return <Homepage />;
+    sessionStorage.setItem('hasVisitedHomepage', 'true')
+    setShowHomepage(true)
   }
 
-  return <InteractiveEntry onEnter={handleEnterHomepage} />;
+  if (showHomepage) {
+    return <Homepage />
+  }
+
+  return <InteractiveEntry onEnter={handleEnterHomepage} />
+}
+
+// ✅ NOUVEAU: Composant principal avec Suspense
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="w-full h-screen bg-background animate-pulse" />}>
+      <HomeContent />
+    </Suspense>
+  );
 }

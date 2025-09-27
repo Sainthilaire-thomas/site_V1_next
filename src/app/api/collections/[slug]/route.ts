@@ -3,7 +3,7 @@ import { getServerSupabase } from "@/lib/supabase-server"; // ⬅️ remplace l'
 
 export async function GET(
   _req: Request,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> } // ✅ Type correct
 ) {
   const { slug } = await params
   const supabase = await getServerSupabase() // ⬅️ init par requête
