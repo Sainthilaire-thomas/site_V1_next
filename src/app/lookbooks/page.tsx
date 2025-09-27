@@ -1,4 +1,4 @@
-// src/app/lookbooks/page.tsx
+// src/app/lookbooks/page.tsx - Version corrigée
 import Link from 'next/link'
 import UnifiedHeader from '@/components/layout/UnifiedHeader'
 import { sanityClient } from '@/lib/sanity.client'
@@ -12,6 +12,7 @@ interface Lookbook {
   title: string
   season: string
   slug: { current: string }
+  coverImage?: any // ✅ Nouveau champ
   images?: any[]
   seo?: {
     title?: string
@@ -78,7 +79,9 @@ export default async function LookbooksPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {lookbooks.map((lookbook) => {
-                  const firstImage = lookbook.images?.[0]
+                  // ✅ Utiliser coverImage en priorité, sinon fallback sur la première image
+                  const displayImage =
+                    lookbook.coverImage || lookbook.images?.[0]
 
                   return (
                     <Link
@@ -87,9 +90,9 @@ export default async function LookbooksPage() {
                       className="group block"
                     >
                       <div className="aspect-[3/4] relative overflow-hidden rounded-lg mb-6">
-                        {firstImage ? (
+                        {displayImage ? (
                           <img
-                            src={urlFor(firstImage)
+                            src={urlFor(displayImage)
                               .width(600)
                               .height(800)
                               .url()}
@@ -169,3 +172,5 @@ export default async function LookbooksPage() {
     </div>
   )
 }
+
+// ================================================================================================

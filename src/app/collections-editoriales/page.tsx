@@ -1,16 +1,17 @@
-// src/app/collections-editoriales/page.tsx
+// src/app/collections-editoriales/page.tsx - Version corrigée
 import Link from 'next/link'
 import UnifiedHeader from '@/components/layout/UnifiedHeader'
 import { sanityClient } from '@/lib/sanity.client'
 import { COLLECTIONS_EDITORIALES_QUERY } from '@/lib/queries'
 import { urlFor } from '@/lib/sanity.image'
 
-export const revalidate = 60 // Revalidation toutes les minutes
+export const revalidate = 60
 
 interface CollectionEditoriale {
   _id: string
   name: string
   slug: { current: string }
+  coverImage?: any // ✅ Nouveau champ
   intro?: any[]
   gallery?: any[]
   seo?: {
@@ -78,7 +79,9 @@ export default async function CollectionsEditorialesPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {collections.map((collection) => {
-                  const firstImage = collection.gallery?.[0]
+                  // ✅ Utiliser coverImage en priorité, sinon fallback sur la première image de la galerie
+                  const displayImage =
+                    collection.coverImage || collection.gallery?.[0]
                   const description =
                     collection.intro?.[0]?.children?.[0]?.text || ''
 
@@ -89,9 +92,9 @@ export default async function CollectionsEditorialesPage() {
                       className="group block"
                     >
                       <div className="aspect-[4/3] relative overflow-hidden rounded-lg mb-6">
-                        {firstImage ? (
+                        {displayImage ? (
                           <img
-                            src={urlFor(firstImage)
+                            src={urlFor(displayImage)
                               .width(800)
                               .height(600)
                               .url()}

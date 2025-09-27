@@ -12,12 +12,13 @@ export const HOMEPAGE_QUERY = groq`*[_type=="homepage"][0]{
 }`
 
 // Nouvelles queries pour les collections éditoriales
-export const COLLECTIONS_EDITORIALES_QUERY = groq`*[_type=="collectionEditoriale"] | order(_createdAt desc) {
+export const COLLECTIONS_EDITORIALES_QUERY = `*[_type == "collectionEditoriale"] | order(_createdAt desc) {
   _id,
   name,
   slug,
+  coverImage,
   intro,
-  gallery[0],
+  gallery,
   seo
 }`
 
@@ -31,12 +32,14 @@ export const COLLECTION_EDITORIALE_QUERY = groq`*[_type=="collectionEditoriale" 
 }`
 
 // Nouvelles queries pour les lookbooks
-export const LOOKBOOKS_QUERY = groq`*[_type=="lookbook"] | order(_createdAt desc) {
+
+export const LOOKBOOKS_QUERY = `*[_type == "lookbook"] | order(_createdAt desc) {
   _id,
   title,
   season,
   slug,
-  images[0],
+  coverImage,
+  images,
   seo
 }`
 
