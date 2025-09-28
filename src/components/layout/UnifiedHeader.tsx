@@ -36,7 +36,7 @@ export default function UnifiedHeader({
     { name: 'Collections', href: '/collections' },
     { name: 'Produits', href: '/products' },
     { name: 'Lookbooks', href: '/lookbooks' },
-    { name: 'Collections éditoriales', href: '/collections-editoriales' },
+    { name: 'Inspirations', href: '/collections-editoriales' },
     { name: 'À Propos', href: '/about' },
     { name: 'Contact', href: '/contact' },
   ]

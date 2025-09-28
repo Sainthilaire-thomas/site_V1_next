@@ -42,7 +42,7 @@ export default async function CollectionsEditorialesPage() {
         <section className="py-20 px-6">
           <div className="container mx-auto text-center">
             <h1 className="text-4xl md:text-6xl font-light text-gray-900 mb-6">
-              Collections Éditoriales
+              Inspirations
             </h1>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               Découvrez l'univers et l'inspiration derrière nos créations.

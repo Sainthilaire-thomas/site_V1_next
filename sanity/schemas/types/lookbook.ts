@@ -1,4 +1,4 @@
-// sanity/schemas/types/lookbook.ts - Version avec image de couverture
+// sanity/schemas/types/lookbook.ts - Version avec image de couverture + published
 import { defineType } from 'sanity'
 
 export default defineType({
@@ -13,6 +13,17 @@ export default defineType({
       title: 'Slug',
       options: { source: 'title', maxLength: 96 },
     },
+
+    // ✅ Toggle pour (dé)publier sans supprimer
+    {
+      name: 'published',
+      title: 'Publié',
+      type: 'boolean',
+      initialValue: true,
+      description:
+        'Décochez pour retirer le lookbook du site sans le supprimer.',
+    },
+
     { name: 'season', type: 'string', title: 'Saison / Année' },
     {
       name: 'coverImage',
@@ -20,7 +31,7 @@ export default defineType({
       title: 'Image de couverture',
       description: 'Image principale qui apparaît sur la grille des lookbooks',
       options: { hotspot: true },
-      validation: (Rule) => Rule.required(),
+      validation: (Rule: any) => Rule.required(),
     },
     {
       name: 'images',
@@ -37,12 +48,12 @@ export default defineType({
       season: 'season',
       media: 'coverImage',
     },
-    prepare(selection) {
+    prepare(selection: { title?: string; season?: string; media?: any }) {
       const { title, season, media } = selection
       return {
-        title: title,
+        title,
         subtitle: season,
-        media: media,
+        media,
       }
     },
   },

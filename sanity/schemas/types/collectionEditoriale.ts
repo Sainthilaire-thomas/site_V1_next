@@ -35,6 +35,14 @@ export default defineType({
       of: [{ type: 'image', options: { hotspot: true } }],
     },
     { name: 'seo', type: 'seo', title: 'SEO' },
+    {
+      name: 'published',
+      title: 'Publié',
+      type: 'boolean',
+      initialValue: true,
+      description:
+        'Décochez pour retirer la collection du site sans la supprimer.',
+    },
   ],
   preview: {
     select: {
