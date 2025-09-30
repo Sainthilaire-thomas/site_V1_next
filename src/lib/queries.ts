@@ -1,12 +1,44 @@
 // src/lib/queries.ts
 import { groq } from 'next-sanity'
 
-export const HOMEPAGE_QUERY = groq`*[_type=="homepage"][0]{
-  heroTitle, heroSubtitle, heroImage,
-  sections[]{
-    _type == "banner" => { _type, title, text, image, ctaLabel, ctaHref },
-    _type == "carousel" => { _type, title, images },
-    _type == "editorialPicks" => { _type, title, productIds }
+// === Homepage ===
+export const HOMEPAGE_QUERY = groq`*[_type=="homepage" && _id == "homepage-singleton"][0]{
+  hero {
+    title,
+    subtitle,
+    image,
+    ctaLabel,
+    ctaLink
+  },
+  zoneHauts {
+    image,
+    title,
+    subtitle,
+    link
+  },
+  zoneBas {
+    image,
+    title,
+    subtitle,
+    link
+  },
+  zoneAccessoires {
+    image,
+    title,
+    subtitle,
+    link
+  },
+  zoneLookbooks {
+    image,
+    title,
+    subtitle,
+    link
+  },
+  zoneSustainability {
+    image,
+    title,
+    subtitle,
+    link
   },
   seo
 }`

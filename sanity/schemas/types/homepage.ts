@@ -5,46 +5,176 @@ export default defineType({
   title: 'Homepage',
   type: 'document',
   fields: [
-    { name: 'heroTitle', type: 'string', title: 'Titre hero' },
-    { name: 'heroSubtitle', type: 'string', title: 'Sous-titre' },
-    { name: 'heroImage', type: 'image', title: 'Image hero', options: { hotspot: true } },
+    // ========== SECTION HERO ==========
     {
-      name: 'sections',
-      title: 'Sections (bannières, carrousels, édito)',
-      type: 'array',
-      of: [
+      name: 'hero',
+      title: '🎬 Section Hero',
+      type: 'object',
+      fields: [
         {
-          type: 'object',
-          name: 'banner',
-          title: 'Bannière',
-          fields: [
-            { name: 'title', type: 'string', title: 'Titre' },
-            { name: 'text', type: 'text', title: 'Texte' },
-            { name: 'image', type: 'image', title: 'Image', options: { hotspot: true } },
-            { name: 'ctaLabel', type: 'string', title: 'Texte du bouton' },
-            { name: 'ctaHref', type: 'string', title: 'Lien' },
-          ]
+          name: 'title',
+          type: 'string',
+          title: 'Titre',
+          description: 'Ex: NOUVELLE COLLECTION',
         },
         {
-          type: 'object',
-          name: 'carousel',
-          title: 'Carrousel',
-          fields: [
-            { name: 'title', type: 'string', title: 'Titre' },
-            { name: 'images', type: 'array', of: [{ type: 'image', options: { hotspot: true } }] },
-          ]
+          name: 'subtitle',
+          type: 'text',
+          title: 'Sous-titre',
+          description: 'Ex: Découvrez les pièces essentielles de la saison',
         },
         {
-          type: 'object',
-          name: 'editorialPicks',
-          title: 'Sélection édito (IDs produits Supabase)',
-          fields: [
-            { name: 'title', type: 'string', title: 'Titre' },
-            { name: 'productIds', type: 'array', of: [{ type: 'string' }], title: 'IDs produits' },
-          ]
-        }
-      ]
+          name: 'image',
+          type: 'image',
+          title: 'Image de fond',
+          options: { hotspot: true },
+        },
+        {
+          name: 'ctaLabel',
+          type: 'string',
+          title: 'Texte du bouton',
+          description: 'Ex: DÉCOUVRIR',
+        },
+        {
+          name: 'ctaLink',
+          type: 'string',
+          title: 'Lien du bouton',
+          description: 'Ex: /hauts',
+        },
+      ],
     },
+
+    // ========== ZONE HAUTS (Grande) ==========
+    {
+      name: 'zoneHauts',
+      title: '👕 Zone HAUTS (grande image)',
+      type: 'object',
+      fields: [
+        {
+          name: 'image',
+          type: 'image',
+          title: 'Image',
+          options: { hotspot: true },
+          validation: (Rule) => Rule.required(),
+        },
+        {
+          name: 'title',
+          type: 'string',
+          title: 'Titre',
+          initialValue: 'HAUTS',
+        },
+        { name: 'subtitle', type: 'text', title: 'Sous-titre (optionnel)' },
+        { name: 'link', type: 'string', title: 'Lien', initialValue: '/hauts' },
+      ],
+    },
+
+    // ========== ZONE BAS (Petite) ==========
+    {
+      name: 'zoneBas',
+      title: '👖 Zone BAS (petite image)',
+      type: 'object',
+      fields: [
+        {
+          name: 'image',
+          type: 'image',
+          title: 'Image',
+          options: { hotspot: true },
+          validation: (Rule) => Rule.required(),
+        },
+        { name: 'title', type: 'string', title: 'Titre', initialValue: 'BAS' },
+        { name: 'subtitle', type: 'text', title: 'Sous-titre (optionnel)' },
+        { name: 'link', type: 'string', title: 'Lien', initialValue: '/bas' },
+      ],
+    },
+
+    // ========== ZONE ACCESSOIRES (Petite) ==========
+    {
+      name: 'zoneAccessoires',
+      title: '👜 Zone ACCESSOIRES (petite image)',
+      type: 'object',
+      fields: [
+        {
+          name: 'image',
+          type: 'image',
+          title: 'Image',
+          options: { hotspot: true },
+          validation: (Rule) => Rule.required(),
+        },
+        {
+          name: 'title',
+          type: 'string',
+          title: 'Titre',
+          initialValue: 'ACCESSOIRES',
+        },
+        { name: 'subtitle', type: 'text', title: 'Sous-titre (optionnel)' },
+        {
+          name: 'link',
+          type: 'string',
+          title: 'Lien',
+          initialValue: '/accessoires',
+        },
+      ],
+    },
+
+    // ========== ZONE LOOKBOOKS (Moyenne) ==========
+    {
+      name: 'zoneLookbooks',
+      title: '📸 Zone LOOKBOOKS (moyenne image)',
+      type: 'object',
+      fields: [
+        {
+          name: 'image',
+          type: 'image',
+          title: 'Image',
+          options: { hotspot: true },
+          validation: (Rule) => Rule.required(),
+        },
+        {
+          name: 'title',
+          type: 'string',
+          title: 'Titre',
+          initialValue: 'LOOKBOOKS',
+        },
+        { name: 'subtitle', type: 'text', title: 'Sous-titre (optionnel)' },
+        {
+          name: 'link',
+          type: 'string',
+          title: 'Lien',
+          initialValue: '/lookbooks',
+        },
+      ],
+    },
+
+    // ========== ZONE SUSTAINABILITY (Moyenne) ==========
+    {
+      name: 'zoneSustainability',
+      title: '🌱 Zone SUSTAINABILITY (moyenne image)',
+      type: 'object',
+      fields: [
+        {
+          name: 'image',
+          type: 'image',
+          title: 'Image',
+          options: { hotspot: true },
+          validation: (Rule) => Rule.required(),
+        },
+        {
+          name: 'title',
+          type: 'string',
+          title: 'Titre',
+          initialValue: 'SUSTAINABILITY',
+        },
+        { name: 'subtitle', type: 'text', title: 'Sous-titre (optionnel)' },
+        {
+          name: 'link',
+          type: 'string',
+          title: 'Lien',
+          initialValue: '/sustainability',
+        },
+      ],
+    },
+
+    // ========== SEO ==========
     { name: 'seo', type: 'seo', title: 'SEO' },
-  ]
+  ],
 })

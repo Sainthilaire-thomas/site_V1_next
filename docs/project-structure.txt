@@ -3,7 +3,7 @@
 ║                          ARBORESCENCE DU PROJET                             ║
 ║                                                                              ║
 ║  Projet: site_v1_next                                                    ║
-║  Généré: 27/09/2025 10:48:44                                            ║
+║  Généré: 30/09/2025 18:11:17                                            ║
 ║                                                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -15,8 +15,10 @@
 ├── 📁 docs
 │   ├── 📝 description-projet.md
 │   ├── 📝 elements-desing-brouillon-blanche.md
+│   ├── 📝 gestion-images.md
 │   ├── 📝 installation-sanity.md
 │   ├── 📄 project-structure.txt
+│   ├── 📝 refonte-type-jacquemus.md
 │   ├── 📝 roadmap-site.md
 │   └── 📝 supabase-desc.md
 ├── 📁 lib
@@ -24,6 +26,9 @@
 ├── 📁 public
 │   ├── 🖼️ file.svg
 │   ├── 🖼️ globe.svg
+│   ├── 🖼️ logo-blancherenaudin.png
+│   ├── 🖼️ logo-blancherenaudin2.png
+│   ├── 🖼️ logo-blancherenaudin3.png
 │   ├── 🖼️ next.svg
 │   ├── 🖼️ vercel.svg
 │   └── 🖼️ window.svg
@@ -46,6 +51,8 @@
 │   ├── 📁 app
 │   │   ├── 📁 about
 │   │   │   └── 🔷 page.tsx
+│   │   ├── 📁 accessoires
+│   │   │   └── 🔷 page.tsx
 │   │   ├── 📁 api
 │   │   │   ├── 📁 admin
 │   │   │   │   └── 📁 coupons
@@ -56,7 +63,11 @@
 │   │   │   └── 📁 products
 │   │   │       ├── 📁 [id]
 │   │   │       │   └── 🔷 route.ts
+│   │   │       ├── 📁 by-ids
+│   │   │       │   └── 🔷 route.ts
 │   │   │       └── 🔷 route.ts
+│   │   ├── 📁 bas
+│   │   │   └── 🔷 page.tsx
 │   │   ├── 📁 cart
 │   │   │   └── 🔷 page.tsx
 │   │   ├── 📁 collections
@@ -64,7 +75,17 @@
 │   │   │   │   ├── 🔷 page.tsx
 │   │   │   │   └── 🔷 product-grid-client.tsx
 │   │   │   └── 🔷 page.tsx
+│   │   ├── 📁 collections-editoriales
+│   │   │   ├── 📁 [slug]
+│   │   │   │   └── 🔷 page.tsx
+│   │   │   └── 🔷 page.tsx
 │   │   ├── 📁 contact
+│   │   │   └── 🔷 page.tsx
+│   │   ├── 📁 hauts
+│   │   │   └── 🔷 page.tsx
+│   │   ├── 📁 lookbooks
+│   │   │   ├── 📁 [slug]
+│   │   │   │   └── 🔷 page.tsx
 │   │   │   └── 🔷 page.tsx
 │   │   ├── 📁 products
 │   │   │   ├── 📁 [id]
@@ -75,6 +96,8 @@
 │   │   ├── 📁 studio
 │   │   │   └── 📁 [[...index]]
 │   │   │       └── 🔷 page.tsx
+│   │   ├── 📁 sustainability
+│   │   │   └── 🔷 page.tsx
 │   │   ├── 📄 favicon.ico
 │   │   ├── 🎨 globals.css
 │   │   ├── 🔷 layout.tsx
@@ -83,15 +106,21 @@
 │   │   ├── 📁 auth
 │   │   │   └── 🔷 AuthModal.tsx
 │   │   ├── 📁 common
-│   │   │   └── 🔷 LazyImage.tsx
+│   │   │   ├── 🔷 LazyImage.tsx
+│   │   │   └── 🔷 RichTextRenderer.tsx
 │   │   ├── 📁 editorial
 │   │   │   └── 🔷 EditorialProductSection.tsx
 │   │   ├── 📁 features
 │   │   ├── 📁 layout
+│   │   │   ├── 🔷 FooterMinimal.tsx
 │   │   │   ├── 🔷 Header.tsx
+│   │   │   ├── 🔷 HeaderMinimal.tsx
 │   │   │   ├── 🔷 Homepage.tsx
 │   │   │   ├── 🔷 InteractiveEntry.tsx
 │   │   │   └── 🔷 UnifiedHeader.tsx
+│   │   ├── 📁 products
+│   │   │   ├── 🔷 ProductCardMinimal.tsx
+│   │   │   └── 🔷 ProductGridMinimal.tsx
 │   │   └── 📁 ui
 │   │       ├── 🔷 accordion.tsx
 │   │       ├── 🔷 alert.tsx
@@ -186,6 +215,7 @@
 ├── 📦 package.json
 ├── 🟨 postcss.config.mjs
 ├── 📖 README.md
+├── 🔷 tailwind.config.ts
 ├── 📋 tsconfig.base.json
 ├── ⚙️ tsconfig.json
 ├── 📋 tsconfig.scripts.json
@@ -193,8 +223,8 @@
 
 
 📈 Statistiques :
-   • Dossiers : 40
-   • Fichiers : 120
-   • Total : 160 éléments
+   • Dossiers : 50
+   • Fichiers : 135
+   • Total : 185 éléments
 
 💡 Généré automatiquement - Ne pas modifier manuellement

@@ -1,348 +1,253 @@
-// src/components/layout/Homepage.tsx
 'use client'
 
-import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { sanityClient } from '@/lib/sanity.client'
-import { HOMEPAGE_QUERY } from '@/lib/queries'
+import { ChevronDown } from 'lucide-react'
+import HeaderMinimal from './HeaderMinimal'
+import FooterMinimal from './FooterMinimal'
 import { urlFor } from '@/lib/sanity.image'
-import UnifiedHeader from './UnifiedHeader'
 
-interface SanityHomepageData {
-  heroTitle?: string
-  heroSubtitle?: string
-  heroImage?: any
-  sections?: Array<{
-    _type: 'banner' | 'carousel' | 'editorialPicks'
-    title?: string
-    text?: string
-    image?: any
-    ctaLabel?: string
-    ctaHref?: string
-    images?: any[]
-    productIds?: string[]
-  }>
-  seo?: { title?: string; description?: string; image?: any }
+// Types pour les données Sanity
+interface HomepageData {
+  hero: {
+    title: string
+    subtitle: string
+    image: any
+    ctaLabel: string
+    ctaLink: string
+  }
+  zoneHauts: CategoryZone
+  zoneBas: CategoryZone
+  zoneAccessoires: CategoryZone
+  zoneLookbooks: CategoryZone
+  zoneSustainability: CategoryZone
 }
 
-const Homepage = () => {
-  const [sanityData, setSanityData] = useState<SanityHomepageData | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [skipSplash, setSkipSplash] = useState(false) // ⇐ nouveau
+interface CategoryZone {
+  image: any
+  title: string
+  subtitle?: string
+  link: string
+}
 
-  // Savoir si on vient de l’intro
-  useEffect(() => {
-    try {
-      if (sessionStorage.getItem('hasVisitedHomepage') === 'true') {
-        setSkipSplash(true)
-      }
-    } catch {}
-  }, [])
+interface HomepageProps {
+  data: HomepageData
+}
 
-  // Charger Sanity
-  useEffect(() => {
-    const fetchHomepageData = async () => {
-      try {
-        setIsLoading(true)
-        const data = await sanityClient.fetch(HOMEPAGE_QUERY)
-        setSanityData(data)
-      } catch (error) {
-        console.error('Erreur Sanity:', error)
-        setSanityData({
-          heroTitle: '.blancherenaudin',
-          heroSubtitle: "Mode contemporaine & savoir-faire d'exception",
-        })
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    fetchHomepageData()
-  }, [])
-
-  // --- Loader : version SANS TEXTE (pas de flash de ".blancherenaudin")
-  // Si on vient de l’intro (skipSplash), on montre juste un squelette discret
-  if (isLoading) {
-    if (skipSplash) {
-      return (
-        <div className="min-h-screen bg-white text-gray-900 relative">
-          <UnifiedHeader variant="transparent" showNavigation={true} />
-          <section className="h-screen pt-20 px-8">
-            <div className="container mx-auto h-full grid place-items-center">
-              {/* spinner seul, sans texte */}
-              <div
-                aria-label="Chargement"
-                className="w-8 h-8 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"
-              />
-            </div>
-          </section>
-        </div>
-      )
-    }
-
-    // Arrivée directe : tu peux garder un loader, mais sans le nom
+export default function Homepage({ data }: HomepageProps) {
+  // Protection contre data undefined
+  if (!data) {
     return (
-      <div className="min-h-screen bg-white text-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div
-            aria-label="Chargement"
-            className="w-8 h-8 border-2 border-gray-300 border-t-transparent rounded-full animate-spin mx-auto"
-          />
-        </div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <p className="text-grey-medium">Chargement...</p>
       </div>
     )
   }
 
+  const {
+    hero,
+    zoneHauts,
+    zoneBas,
+    zoneAccessoires,
+    zoneLookbooks,
+    zoneSustainability,
+  } = data
+
+  // Helper pour obtenir l'URL d'une image de manière sécurisée
+  const getImageUrl = (
+    image: any,
+    fallback: string = 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1920&h=1080&fit=crop'
+  ): string => {
+    if (!image) return fallback
+    try {
+      const url = urlFor(image)?.url()
+      return url || fallback
+    } catch (error) {
+      console.error("Erreur lors de la génération de l'URL image:", error)
+      return fallback
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-white text-gray-900 relative">
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-1/4 left-1/6 w-0.5 h-0.5 bg-gray-100 rounded-full opacity-20 animate-subtle-float" />
-        <div
-          className="absolute bottom-1/3 right-1/5 w-0.5 h-0.5 bg-gray-100 rounded-full opacity-15 animate-subtle-float"
-          style={{ animationDelay: '4s' }}
-        />
+    <div className="min-h-screen bg-white">
+      {/* Header avec position absolue pour overlay sur le hero */}
+      <div className="relative z-50">
+        <HeaderMinimal />
       </div>
 
-      <UnifiedHeader variant="transparent" showNavigation={true} />
+      {/* Hero Section - Plein écran SOUS le header */}
+      <section className="relative w-full -mt-20" style={{ height: '100vh' }}>
+        {/* Image de fond */}
+        <div className="absolute inset-0">
+          <img
+            src={getImageUrl(hero?.image)}
+            alt={hero?.title || 'Hero'}
+            className="h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black/20" />
+        </div>
 
-      {/* Hero */}
-      <section className="h-screen pt-20 px-8">
-        <div className="container mx-auto h-full">
-          {sanityData?.heroImage ? (
-            <div className="relative w-full h-full flex items-center justify-center">
-              <img
-                src={urlFor(sanityData.heroImage).width(1600).height(900).url()}
-                alt={sanityData.heroTitle || 'Hero'}
-                className="w-full h-full object-cover rounded-md"
-              />
-              <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                <div className="text-center text-white">
-                  <h1 className="text-4xl md:text-6xl font-light mb-4 tracking-tight">
-                    {sanityData.heroTitle || '.blancherenaudin'}
-                  </h1>
-                  {sanityData.heroSubtitle && (
-                    <p className="text-lg md:text-xl font-light opacity-90">
-                      {sanityData.heroSubtitle}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          ) : (
-            // Fallback grille
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
-              <Link
-                href="/collections"
-                className="md:col-span-2 md:row-span-2 relative hover-subtle transition-all duration-300 group overflow-hidden rounded-md block"
-              >
-                <img
-                  src="https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=800&h=1200&fit=crop&crop=center"
-                  alt="Collection Automne"
-                  className="w-full h-full object-cover filter brightness-105 contrast-95"
-                />
-                <div className="absolute inset-0 bg-black/10 group-hover:bg-black/15 transition-all duration-300"></div>
-                <div className="absolute bottom-12 left-12">
-                  <h2 className="text-white text-2xl md:text-3xl font-light mb-3 tracking-tight">
-                    Collection Automne
-                  </h2>
-                  <p className="text-white/80 text-base font-light">
-                    Découvrez nos dernières créations
-                  </p>
-                </div>
-              </Link>
+        {/* Texte superposé */}
+        <div className="relative z-10 flex h-full items-end pb-16 px-8">
+          <div className="max-w-4xl">
+            <h1
+              className="text-hero text-white mb-4"
+              style={{ whiteSpace: 'pre-line' }}
+            >
+              {hero?.title || 'NOUVELLE\nCOLLECTION'}
+            </h1>
+            <p className="text-body text-white/90 max-w-md mb-8 text-lg">
+              {hero?.subtitle ||
+                'Découvrez les pièces essentielles de la saison'}
+            </p>
+            <Link href={hero?.ctaLink || '/hauts'} className="btn-primary">
+              {hero?.ctaLabel || 'DÉCOUVRIR'}
+            </Link>
+          </div>
+        </div>
 
-              <Link
-                href="/products"
-                className="relative hover-subtle transition-all duration-300 group overflow-hidden rounded-md block"
-              >
-                <img
-                  src="https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=400&h=600&fit=crop&crop=faces"
-                  alt="Collection Femme"
-                  className="w-full h-full object-cover filter brightness-105"
-                />
-                <div className="absolute inset-0 bg-black/10 group-hover:bg-black/15 transition-all duration-300"></div>
-                <div className="absolute bottom-6 left-6">
-                  <h3 className="text-white text-lg font-light tracking-tight">
-                    Femme
-                  </h3>
-                </div>
-              </Link>
-
-              <Link
-                href="/products"
-                className="relative hover-subtle transition-all duration-300 group overflow-hidden rounded-md block"
-              >
-                <img
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop&crop=faces"
-                  alt="Collection Homme"
-                  className="w-full h-full object-cover filter brightness-105"
-                />
-                <div className="absolute inset-0 bg-black/10 group-hover:bg-black/15 transition-all duration-300"></div>
-                <div className="absolute bottom-6 left-6">
-                  <h3 className="text-white text-lg font-light tracking-tight">
-                    Homme
-                  </h3>
-                </div>
-              </Link>
-            </div>
-          )}
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+          <ChevronDown className="text-white w-6 h-6" />
         </div>
       </section>
 
-      {/* Sections dynamiques */}
-      {sanityData?.sections?.map((section, index) => (
-        <section key={index} className="py-24 px-8">
-          <div className="container mx-auto">
-            {section._type === 'banner' && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                {section.image && (
-                  <div className="aspect-[4/3] rounded-lg overflow-hidden">
-                    <img
-                      src={urlFor(section.image).width(1200).height(900).url()}
-                      alt={section.title || 'Banner'}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+      {/* Grille de catégories - Asymétrique style Jacquemus */}
+      <section className="py-24 px-8 bg-white relative z-10">
+        <div className="max-w-[1920px] mx-auto">
+          <div className="grid grid-cols-12 gap-4">
+            {/* Grande image - HAUTS */}
+            <div className="col-span-12 md:col-span-8 md:row-span-2">
+              <CategoryCard
+                image={getImageUrl(
+                  zoneHauts?.image,
+                  'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=1600&h=1200&fit=crop'
                 )}
-                <div>
-                  {section.title && (
-                    <h2 className="text-3xl font-light text-gray-800 tracking-tight mb-6">
-                      {section.title}
-                    </h2>
-                  )}
-                  {section.text && (
-                    <p className="text-gray-600 text-lg leading-relaxed mb-8">
-                      {section.text}
-                    </p>
-                  )}
-                  {section.ctaHref && (
-                    <Link
-                      href={section.ctaHref}
-                      className="inline-block px-8 py-3 border border-violet text-violet hover:bg-violet hover:text-white transition-colors duration-300"
-                    >
-                      {section.ctaLabel || 'Découvrir'}
-                    </Link>
-                  )}
-                </div>
-              </div>
-            )}
+                title={zoneHauts?.title || 'HAUTS'}
+                subtitle={zoneHauts?.subtitle}
+                link={zoneHauts?.link || '/hauts'}
+                size="large"
+              />
+            </div>
 
-            {section._type === 'carousel' && section.images && (
-              <div>
-                {section.title && (
-                  <h2 className="text-3xl font-light text-center mb-20 text-gray-800 tracking-tight">
-                    {section.title}
-                  </h2>
+            {/* Petite image - BAS */}
+            <div className="col-span-6 md:col-span-4">
+              <CategoryCard
+                image={getImageUrl(
+                  zoneBas?.image,
+                  'https://images.unsplash.com/photo-1624206112918-f140f087f9f5?w=800&h=1066&fit=crop'
                 )}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  {section.images.map((image, imgIndex) => (
-                    <div
-                      key={imgIndex}
-                      className="aspect-[3/4] rounded-lg overflow-hidden border border-gray-50"
-                    >
-                      <img
-                        src={urlFor(image).width(800).height(1066).url()}
-                        alt={`Carousel ${imgIndex + 1}`}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                title={zoneBas?.title || 'BAS'}
+                subtitle={zoneBas?.subtitle}
+                link={zoneBas?.link || '/bas'}
+                size="small"
+              />
+            </div>
 
-            {section._type === 'editorialPicks' && section.productIds && (
-              <div>
-                {section.title && (
-                  <h2 className="text-3xl font-light text-center mb-20 text-gray-800 tracking-tight">
-                    {section.title}
-                  </h2>
+            {/* Petite image - ACCESSOIRES */}
+            <div className="col-span-6 md:col-span-4">
+              <CategoryCard
+                image={getImageUrl(
+                  zoneAccessoires?.image,
+                  'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=800&h=1066&fit=crop'
                 )}
-                <div className="text-center text-gray-500">
-                  Sélection éditoriale - {section.productIds.length} produits
-                  <br />
-                  <small>
-                    Connectez votre store Supabase pour afficher les produits
-                  </small>
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
-      ))}
+                title={zoneAccessoires?.title || 'ACCESSOIRES'}
+                subtitle={zoneAccessoires?.subtitle}
+                link={zoneAccessoires?.link || '/accessoires'}
+                size="small"
+              />
+            </div>
 
-      {/* Section par défaut */}
-      {(!sanityData?.sections || sanityData.sections.length === 0) && (
-        <section className="py-24 px-8">
-          <div className="container mx-auto">
-            <h2 className="text-3xl font-light text-center mb-20 text-gray-800 tracking-tight">
-              Nos Créations
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
-              {[
-                {
-                  id: 1,
-                  image:
-                    'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=400&h=500&fit=crop',
-                  title: 'Blazer Signature',
-                },
-                {
-                  id: 2,
-                  image:
-                    'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=400&h=500&fit=crop',
-                  title: 'Robe Couture',
-                },
-                {
-                  id: 3,
-                  image:
-                    'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=400&h=500&fit=crop',
-                  title: 'Chemise Atelier',
-                },
-                {
-                  id: 4,
-                  image:
-                    'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=400&h=500&fit=crop',
-                  title: 'Veste Premium',
-                },
-              ].map((item) => (
-                <Link
-                  key={item.id}
-                  href="/products"
-                  className="aspect-[3/4] relative hover-subtle transition-all duration-200 group overflow-hidden rounded-md block border border-gray-50"
-                >
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="w-full h-full object-cover filter brightness-105"
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-200" />
-                  <div className="absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <h3 className="text-white text-xs font-light tracking-wide uppercase">
-                      {item.title}
-                    </h3>
-                  </div>
-                </Link>
-              ))}
+            {/* Moyenne image - LOOKBOOKS */}
+            <div className="col-span-12 md:col-span-6">
+              <CategoryCard
+                image={getImageUrl(
+                  zoneLookbooks?.image,
+                  'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=1200&h=900&fit=crop'
+                )}
+                title={zoneLookbooks?.title || 'LOOKBOOKS'}
+                subtitle={zoneLookbooks?.subtitle}
+                link={zoneLookbooks?.link || '/lookbooks'}
+                size="medium"
+              />
+            </div>
+
+            {/* Moyenne image - SUSTAINABILITY */}
+            <div className="col-span-12 md:col-span-6">
+              <CategoryCard
+                image={getImageUrl(
+                  zoneSustainability?.image,
+                  'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=1200&h=900&fit=crop'
+                )}
+                title={zoneSustainability?.title || 'SUSTAINABILITY'}
+                subtitle={zoneSustainability?.subtitle}
+                link={zoneSustainability?.link || '/sustainability'}
+                size="medium"
+              />
             </div>
           </div>
-        </section>
-      )}
-
-      <footer className="py-16 px-8 border-t border-gray-50 bg-white">
-        <div className="container mx-auto text-center">
-          <h2 className="text-2xl text-gray-700 mb-3 font-light tracking-tight">
-            {sanityData?.heroTitle || '.blancherenaudin'}
-          </h2>
-          <p className="text-gray-500 text-sm font-light mb-1">
-            {sanityData?.heroSubtitle ||
-              "Mode contemporaine & savoir-faire d'exception"}
-          </p>
-          <p className="text-gray-400 text-xs font-light">
-            © 2024 .blancherenaudin - Tous droits réservés
-          </p>
         </div>
-      </footer>
+      </section>
+
+      <FooterMinimal />
     </div>
   )
 }
 
-export default Homepage
+// Composant CategoryCard
+interface CategoryCardProps {
+  image: string
+  title: string
+  subtitle?: string
+  link: string
+  size: 'small' | 'medium' | 'large'
+}
+
+function CategoryCard({
+  image,
+  title,
+  subtitle,
+  link,
+  size,
+}: CategoryCardProps) {
+  const aspectRatios = {
+    small: 'aspect-[3/4]',
+    medium: 'aspect-[4/3]',
+    large: 'aspect-[3/2]',
+  }
+
+  return (
+    <Link href={link} className="group block relative overflow-hidden">
+      <div className={`relative ${aspectRatios[size]} w-full`}>
+        {/* Image */}
+        <img
+          src={image}
+          alt={title}
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+        />
+
+        {/* Overlay noir au hover */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-500" />
+
+        {/* Titre au centre (visible au hover sur desktop) */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center px-6">
+            <h2 className="text-section text-white opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+              {title}
+            </h2>
+            {subtitle && (
+              <p className="text-body text-white/90 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                {subtitle}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Titre permanent en bas (version mobile) */}
+        <div className="absolute bottom-0 left-0 right-0 p-6 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-500">
+          <h3 className="text-product text-white">{title}</h3>
+          {subtitle && <p className="text-sm text-white/80 mt-1">{subtitle}</p>}
+        </div>
+      </div>
+    </Link>
+  )
+}

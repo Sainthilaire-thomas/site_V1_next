@@ -4,14 +4,44 @@
 import { useState, useRef, useCallback, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Homepage from '../components/layout/Homepage'
+import { sanityClient } from '@/lib/sanity.client'
+import { HOMEPAGE_QUERY } from '@/lib/queries'
 
 const DURATIONS = {
   arrangeMs: 600,
   staggerMs: 70,
   holdMs: 500,
-  fadeOutMs: 300, // NEW: durée du fondu avant le passage à la Home
+  fadeOutMs: 300,
 }
 const LINE_SPACING_PCT = 2.8
+
+// Types
+interface HomepageData {
+  hero: {
+    title: string
+    subtitle: string
+    image: any
+    ctaLabel: string
+    ctaLink: string
+  }
+  zoneHauts: CategoryZone
+  zoneBas: CategoryZone
+  zoneAccessoires: CategoryZone
+  zoneLookbooks: CategoryZone
+  zoneSustainability: CategoryZone
+  seo?: {
+    title?: string
+    description?: string
+    image?: any
+  }
+}
+
+interface CategoryZone {
+  image: any
+  title: string
+  subtitle?: string
+  link: string
+}
 
 const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
   const brandName = '.blancherenaudin'
@@ -29,7 +59,7 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
   const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 })
   const [isArranging, setIsArranging] = useState(false)
   const [hideCenter, setHideCenter] = useState(false)
-  const [isFading, setIsFading] = useState(false) // NEW
+  const [isFading, setIsFading] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const generateLetters = useCallback(() => {
@@ -103,7 +133,6 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
     setHideCenter(true)
     setIsArranging(true)
 
-    // positions cibles alignées
     const n = brandName.length
     const mid = (n - 1) / 2
     setLetters((prev) =>
@@ -114,7 +143,6 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
       }))
     )
 
-    // NEW: on lance un fade-out juste avant le switch
     const totalMs =
       DURATIONS.arrangeMs + DURATIONS.staggerMs * (n - 1) + DURATIONS.holdMs
     window.setTimeout(
@@ -136,7 +164,6 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
       ref={containerRef}
       className="relative w-full h-screen bg-white overflow-hidden"
     >
-      {/* Lettres */}
       {letters.map((letter, index) => (
         <div
           key={letter.id}
@@ -146,22 +173,21 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
             left: `${letter.x}%`,
             top: `${letter.y}%`,
             transform: 'translate(-50%, -50%)',
-            fontSize: 'clamp(1.6rem, 5vw, 3rem)', // un peu plus grand pour le mot final
+            fontSize: 'clamp(1.6rem, 5vw, 3rem)',
             opacity: 0,
             animation: `letter-appear 0.35s ease-out ${letter.delay}s forwards`,
             willChange: 'left, top, opacity, transform',
-            transition: `left ${DURATIONS.arrangeMs}ms ease, top ${DURATIONS.arrangeMs}ms ease, opacity ${DURATIONS.fadeOutMs}ms ease`, // NEW
+            transition: `left ${DURATIONS.arrangeMs}ms ease, top ${DURATIONS.arrangeMs}ms ease, opacity ${DURATIONS.fadeOutMs}ms ease`,
             transitionDelay: isArranging
               ? `${index * DURATIONS.staggerMs}ms`
               : '0ms',
-            ...(isFading ? { opacity: 0 } : {}), // NEW: fondu des lettres
+            ...(isFading ? { opacity: 0 } : {}),
           }}
         >
           {letter.char}
         </div>
       ))}
 
-      {/* Carré central */}
       {!hideCenter && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <button
@@ -181,7 +207,6 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
         </div>
       )}
 
-      {/* Curseur custom (désactivé pendant le fade pour éviter tout flash) */}
       {!isArranging && !isFading && (
         <div
           className="pointer-events-none"
@@ -199,7 +224,6 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
         />
       )}
 
-      {/* NEW: voile blanc qui fade-in avant le switch pour éviter tout « flash » */}
       <div
         className={`fixed inset-0 pointer-events-none transition-opacity duration-[${DURATIONS.fadeOutMs}ms]`}
         style={{
@@ -227,7 +251,24 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
 
 function HomeContent() {
   const [showHomepage, setShowHomepage] = useState(false)
+  const [homepageData, setHomepageData] = useState<HomepageData | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const searchParams = useSearchParams()
+
+  // Fetch des données Sanity au chargement
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await sanityClient.fetch(HOMEPAGE_QUERY)
+        setHomepageData(data)
+      } catch (error) {
+        console.error('Erreur lors du fetch Sanity:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
 
   useEffect(() => {
     const skipIntro = searchParams.get('skip-intro')
@@ -244,7 +285,38 @@ function HomeContent() {
     setShowHomepage(true)
   }
 
-  if (showHomepage) return <Homepage />
+  // Affichage du loader pendant le fetch
+  if (isLoading) {
+    return <div className="w-full h-screen bg-white animate-pulse" />
+  }
+
+  // Si pas de données Sanity
+  if (!homepageData) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center px-8">
+        <div className="text-center max-w-md">
+          <h1 className="text-2xl font-bold mb-4">Configuration requise</h1>
+          <p className="text-grey-medium mb-4">
+            Aucune donnée disponible. Veuillez configurer la homepage dans
+            Sanity Studio.
+          </p>
+          <a
+            href="/studio"
+            className="inline-block px-6 py-3 bg-black text-white hover:bg-grey-dark transition-colors"
+          >
+            Ouvrir Sanity Studio
+          </a>
+        </div>
+      </div>
+    )
+  }
+
+  // Affichage de la homepage avec les données (on vérifie que homepageData existe bien)
+  if (showHomepage && homepageData) {
+    return <Homepage data={homepageData} />
+  }
+
+  // Affichage de l'intro interactive
   return <InteractiveEntry onEnter={handleEnterHomepage} />
 }
 
