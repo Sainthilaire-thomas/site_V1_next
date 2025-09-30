@@ -8,15 +8,15 @@
   /* Violet marque - plus subtil selon design */
   --violet: hsl(271 74% 37%);
   --violet-soft: hsl(271 74% 45%);
-  --violet-subtle: hsl(271 30% 92%); /* Plus subtil */
+  --violet-subtle: hsl(271 30% 92%);
 
   /* Accent pour interactions */
   --accent: hsl(276 86% 36%);
 
   /* Backgrounds et bordures - plus doux */
-  --muted: hsl(0 0% 98%); /* Plus proche du blanc */
+  --muted: hsl(0 0% 98%);
   --muted-foreground: hsl(0 0% 45%);
-  --border: hsl(0 0% 95%); /* Bordures plus discrètes */
+  --border: hsl(0 0% 95%);
   --secondary: hsl(0 0% 99%);
 
   /* Variables système existantes */
@@ -31,17 +31,49 @@
   --ring: hsl(271 74% 37%);
   --radius: 0.75rem;
 
-  /* === POLICES - Garder Geist mais ajuster === */
-  --font-brand: var(--font-geist-sans);
-  --font-body: var(--font-geist-sans);
+  /* === POLICES - Archivo Black pour titres, Archivo Narrow pour corps === */
+  --font-brand: var(--font-archivo-black);
+  --font-body: var(--font-archivo-narrow);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-body);
-  font-weight: 400; /* Légèrement plus léger */
-  letter-spacing: -0.01em; /* Espacement plus serré = plus sobre */
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* === TYPOGRAPHIE === */
+
+h1, h2, h3, h4, h5, h6,
+.heading,
+.text-brand {
+  font-family: var(--font-brand);
+  font-weight: 400; /* Archivo Black est déjà bold par défaut */
+  letter-spacing: -0.02em;
+}
+
+/* Classes spécifiques pour les titres */
+.title-hero {
+  font-family: var(--font-brand);
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.title-section {
+  font-family: var(--font-brand);
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.title-card {
+  font-family: var(--font-brand);
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
 }
 
 /* === CLASSES POUR SOBRIÉTÉ === */
@@ -135,9 +167,9 @@ body {
 
 /* Réduire l'intensité des effets existants */
 .floating-letter:hover {
-  transform: translate(-50%, -50%) scale(1.2); /* Moins agressif */
+  transform: translate(-50%, -50%) scale(1.2);
   color: var(--accent);
-  filter: drop-shadow(0 2px 8px hsl(271 74% 37% / 0.2)); /* Plus subtil */
+  filter: drop-shadow(0 2px 8px hsl(271 74% 37% / 0.2));
 }
 
 /* === INTRO LANDING – styles nécessaires === */
@@ -154,7 +186,7 @@ body {
 .central-trigger {
   width: 24px;
   height: 24px;
-  background: #111; /* carré noir discret */
+  background: #111;
   border: 1px solid var(--border);
   border-radius: 3px;
   cursor: pointer;
@@ -172,7 +204,7 @@ body {
   z-index: 50;
 }
 
-/* animations utilisées par la page d’intro */
+/* animations utilisées par la page d'intro */
 @keyframes float {
   0%,
   100% {
