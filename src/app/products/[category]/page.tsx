@@ -9,7 +9,8 @@ import type { Metadata } from 'next'
 export const revalidate = 60 * 60 * 24 * 30 // ~30 jours
 export const dynamicParams = false
 
-// Slugs canoniques que tu souhaites exposer
+// ✅ Slugs basés sur votre base Supabase actuelle
+// ✅ Catégories principales du site
 const CATEGORY_DEFS = [
   {
     slug: 'hauts',
@@ -71,34 +72,63 @@ async function getProductsForCategory(
 ): Promise<Product[]> {
   const supabase = await getServerSupabase()
 
-  // 1) Catégorie parent par slug
-  const { data: parent, error: catErr } = await supabase
+  // 1) Récupérer la catégorie parent
+  const { data: parentCategory, error: catErr } = await supabase
     .from('categories')
-    .select('id, slug')
+    .select('id, slug, name')
     .eq('slug', categorySlug)
+    .eq('is_active', true)
     .single()
 
-  if (catErr || !parent) return []
+  if (catErr || !parentCategory) {
+    console.error('❌ Category not found:', categorySlug, catErr)
+    return []
+  }
 
-  // 2) Produits de la catégorie OU de ses enfants (parent_id)
+  console.log('✅ Found category:', parentCategory)
+
+  // 2) Récupérer les IDs des sous-catégories (si elles existent)
+  const { data: childCategories, error: childErr } = await supabase
+    .from('categories')
+    .select('id')
+    .eq('parent_id', parentCategory.id)
+    .eq('is_active', true)
+
+  if (childErr) {
+    console.error('⚠️ Error fetching child categories:', childErr)
+  }
+
+  // Collecter tous les IDs de catégories (parent + enfants)
+  const categoryIds = [
+    parentCategory.id,
+    ...(childCategories?.map((c) => c.id) || []),
+  ]
+
+  console.log('🔍 Looking for products in category IDs:', categoryIds)
+
+  // 3) Récupérer les produits correspondants
+  // ✅ CORRECTION : Utiliser category_id au lieu de category.slug
   const { data, error } = await supabase
     .from('products')
     .select(
       `
       *,
       images:product_images(*),
-      category:categories!inner(id, slug, name, parent_id)
+      category:categories(id, slug, name, parent_id)
     `
     )
     .eq('is_active', true)
-    .or(`category.slug.eq.${parent.slug},category.parent_id.eq.${parent.id}`)
+    .in('category_id', categoryIds) // ✅ CORRECTION ICI
     .order('created_at', { ascending: false })
     .limit(60)
 
   if (error) {
-    console.error('Error fetching products:', error)
+    console.error('❌ Error fetching products:', error)
     return []
   }
+
+  console.log(`✅ Found ${data?.length || 0} products`)
+
   return (data ?? []) as Product[]
 }
 
@@ -142,8 +172,13 @@ export default async function ProductsByCategoryPage({
               <ProductGridMinimal products={products} />
             ) : (
               <div className="text-center py-20">
-                <p className="text-black/60 text-sm tracking-[0.05em] font-semibold lowercase">
-                  aucun produit trouvé
+                <p className="text-black/60 text-sm tracking-[0.05em] font-semibold lowercase mb-4">
+                  aucun produit trouvé dans "{def.title}"
+                </p>
+                <p className="text-xs text-black/40 max-w-md mx-auto">
+                  Vérifiez que vos produits ont bien une catégorie avec le slug
+                  "{params.category}" ou une sous-catégorie de celle-ci dans
+                  Supabase.
                 </p>
               </div>
             )}

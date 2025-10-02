@@ -27,6 +27,7 @@ export default function HeaderMinimal() {
     }
   }, [isMenuOpen])
 
+  // ✅ Navigation basée sur vos catégories Supabase
   const nav = [
     { label: 'hauts', href: '/products/hauts' },
     { label: 'bas', href: '/products/bas' },
@@ -39,7 +40,7 @@ export default function HeaderMinimal() {
 
   // Détermine si un item est actif :
   // - exact match
-  // - ou sous-chemin (ex: /products/hauts?...) ou /products/hauts/...
+  // - ou sous-chemin (ex: /products/vestes?...) ou /products/vestes/...
   const isActive = (href: string) => {
     if (!pathname) return false
     return (
