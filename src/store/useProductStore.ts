@@ -1,7 +1,7 @@
 // src/store/useProductStore.ts
 import { create } from "zustand";
 import { supabase } from "@/lib/supabase";
-import type { Database } from "../../lib/database.types";
+import type { Database } from '../lib/database.types'
 
 type Product = Database["public"]["Tables"]["products"]["Row"] & {
   images?: Database["public"]["Tables"]["product_images"]["Row"][];

@@ -1,6 +1,6 @@
-// src/app/about/page.tsx - Version avec Sanity
-import Link from 'next/link'
-import UnifiedHeader from '@/components/layout/UnifiedHeader'
+// src/app/about/page.tsx — Version alignée, sans CTA, image carrée
+import HeaderMinimal from '@/components/layout/HeaderMinimal'
+import FooterMinimal from '@/components/layout/FooterMinimal'
 import RichTextRenderer from '@/components/common/RichTextRenderer'
 import { sanityClient } from '@/lib/sanity.client'
 import { PAGE_QUERY } from '@/lib/queries'
@@ -12,11 +12,7 @@ interface PageData {
   title: string
   slug: { current: string }
   content?: any[]
-  seo?: {
-    title?: string
-    description?: string
-    image?: any
-  }
+  seo?: { title?: string; description?: string; image?: any }
 }
 
 async function getAboutPage(): Promise<PageData | null> {
@@ -34,73 +30,72 @@ export default async function AboutPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <UnifiedHeader variant="default" showNavigation={true} />
+      <HeaderMinimal />
 
-      <main className="pt-6">
-        {/* Hero */}
-        <section className="py-20 px-6">
-          <div className="container mx-auto text-center">
-            <h1 className="text-4xl md:text-6xl font-light text-gray-900 mb-6">
-              {pageData?.title || 'À Propos'}
+      <main>
+        {/* Hero sobre aligné */}
+        <section className="py-16">
+          <div className="max-w-[1920px] mx-auto px-8 text-center">
+            <h1 className="text-section text-black mb-3">
+              {pageData?.title || 'À propos'}
             </h1>
-            {pageData?.seo?.description && (
-              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            {pageData?.seo?.description ? (
+              <p className="text-[15px] tracking-[0.02em] text-grey-medium max-w-3xl mx-auto">
                 {pageData.seo.description}
               </p>
-            )}
-            {!pageData?.seo?.description && (
-              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            ) : (
+              <p className="text-[15px] tracking-[0.02em] text-grey-medium max-w-3xl mx-auto">
                 .blancherenaudin est née de la passion pour la mode
-                contemporaine et l'artisanat d'exception. Chaque pièce est
+                contemporaine et l’artisanat d’exception. Chaque pièce est
                 pensée pour sublimer la femme moderne.
               </p>
             )}
           </div>
         </section>
 
-        {/* Contenu depuis Sanity */}
+        {/* Contenu Sanity (si présent) */}
         {pageData?.content ? (
-          <section className="py-12 px-6">
-            <div className="container mx-auto max-w-4xl">
-              <RichTextRenderer
-                content={pageData.content}
-                className="text-gray-600"
-              />
+          <section className="pb-20">
+            <div className="max-w-[1920px] mx-auto px-8">
+              {/* On évite toute classe rounded sur un parent de médias */}
+              <div className="max-w-3xl mx-auto prose prose-neutral">
+                <RichTextRenderer
+                  content={pageData.content}
+                  className="text-[15px] tracking-[0.02em] text-black/80"
+                />
+              </div>
             </div>
           </section>
         ) : (
-          // Contenu de fallback si pas de données Sanity
           <>
-            {/* Histoire */}
-            <section className="py-20 px-6 bg-gray-50">
-              <div className="container mx-auto">
+            {/* Fallback Histoire — image carrée sans coins arrondis */}
+            <section className="py-20 bg-gray-50">
+              <div className="max-w-[1920px] mx-auto px-8">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                   <div>
-                    <h2 className="text-3xl font-light text-gray-900 mb-8">
-                      Notre Histoire
+                    <h2 className="text-product text-black mb-6">
+                      Notre histoire
                     </h2>
-                    <div className="space-y-6 text-gray-600 leading-relaxed">
+                    <div className="space-y-5 text-[15px] tracking-[0.02em] text-grey-medium">
                       <p>
                         Fondée en 2020, .blancherenaudin puise son inspiration
-                        dans l'héritage de la haute couture française tout en
+                        dans l’héritage de la haute couture française tout en
                         embrassant une vision résolument contemporaine.
                       </p>
                       <p>
-                        Notre atelier parisien perpétue les techniques
-                        traditionnelles du savoir-faire français, adaptées aux
-                        besoins de la femme d'aujourd'hui qui recherche
-                        l'élégance sans compromis.
+                        Notre atelier parisien perpétue des techniques de
+                        savoir-faire adaptées aux besoins de la femme
+                        d’aujourd’hui qui recherche l’élégance sans compromis.
                       </p>
                       <p>
-                        Chaque création est le fruit d'un travail minutieux où
-                        se rencontrent innovation et tradition, modernité et
-                        intemporalité.
+                        Chaque création est le fruit d’un travail minutieux,
+                        entre innovation et tradition.
                       </p>
                     </div>
                   </div>
-                  <div className="aspect-[4/5] rounded-lg overflow-hidden">
+                  <div className="aspect-square overflow-hidden">
                     <img
-                      src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=600&h=800&fit=crop"
+                      src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=1200&h=1200&fit=crop"
                       alt="Atelier .blancherenaudin"
                       className="w-full h-full object-cover"
                     />
@@ -109,13 +104,13 @@ export default async function AboutPage() {
               </div>
             </section>
 
-            {/* Philosophie */}
-            <section className="py-20 px-6">
-              <div className="container mx-auto text-center">
-                <h2 className="text-3xl font-light text-gray-900 mb-12">
-                  Notre Philosophie
+            {/* Fallback Philosophie */}
+            <section className="py-20">
+              <div className="max-w-[1920px] mx-auto px-8 text-center">
+                <h2 className="text-product text-black mb-10">
+                  Notre philosophie
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-5xl mx-auto">
                   {[
                     {
                       title: 'Savoir-faire',
@@ -133,11 +128,11 @@ export default async function AboutPage() {
                         'Nos créations subliment la silhouette féminine avec raffinement et modernité.',
                     },
                   ].map((item) => (
-                    <div key={item.title} className="p-8">
-                      <h3 className="text-xl font-medium text-gray-900 mb-4">
+                    <div key={item.title} className="px-2">
+                      <h3 className="text-[16px] font-semibold tracking-[0.05em] lowercase text-black mb-3">
                         {item.title}
                       </h3>
-                      <p className="text-gray-600 leading-relaxed">
+                      <p className="text-[15px] tracking-[0.02em] text-grey-medium">
                         {item.description}
                       </p>
                     </div>
@@ -147,38 +142,9 @@ export default async function AboutPage() {
             </section>
           </>
         )}
-
-        {/* CTA */}
-        <section className="py-20 px-6 bg-violet-50">
-          <div className="container mx-auto text-center">
-            <h2 className="text-3xl font-light text-gray-900 mb-6">
-              Découvrez nos Collections
-            </h2>
-            <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-              Explorez l'univers .blancherenaudin et trouvez les pièces qui
-              révéleront votre style unique.
-            </p>
-            <Link
-              href="/collections"
-              className="inline-flex items-center px-8 py-3 bg-violet-600 text-white rounded-md hover:bg-violet-700 transition-colors"
-            >
-              Voir les Collections
-            </Link>
-          </div>
-        </section>
-
-        {/* Message pour l'admin */}
-        {!pageData && (
-          <section className="py-8 px-6 bg-yellow-50 border-t border-yellow-200">
-            <div className="container mx-auto text-center">
-              <p className="text-sm text-yellow-800">
-                <strong>Admin :</strong> Créez une page "À Propos" dans Sanity
-                Studio avec le slug "a-propos" pour personnaliser ce contenu.
-              </p>
-            </div>
-          </section>
-        )}
       </main>
+
+      <FooterMinimal />
     </div>
   )
 }

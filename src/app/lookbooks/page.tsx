@@ -1,6 +1,7 @@
-// src/app/lookbooks/page.tsx - Version corrigée
+// src/app/lookbooks/page.tsx
 import Link from 'next/link'
-import UnifiedHeader from '@/components/layout/UnifiedHeader'
+import HeaderMinimal from '@/components/layout/HeaderMinimal'
+import FooterMinimal from '@/components/layout/FooterMinimal'
 import { sanityClient } from '@/lib/sanity.client'
 import { LOOKBOOKS_QUERY } from '@/lib/queries'
 import { urlFor } from '@/lib/sanity.image'
@@ -12,20 +13,17 @@ interface Lookbook {
   title: string
   season: string
   slug: { current: string }
-  coverImage?: any // ✅ Nouveau champ
+  coverImage?: any
   images?: any[]
-  seo?: {
-    title?: string
-    description?: string
-  }
+  seo?: { title?: string; description?: string }
 }
 
 async function getLookbooks(): Promise<Lookbook[]> {
   try {
     const data = await sanityClient.fetch(LOOKBOOKS_QUERY)
     return data || []
-  } catch (error) {
-    console.error('Erreur lors du fetch des lookbooks:', error)
+  } catch (e) {
+    console.error('Erreur lookbooks:', e)
     return []
   }
 }
@@ -35,102 +33,83 @@ export default async function LookbooksPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <UnifiedHeader variant="default" showNavigation={true} />
+      <HeaderMinimal />
 
-      <main className="pt-6">
-        {/* Hero */}
-        <section className="py-20 px-6">
-          <div className="container mx-auto text-center">
-            <h1 className="text-4xl md:text-6xl font-light text-gray-900 mb-6">
-              Lookbooks
-            </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Source d'inspiration et de style. Découvrez comment porter et
-              associer nos pièces à travers nos lookbooks saisonniers.
+      <main>
+        {/* Hero sobre aligné avec le site */}
+        <section className="py-16">
+          <div className="max-w-[1920px] mx-auto px-8 text-center">
+            <h1 className="text-section text-black mb-3">Lookbooks</h1>
+            <p className="text-[15px] tracking-[0.02em] text-grey-medium">
+              Source d’inspiration & façons de porter nos pièces.
             </p>
           </div>
         </section>
 
-        {/* Lookbooks Grid */}
-        <section className="py-12 px-6">
-          <div className="container mx-auto">
+        {/* Grille */}
+        <section className="pb-24">
+          <div className="max-w-[1920px] mx-auto px-8">
             {lookbooks.length === 0 ? (
-              <div className="text-center py-20">
-                <p className="text-gray-500 text-lg mb-8">
+              <div className="text-center py-24">
+                <p className="text-grey-medium text-[15px] mb-6">
                   Aucun lookbook disponible pour le moment.
                 </p>
-                <p className="text-sm text-gray-400">
-                  Consultez nos{' '}
-                  <Link
-                    href="/collections"
-                    className="text-violet-600 hover:text-violet-800"
-                  >
-                    collections
-                  </Link>{' '}
-                  ou nos{' '}
-                  <Link
-                    href="/collections-editoriales"
-                    className="text-violet-600 hover:text-violet-800"
-                  >
-                    collections éditoriales
+                <div className="flex items-center justify-center gap-3">
+                  <Link href="/collections" className="btn-primary">
+                    Voir les collections
                   </Link>
-                </p>
+                  <Link
+                    href="/products"
+                    className="text-[13px] tracking-[0.05em] font-semibold lowercase text-black/70 hover:text-black"
+                  >
+                    Tous les produits →
+                  </Link>
+                </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {lookbooks.map((lookbook) => {
-                  // ✅ Utiliser coverImage en priorité, sinon fallback sur la première image
-                  const displayImage =
-                    lookbook.coverImage || lookbook.images?.[0]
-
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                {lookbooks.map((lb) => {
+                  const displayImage = lb.coverImage || lb.images?.[0]
                   return (
                     <Link
-                      key={lookbook._id}
-                      href={`/lookbooks/${lookbook.slug.current}`}
+                      key={lb._id}
+                      href={`/lookbooks/${lb.slug.current}`}
                       className="group block"
                     >
-                      <div className="aspect-[3/4] relative overflow-hidden rounded-lg mb-6">
+                      <div className="relative aspect-[3/4] overflow-hidden">
                         {displayImage ? (
                           <img
                             src={urlFor(displayImage)
-                              .width(600)
-                              .height(800)
+                              .width(900)
+                              .height(1200)
                               .url()}
-                            alt={lookbook.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            alt={lb.title}
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                           />
                         ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                            <div className="text-center">
-                              <span className="text-gray-400 text-xl font-light block mb-2">
-                                {lookbook.title}
-                              </span>
-                              <span className="text-gray-300 text-sm">
-                                {lookbook.season}
-                              </span>
-                            </div>
-                          </div>
+                          <div className="w-full h-full bg-gray-100" />
                         )}
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300"></div>
 
-                        {/* Overlay avec titre */}
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-6">
-                          <h3 className="text-white text-xl font-light mb-1">
-                            {lookbook.title}
+                        {/* Léger overlay au hover */}
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-500" />
+                        {/* Légende bas */}
+                        <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/50 to-transparent">
+                          <h3 className="text-product text-white">
+                            {lb.title}
                           </h3>
-                          <p className="text-white/80 text-sm">
-                            {lookbook.season}
+                          <p className="text-[12px] tracking-wide text-white/80 mt-1">
+                            {lb.season}
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between">
-                        <span className="text-violet-600 group-hover:text-violet-800 font-medium">
-                          Découvrir →
+                      <div className="mt-3 flex items-center justify-between">
+                        <span className="text-[13px] tracking-[0.05em] font-semibold lowercase text-black/70 group-hover:text-black transition-colors">
+                          découvrir →
                         </span>
-                        {lookbook.images && (
-                          <span className="text-sm text-gray-500">
-                            {lookbook.images.length} looks
+                        {lb.images && (
+                          <span className="text-[12px] text-grey-medium">
+                            {lb.images.length} looks
                           </span>
                         )}
                       </div>
@@ -141,36 +120,9 @@ export default async function LookbooksPage() {
             )}
           </div>
         </section>
-
-        {/* Section inspiration */}
-        <section className="py-16 px-6 bg-gray-50">
-          <div className="container mx-auto text-center">
-            <h2 className="text-3xl font-light text-gray-900 mb-6">
-              Style et Inspiration
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto mb-8">
-              Nos lookbooks sont conçus pour vous inspirer et vous montrer les
-              infinies possibilités de style avec nos créations.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Link
-                href="/collections"
-                className="px-6 py-3 bg-violet-600 text-white hover:bg-violet-700 transition-colors rounded-lg"
-              >
-                Voir les collections
-              </Link>
-              <Link
-                href="/products"
-                className="px-6 py-3 border border-gray-300 text-gray-700 hover:border-violet-600 hover:text-violet-600 transition-colors rounded-lg"
-              >
-                Tous les produits
-              </Link>
-            </div>
-          </div>
-        </section>
       </main>
+
+      <FooterMinimal />
     </div>
   )
 }
-
-// ================================================================================================

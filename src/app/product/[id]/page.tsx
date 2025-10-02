@@ -9,9 +9,9 @@ export const revalidate = 0
 export default async function ProductDetailPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
-  const { id } = params
+  const { id } = await params
   const supabase = await getServerSupabase()
 
   const { data: product, error } = await supabase

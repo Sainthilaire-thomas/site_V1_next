@@ -246,3 +246,14 @@ html {
   outline: 2px solid var(--violet);
   outline-offset: 2px;
 }
+
+@layer base {
+  /* Neutralise tout arrondi injecté par un parent/typography */
+  .prose img,
+  img,
+  picture,
+  video,
+  canvas {
+    border-radius: 0 !important;
+  }
+}

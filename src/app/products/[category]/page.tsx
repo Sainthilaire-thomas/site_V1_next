@@ -1,16 +1,14 @@
 // src/app/products/[category]/page.tsx
 import HeaderMinimal from '@/components/layout/HeaderMinimal'
 import FooterMinimal from '@/components/layout/FooterMinimal'
-import ProductGridMinimal from '@/components/products/ProductGridMinimal'
+import ProductGridJacquemus from '@/components/products/ProductGridJacquemus'
 import { getServerSupabase } from '@/lib/supabase-server'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 
-export const revalidate = 60 * 60 * 24 * 30 // ~30 jours
+export const revalidate = 60 * 60 * 24 * 30
 export const dynamicParams = false
 
-// ✅ Slugs basés sur votre base Supabase actuelle
-// ✅ Catégories principales du site
 const CATEGORY_DEFS = [
   {
     slug: 'hauts',
@@ -52,9 +50,10 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: { category: string }
+  params: Promise<{ category: string }>
 }): Promise<Metadata> {
-  const def = CATEGORY_DEFS.find((c) => c.slug === params.category)
+  const { category } = await params
+  const def = CATEGORY_DEFS.find((c) => c.slug === category)
   if (!def) return {}
   const title = `${def.title} | .blancherenaudin`
   const description = `Découvrez nos ${def.title.toLowerCase()} — ${def.description}`
@@ -72,7 +71,6 @@ async function getProductsForCategory(
 ): Promise<Product[]> {
   const supabase = await getServerSupabase()
 
-  // 1) Récupérer la catégorie parent
   const { data: parentCategory, error: catErr } = await supabase
     .from('categories')
     .select('id, slug, name')
@@ -80,35 +78,20 @@ async function getProductsForCategory(
     .eq('is_active', true)
     .single()
 
-  if (catErr || !parentCategory) {
-    console.error('❌ Category not found:', categorySlug, catErr)
-    return []
-  }
+  if (catErr || !parentCategory) return []
 
-  console.log('✅ Found category:', parentCategory)
-
-  // 2) Récupérer les IDs des sous-catégories (si elles existent)
-  const { data: childCategories, error: childErr } = await supabase
+  const { data: childCategories } = await supabase
     .from('categories')
     .select('id')
     .eq('parent_id', parentCategory.id)
     .eq('is_active', true)
 
-  if (childErr) {
-    console.error('⚠️ Error fetching child categories:', childErr)
-  }
-
-  // Collecter tous les IDs de catégories (parent + enfants)
   const categoryIds = [
     parentCategory.id,
     ...(childCategories?.map((c) => c.id) || []),
   ]
 
-  console.log('🔍 Looking for products in category IDs:', categoryIds)
-
-  // 3) Récupérer les produits correspondants
-  // ✅ CORRECTION : Utiliser category_id au lieu de category.slug
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from('products')
     .select(
       `
@@ -118,16 +101,9 @@ async function getProductsForCategory(
     `
     )
     .eq('is_active', true)
-    .in('category_id', categoryIds) // ✅ CORRECTION ICI
+    .in('category_id', categoryIds)
     .order('created_at', { ascending: false })
     .limit(60)
-
-  if (error) {
-    console.error('❌ Error fetching products:', error)
-    return []
-  }
-
-  console.log(`✅ Found ${data?.length || 0} products`)
 
   return (data ?? []) as Product[]
 }
@@ -135,14 +111,14 @@ async function getProductsForCategory(
 export default async function ProductsByCategoryPage({
   params,
 }: {
-  params: { category: string }
+  params: Promise<{ category: string }>
 }) {
-  const def = CATEGORY_DEFS.find((c) => c.slug === params.category)
+  const { category } = await params
+  const def = CATEGORY_DEFS.find((c) => c.slug === category)
   if (!def) notFound()
 
-  const products = await getProductsForCategory(params.category)
+  const products = await getProductsForCategory(category)
 
-  // JSON-LD ItemList (SEO)
   const itemList = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
@@ -157,33 +133,34 @@ export default async function ProductsByCategoryPage({
   return (
     <div className="min-h-screen bg-white">
       <HeaderMinimal />
-      {/* H1 accessible mais masqué visuellement */}
-      <h1 className="sr-only">{def.title}</h1>
 
-      <main className="pt-6">
-        <section className="py-6 sm:py-8">
-          <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-10">
-            {/* Sous-titre discret (optionnel) */}
-            <p className="mb-6 text-black/50 text-[13px] tracking-[0.05em] font-semibold lowercase">
-              {def.title.toLowerCase()}
-            </p>
+      <main className="pt-8 pb-12">
+        {/* Ligne de séparation fine sous le header */}
+        <div className="border-b border-black/20 mb-8" />
+        {/* Titre centré style Jacquemus */}
+        <div className="text-center mb-8 px-4">
+          <h1 className="text-[11px] font-light tracking-[0.2em] uppercase text-black mb-2">
+            {def.title}
+          </h1>
+          <p className="text-[13px] text-black/40 font-light">
+            {products.length} {products.length > 1 ? 'produits' : 'produit'}
+          </p>
+        </div>
 
-            {products.length > 0 ? (
-              <ProductGridMinimal products={products} />
-            ) : (
-              <div className="text-center py-20">
-                <p className="text-black/60 text-sm tracking-[0.05em] font-semibold lowercase mb-4">
-                  aucun produit trouvé dans "{def.title}"
-                </p>
-                <p className="text-xs text-black/40 max-w-md mx-auto">
-                  Vérifiez que vos produits ont bien une catégorie avec le slug
-                  "{params.category}" ou une sous-catégorie de celle-ci dans
-                  Supabase.
-                </p>
-              </div>
-            )}
-          </div>
-        </section>
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
+          {products.length > 0 ? (
+            <ProductGridJacquemus products={products} />
+          ) : (
+            <div className="text-center py-32">
+              <p className="text-[11px] tracking-[0.15em] uppercase text-black/40 mb-3">
+                Aucun produit disponible
+              </p>
+              <p className="text-[13px] text-black/30 font-light">
+                Revenez bientôt pour découvrir nos nouveautés
+              </p>
+            </div>
+          )}
+        </div>
       </main>
 
       <script

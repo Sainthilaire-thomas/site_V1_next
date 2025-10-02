@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { supabase } from "@/lib/supabase";
-import type { Database } from "../../lib/database.types";
+import type { Database } from '../lib/database.types'
 
 // ---- Helpers logging ----
 const L = {

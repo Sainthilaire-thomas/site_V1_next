@@ -1,7 +1,7 @@
 // src/store/useWishlistStore.ts
 import { create } from "zustand";
 import { supabase } from "@/lib/supabase";
-import type { Database } from "../../lib/database.types";
+import type { Database } from '../lib/database.types'
 
 type WishlistItem = Database["public"]["Tables"]["wishlist_items"]["Row"] & {
   product: Database["public"]["Tables"]["products"]["Row"] & {

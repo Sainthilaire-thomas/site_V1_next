@@ -2,7 +2,7 @@
 import { create } from "zustand";
 import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
-import type { Database } from "../../lib/database.types"; // <— chemin corrigé
+import type { Database } from "../lib/database.types"; // <— chemin corrigé
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
