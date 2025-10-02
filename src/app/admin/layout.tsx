@@ -3,6 +3,9 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import type { Database } from '@/lib/database.types'
+import { ThemeProvider } from '@/components/admin/ThemeProvider'
+import { ThemeToggle } from '@/components/admin/ThemeToggle'
+import { ToastProvider } from '@/components/admin/Toast'
 
 export default async function AdminLayout({
   children,
@@ -33,12 +36,16 @@ export default async function AdminLayout({
   if (profile?.role !== 'admin') return <div className="p-6">Accès refusé.</div>
 
   return (
-    <div className="min-h-dvh">
-      <header className="border-b p-4 flex items-center justify-between">
-        <div>Admin</div>
-        {/* (optionnel) bouton de déconnexion */}
-      </header>
-      <main className="p-6">{children}</main>
-    </div>
+    <ThemeProvider>
+      <ToastProvider>
+        <div className="min-h-dvh bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors">
+          <header className="border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between">
+            <div className="font-semibold">Admin</div>
+            <ThemeToggle />
+          </header>
+          <main className="p-6">{children}</main>
+        </div>
+      </ToastProvider>
+    </ThemeProvider>
   )
 }

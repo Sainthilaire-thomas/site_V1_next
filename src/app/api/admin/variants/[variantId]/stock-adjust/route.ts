@@ -35,10 +35,12 @@ export async function POST(
 
   if (e2) return NextResponse.json({ error: e2.message }, { status: 500 })
 
-  // recalcule le stock produit (optionnel mais pratique)
-  await supabaseAdmin.rpc('recompute_product_stock', {
-    p_product_id: v.product_id,
-  })
+  // Vérifie que product_id existe avant de recalculer
+  if (v.product_id) {
+    await supabaseAdmin.rpc('recompute_product_stock', {
+      p_product_id: v.product_id,
+    })
+  }
 
   return NextResponse.json({ ok: true, newStock: v.stock_quantity ?? 0 })
 }
