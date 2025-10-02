@@ -20,27 +20,34 @@ export default function HeaderMinimal() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // Bloquer le scroll quand le menu est ouvert
   useEffect(() => {
-    if (isMenuOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
+    document.body.style.overflow = isMenuOpen ? 'hidden' : ''
     return () => {
       document.body.style.overflow = ''
     }
   }, [isMenuOpen])
 
   const nav = [
-    { label: 'hauts', href: '/hauts' },
-    { label: 'bas', href: '/bas' },
-    { label: 'accessoires', href: '/accessoires' },
+    { label: 'hauts', href: '/products/hauts' },
+    { label: 'bas', href: '/products/bas' },
+    { label: 'accessoires', href: '/products/accessoires' },
     { label: 'lookbooks', href: '/lookbooks' },
     { label: 'sustainability', href: '/sustainability' },
     { label: 'à propos', href: '/about', nowrap: true },
     { label: 'contact', href: '/contact' },
   ]
+
+  // Détermine si un item est actif :
+  // - exact match
+  // - ou sous-chemin (ex: /products/hauts?...) ou /products/hauts/...
+  const isActive = (href: string) => {
+    if (!pathname) return false
+    return (
+      pathname === href ||
+      pathname.startsWith(href + '/') ||
+      pathname.startsWith(href + '?')
+    )
+  }
 
   return (
     <>
@@ -53,9 +60,7 @@ export default function HeaderMinimal() {
           'transition-[border-color,background] duration-200',
         ].join(' ')}
       >
-        {/* Conteneur principal */}
         <div className="max-w-[1920px] mx-auto h-[96px] lg:h-[108px] pl-6 pr-8 sm:pl-10 sm:pr-12 lg:pl-16 lg:pr-20 flex items-center justify-between gap-8">
-          {/* GAUCHE : logo + nav rapprochée */}
           <div className="flex items-center gap-6 flex-1">
             <Link
               href="/"
@@ -73,23 +78,27 @@ export default function HeaderMinimal() {
             </Link>
 
             <nav className="hidden lg:flex items-center gap-8">
-              {nav.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={[
-                    'text-[13px] tracking-[0.05em] font-semibold lowercase text-black/70 hover:text-black transition-colors',
-                    item.nowrap ? 'whitespace-nowrap' : '',
-                    pathname === item.href ? 'text-black' : '',
-                  ].join(' ')}
-                >
-                  {item.label}
-                </Link>
-              ))}
+              {nav.map((item) => {
+                const active = isActive(item.href)
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={[
+                      'text-[13px] tracking-[0.05em] font-semibold lowercase transition-colors',
+                      item.nowrap ? 'whitespace-nowrap' : '',
+                      active
+                        ? 'text-black/40'
+                        : 'text-black/70 hover:text-black',
+                    ].join(' ')}
+                  >
+                    {item.label}
+                  </Link>
+                )
+              })}
             </nav>
           </div>
 
-          {/* DROITE : icônes avec espacement comme Jacquemus */}
           <div className="flex items-center gap-6">
             <Link
               href="/search"
@@ -137,10 +146,9 @@ export default function HeaderMinimal() {
         </div>
       </header>
 
-      {/* Spacer égal à la hauteur du header */}
       <div aria-hidden className="h-[96px] lg:h-[108px]" />
 
-      {/* Menu mobile overlay */}
+      {/* Overlay */}
       {isMenuOpen && (
         <div
           className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm lg:hidden"
@@ -149,7 +157,7 @@ export default function HeaderMinimal() {
         />
       )}
 
-      {/* Menu mobile drawer */}
+      {/* Drawer mobile */}
       <div
         className={[
           'fixed top-0 right-0 bottom-0 z-[70] w-full max-w-lg bg-white shadow-2xl lg:hidden overflow-y-auto',
@@ -157,7 +165,6 @@ export default function HeaderMinimal() {
           isMenuOpen ? 'translate-x-0' : 'translate-x-full',
         ].join(' ')}
       >
-        {/* Header du menu avec logo */}
         <div className="flex items-center justify-between px-12 py-6 ">
           <span className="text-sm font-bold tracking-[0.15em] uppercase text-black">
             .BLANCHERENAUDIN
@@ -171,7 +178,6 @@ export default function HeaderMinimal() {
           </button>
         </div>
 
-        {/* Barre de recherche */}
         <div className="px-8 pb-8">
           <div className="flex items-center gap-3 border border-black/20 px-4 py-3">
             <Search
@@ -186,60 +192,25 @@ export default function HeaderMinimal() {
           </div>
         </div>
 
-        {/* Navigation principale */}
         <nav className="px-8 pb-8 space-y-1">
-          <Link
-            href="/hauts"
-            onClick={() => setIsMenuOpen(false)}
-            className="block py-2.5 text-[15px] font-normal text-black hover:opacity-60 transition-opacity"
-          >
-            Hauts
-          </Link>
-          <Link
-            href="/bas"
-            onClick={() => setIsMenuOpen(false)}
-            className="block py-2.5 text-[15px] font-normal text-black hover:opacity-60 transition-opacity"
-          >
-            Bas
-          </Link>
-          <Link
-            href="/accessoires"
-            onClick={() => setIsMenuOpen(false)}
-            className="block py-2.5 text-[15px] font-normal text-black hover:opacity-60 transition-opacity"
-          >
-            Accessoires
-          </Link>
-          <Link
-            href="/lookbooks"
-            onClick={() => setIsMenuOpen(false)}
-            className="block py-2.5 text-[15px] font-normal text-black hover:opacity-60 transition-opacity"
-          >
-            Lookbooks
-          </Link>
-          <Link
-            href="/sustainability"
-            onClick={() => setIsMenuOpen(false)}
-            className="block py-2.5 text-[15px] font-normal text-black hover:opacity-60 transition-opacity"
-          >
-            Sustainability
-          </Link>
-          <Link
-            href="/about"
-            onClick={() => setIsMenuOpen(false)}
-            className="block py-2.5 text-[15px] font-normal text-black hover:opacity-60 transition-opacity"
-          >
-            À propos
-          </Link>
-          <Link
-            href="/contact"
-            onClick={() => setIsMenuOpen(false)}
-            className="block py-2.5 text-[15px] font-normal text-black hover:opacity-60 transition-opacity"
-          >
-            Contact
-          </Link>
+          {nav.map((item) => {
+            const active = isActive(item.href)
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setIsMenuOpen(false)}
+                className={[
+                  'block py-2.5 text-[15px] font-normal transition-colors',
+                  active ? 'text-black/40' : 'text-black hover:opacity-60',
+                ].join(' ')}
+              >
+                {item.label}
+              </Link>
+            )
+          })}
         </nav>
 
-        {/* Footer fixe */}
         <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-black/10">
           <div className="px-8 py-6 space-y-6">
             <div className="flex items-center gap-8">

@@ -43,7 +43,7 @@ export default function ProductCardClient({ product }: { product: Product }) {
                 id: product.id,
                 name: product.name,
                 price: product.sale_price ?? product.price,
-                image: mainImage?.url ?? "/placeholder.jpg",
+                image: mainImage?.url ?? '/placeholder.jpg',
               })
             }
             size="sm"
@@ -51,10 +51,10 @@ export default function ProductCardClient({ product }: { product: Product }) {
             disabled={qty === 0}
           >
             <ShoppingBag className="w-4 h-4 mr-1" />
-            {qty > 0 ? "Panier" : "Épuisé"}
+            {qty > 0 ? 'Panier' : 'Épuisé'}
           </Button>
 
-          <Link href={`/products/${product.id}`}>
+          <Link href={`/product/${product.id}`}>
             <Button
               size="sm"
               variant="outline"
@@ -72,7 +72,7 @@ export default function ProductCardClient({ product }: { product: Product }) {
             {product.name}
           </h3>
           <span className="text-sm text-gray-500">
-            {product.category?.name ?? ""}
+            {product.category?.name ?? ''}
           </span>
         </div>
 
@@ -100,14 +100,14 @@ export default function ProductCardClient({ product }: { product: Product }) {
           <span
             className={`text-xs px-2 py-1 rounded-full ${
               qty > 0
-                ? "bg-green-100 text-green-800"
-                : "bg-red-100 text-red-800"
+                ? 'bg-green-100 text-green-800'
+                : 'bg-red-100 text-red-800'
             }`}
           >
-            {qty > 0 ? "En stock" : "Épuisé"}
+            {qty > 0 ? 'En stock' : 'Épuisé'}
           </span>
         </div>
       </div>
     </div>
-  );
+  )
 }
