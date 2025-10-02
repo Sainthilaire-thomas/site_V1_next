@@ -6,38 +6,38 @@ export default function FooterMinimal() {
     <footer className="border-t border-grey-light py-16 px-8">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-12 mb-16">
-          {/* Colonne 1: Shop */}
+          {/* Column 1: Shop */}
           <div>
             <h3 className="text-product mb-6">SHOP</h3>
             <ul className="space-y-3">
               <li>
                 <Link
                   href="/hauts"
-                  className="text-body text-grey-medium hover:text-black transition-colors"
+                  className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium hover:text-black transition-colors"
                 >
-                  Hauts
+                  Tops
                 </Link>
               </li>
               <li>
                 <Link
                   href="/bas"
-                  className="text-body text-grey-medium hover:text-black transition-colors"
+                  className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium hover:text-black transition-colors"
                 >
-                  Bas
+                  Bottoms
                 </Link>
               </li>
               <li>
                 <Link
                   href="/accessoires"
-                  className="text-body text-grey-medium hover:text-black transition-colors"
+                  className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium hover:text-black transition-colors"
                 >
-                  Accessoires
+                  Accessories
                 </Link>
               </li>
               <li>
                 <Link
                   href="/lookbooks"
-                  className="text-body text-grey-medium hover:text-black transition-colors"
+                  className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium hover:text-black transition-colors"
                 >
                   Lookbooks
                 </Link>
@@ -45,22 +45,22 @@ export default function FooterMinimal() {
             </ul>
           </div>
 
-          {/* Colonne 2: Maison */}
+          {/* Column 2: House */}
           <div>
-            <h3 className="text-product mb-6">MAISON</h3>
+            <h3 className="text-product mb-6">HOUSE</h3>
             <ul className="space-y-3">
               <li>
                 <Link
                   href="/about"
-                  className="text-body text-grey-medium hover:text-black transition-colors"
+                  className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium hover:text-black transition-colors"
                 >
-                  À propos
+                  About
                 </Link>
               </li>
               <li>
                 <Link
                   href="/sustainability"
-                  className="text-body text-grey-medium hover:text-black transition-colors"
+                  className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium hover:text-black transition-colors"
                 >
                   Sustainability
                 </Link>
@@ -68,7 +68,7 @@ export default function FooterMinimal() {
               <li>
                 <Link
                   href="/contact"
-                  className="text-body text-grey-medium hover:text-black transition-colors"
+                  className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium hover:text-black transition-colors"
                 >
                   Contact
                 </Link>
@@ -76,30 +76,30 @@ export default function FooterMinimal() {
             </ul>
           </div>
 
-          {/* Colonne 3: Aide */}
+          {/* Column 3: Help */}
           <div>
-            <h3 className="text-product mb-6">AIDE</h3>
+            <h3 className="text-product mb-6">HELP</h3>
             <ul className="space-y-3">
               <li>
                 <Link
                   href="/livraison"
-                  className="text-body text-grey-medium hover:text-black transition-colors"
+                  className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium hover:text-black transition-colors"
                 >
-                  Livraison
+                  Shipping
                 </Link>
               </li>
               <li>
                 <Link
                   href="/retours"
-                  className="text-body text-grey-medium hover:text-black transition-colors"
+                  className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium hover:text-black transition-colors"
                 >
-                  Retours
+                  Returns
                 </Link>
               </li>
               <li>
                 <Link
                   href="/faq"
-                  className="text-body text-grey-medium hover:text-black transition-colors"
+                  className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium hover:text-black transition-colors"
                 >
                   FAQ
                 </Link>
@@ -107,33 +107,36 @@ export default function FooterMinimal() {
             </ul>
           </div>
 
-          {/* Colonne 4: Newsletter */}
+          {/* Column 4: Newsletter */}
           <div>
             <h3 className="text-product mb-6">NEWSLETTER</h3>
-            <p className="text-body text-grey-medium mb-4">
-              Recevez nos actualités
+            <p className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium mb-4">
+              Stay updated with our news
             </p>
             <form className="space-y-3">
               <input
                 type="email"
-                placeholder="Votre email"
-                className="w-full border-b border-grey-medium focus:border-black outline-none py-2 text-body transition-colors bg-transparent"
+                placeholder="Your email"
+                className="w-full border-b border-grey-medium focus:border-black outline-none py-2 text-[13px] tracking-[0.05em] font-semibold lowercase transition-colors bg-transparent"
               />
-              <button type="submit" className="btn-text">
-                S'INSCRIRE
+              <button
+                type="submit"
+                className="text-[13px] tracking-[0.05em] font-semibold lowercase hover:text-black transition-colors"
+              >
+                SUBSCRIBE
               </button>
             </form>
           </div>
         </div>
 
-        {/* Ligne séparation */}
+        {/* Separator line */}
         <div className="border-t border-grey-light pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             {/* Logo + Copyright */}
             <div className="flex items-center gap-8">
               <span className="text-product">.BLANCHERENAUDIN</span>
-              <span className="text-body text-grey-medium text-sm">
-                © 2024 Tous droits réservés
+              <span className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium">
+                © 2024 All rights reserved
               </span>
             </div>
 
@@ -143,34 +146,34 @@ export default function FooterMinimal() {
                 href="https://instagram.com/blancherenaudin"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-body text-grey-medium hover:text-black transition-colors"
+                className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium hover:text-black transition-colors"
               >
-                INSTAGRAM
+                instagram
               </a>
 
               <a
                 href="https://pinterest.com/blancherenaudin"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-body text-grey-medium hover:text-black transition-colors"
+                className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium hover:text-black transition-colors"
               >
-                PINTEREST
+                pinterest
               </a>
             </div>
 
-            {/* Légal */}
+            {/* Legal */}
             <div className="flex items-center gap-6">
               <Link
                 href="/mentions-legales"
-                className="text-body text-grey-medium hover:text-black transition-colors text-sm"
+                className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium hover:text-black transition-colors"
               >
-                Mentions légales
+                legal notice
               </Link>
               <Link
                 href="/confidentialite"
-                className="text-body text-grey-medium hover:text-black transition-colors text-sm"
+                className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium hover:text-black transition-colors"
               >
-                Confidentialité
+                privacy
               </Link>
             </div>
           </div>

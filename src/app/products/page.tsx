@@ -42,34 +42,30 @@ export default async function ProductsPage() {
     <div className="min-h-screen bg-white">
       <UnifiedHeader />
 
+      {/* Contenu épuré : uniquement la grille, avec généreux espacements */}
       <main className="pt-6">
-        <section className="py-20 px-6">
-          <div className="container mx-auto">
-            <h1 className="text-4xl md:text-6xl font-light text-gray-900 mb-6">
-              Produits
-            </h1>
-            <p className="text-lg text-gray-600 max-w-2xl">
-              Retrouvez l’ensemble de nos pièces.
-            </p>
-          </div>
-        </section>
-
-        <section className="py-12 px-6">
-          <div className="container mx-auto">
+        <section className="py-6 sm:py-8">
+          <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-10">
             {products.length === 0 ? (
               <div className="text-center py-20">
-                <p className="text-gray-500 text-lg">
-                  Aucun produit pour le moment.
+                <p className="text-black/60 text-sm tracking-[0.05em] font-semibold lowercase mb-3">
+                  aucun produit pour le moment
                 </p>
                 <Link
                   href="/collections"
-                  className="text-violet-600 hover:text-violet-800"
+                  className="text-black/70 hover:text-black text-[13px] tracking-[0.05em] font-semibold lowercase transition-colors"
                 >
-                  Voir les collections
+                  voir les collections
                 </Link>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div
+                className={[
+                  // Grille inspirée Jacquemus : grandes images, rythme aéré
+                  'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+                  'gap-6 md:gap-8 xl:gap-10',
+                ].join(' ')}
+              >
                 {products.map((p) => (
                   <ProductCardClient key={p.id} product={p} />
                 ))}
@@ -79,5 +75,5 @@ export default async function ProductsPage() {
         </section>
       </main>
     </div>
-  );
+  )
 }

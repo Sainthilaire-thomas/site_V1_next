@@ -54,7 +54,7 @@ export default function HeaderMinimal() {
         ].join(' ')}
       >
         {/* Conteneur principal */}
-        <div className="max-w-[1920px] mx-auto h-[108px] pl-6 pr-8 sm:pl-10 sm:pr-12 lg:pl-16 lg:pr-20 flex items-center justify-between gap-8">
+        <div className="max-w-[1920px] mx-auto h-[96px] lg:h-[108px] pl-6 pr-8 sm:pl-10 sm:pr-12 lg:pl-16 lg:pr-20 flex items-center justify-between gap-8">
           {/* GAUCHE : logo + nav rapprochée */}
           <div className="flex items-center gap-6 flex-1">
             <Link
@@ -63,12 +63,12 @@ export default function HeaderMinimal() {
               className="shrink-0"
             >
               <Image
-                src="/logo-blancherenaudin3.png"
+                src="/blancherenaudin-ajuste.svg"
                 alt=".blancherenaudin"
                 width={150}
                 height={40}
                 priority
-                className="h-10 w-auto"
+                className="h-[calc(100%-16px)] w-auto max-h-[92px]"
               />
             </Link>
 
@@ -138,7 +138,7 @@ export default function HeaderMinimal() {
       </header>
 
       {/* Spacer égal à la hauteur du header */}
-      <div aria-hidden className="h-[108px]" />
+      <div aria-hidden className="h-[96px] lg:h-[108px]" />
 
       {/* Menu mobile overlay */}
       {isMenuOpen && (
