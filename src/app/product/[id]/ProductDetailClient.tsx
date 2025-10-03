@@ -7,31 +7,9 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useCartStore } from '@/store/useCartStore'
 import { ShoppingBag, Check } from 'lucide-react'
-
-type RawImage = { url: string; alt_text: string | null }
-type RawVariant = {
-  id: string
-  product_id: string | null
-  name: string
-  value: string
-  stock_quantity: number | null
-  price_modifier: number | null
-  sku: string | null
-  is_active: boolean | null
-}
-type RawProduct = {
-  id: string
-  name: string
-  description: string | null
-  short_description: string | null
-  price: number
-  sale_price: number | null
-  stock_quantity: number | null
-  images?: RawImage[] | null
-  variants?: RawVariant[] | null
-  category?: { name: string } | null
-  is_featured?: boolean | null
-}
+import { ProductImage } from '@/components/products/ProductImage'
+import type { ProductWithRelations, ProductVariant } from '@/lib/types'
+import { getSortedImages } from '@/lib/types'
 
 const toHex = (c?: string) => {
   const map: Record<string, string> = {
@@ -47,6 +25,7 @@ const toHex = (c?: string) => {
   const k = (c || '').trim().toLowerCase()
   return map[k] || (/#|rgb|hsl/.test(k) ? k : '#d1d5db')
 }
+
 const isLight = (hex: string) => {
   const h = hex.replace('#', '')
   const r = parseInt(h.slice(0, 2), 16) || 0
@@ -59,12 +38,13 @@ function isColorKey(name?: string) {
   const n = (name || '').trim().toLowerCase()
   return ['color', 'couleur', 'colorway', 'couleurs'].includes(n)
 }
+
 function isSizeKey(name?: string) {
   const n = (name || '').trim().toLowerCase()
   return ['size', 'taille', 'sizes', 'tailles'].includes(n)
 }
 
-function parseVariants(rows: RawVariant[] | null | undefined) {
+function parseVariants(rows: ProductVariant[] | null | undefined) {
   const out = {
     colors: [] as string[],
     sizes: [] as string[],
@@ -104,7 +84,6 @@ function parseVariants(rows: RawVariant[] | null | undefined) {
   })
   skuGroups.forEach((g) => {
     if (!out.colors.length && g.size) {
-      // cas “tailles seules”
       out.stockByCombo.set(`${g.size}`, g.stock)
     } else if (g.color && g.size) {
       out.stockByCombo.set(`${g.color}|${g.size}`, g.stock)
@@ -139,9 +118,10 @@ function parseVariants(rows: RawVariant[] | null | undefined) {
 export default function ProductDetailClient({
   product,
 }: {
-  product: RawProduct
+  product: ProductWithRelations
 }) {
   const { addItem } = useCartStore()
+  const sortedImages = getSortedImages(product)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [selectedColor, setSelectedColor] = useState<string>('')
   const [selectedSize, setSelectedSize] = useState<string>('')
@@ -156,7 +136,6 @@ export default function ProductDetailClient({
 
   const currentVariantStock = useMemo(() => {
     if (colors.length === 0 && selectedSize) {
-      // pas de couleurs : stock indexé uniquement par taille
       return stockByCombo.get(`${selectedSize}`) ?? 0
     }
     if (!selectedColor || !selectedSize) return 0
@@ -172,7 +151,7 @@ export default function ProductDetailClient({
     (modByColor.get(selectedColor) ?? 0) + (modBySize.get(selectedSize) ?? 0)
   const displayPrice = basePrice + priceDelta
 
-  const mainImage = product.images?.[selectedImageIndex]
+  const selectedImage = sortedImages[selectedImageIndex]
   const canAddToCart =
     inStock &&
     (colors.length === 0 || !!selectedColor) &&
@@ -194,7 +173,7 @@ export default function ProductDetailClient({
           selectedSize ? ` / ${selectedSize}` : '',
         ].join(''),
       price: displayPrice,
-      image: mainImage?.url ?? product.images?.[0]?.url ?? '/placeholder.jpg',
+      image: '/placeholder.jpg', // Sera régénéré avec URL signée
       color: selectedColor || undefined,
       size: selectedSize || undefined,
     })
@@ -220,11 +199,20 @@ export default function ProductDetailClient({
         {/* Image principale */}
         <div className="space-y-2">
           <div className="relative bg-gray-100 overflow-hidden">
-            <img
-              src={mainImage?.url ?? '/placeholder.jpg'}
-              alt={product.name}
-              className="w-full aspect-[3/4] object-cover"
-            />
+            {selectedImage ? (
+              <ProductImage
+                productId={product.id}
+                imageId={selectedImage.id}
+                alt={selectedImage.alt || product.name}
+                size="xl"
+                className="w-full aspect-[3/4] object-cover"
+                priority={selectedImageIndex === 0}
+              />
+            ) : (
+              <div className="w-full aspect-[3/4] bg-gray-200 flex items-center justify-center">
+                <span className="text-gray-400">Pas d'image</span>
+              </div>
+            )}
             {inStock && (
               <Badge className="absolute top-2 left-2 bg-white/95 text-black text-[10px] font-normal border-0 px-2 py-0.5">
                 <Check className="w-2.5 h-2.5 mr-1" />
@@ -233,21 +221,24 @@ export default function ProductDetailClient({
             )}
           </div>
 
-          {product.images && product.images.length > 1 && (
+          {/* Miniatures */}
+          {sortedImages.length > 1 && (
             <div className="flex gap-1.5">
-              {product.images.map((img, i) => (
+              {sortedImages.map((img, i) => (
                 <button
-                  key={i}
+                  key={img.id}
                   onClick={() => setSelectedImageIndex(i)}
                   className={`flex-shrink-0 overflow-hidden transition ${
                     selectedImageIndex === i
-                      ? 'opacity-100'
+                      ? 'opacity-100 ring-2 ring-gray-900'
                       : 'opacity-40 hover:opacity-70'
                   }`}
                 >
-                  <img
-                    src={img.url}
-                    alt={`${product.name} ${i + 1}`}
+                  <ProductImage
+                    productId={product.id}
+                    imageId={img.id}
+                    alt={img.alt || `${product.name} ${i + 1}`}
+                    size="sm"
                     className="w-14 h-14 object-cover"
                   />
                 </button>
@@ -281,9 +272,6 @@ export default function ProductDetailClient({
                 <span className="text-[13px] font-light text-gray-900">
                   {selectedColor || 'Couleur'}
                 </span>
-                <button className="text-[11px] text-gray-400 hover:text-gray-900 underline">
-                  Voir les couleurs
-                </button>
               </div>
               <div className="flex gap-1.5">
                 {colors.map((color) => {
@@ -310,16 +298,13 @@ export default function ProductDetailClient({
             </div>
           )}
 
-          {/* Tailles (au-dessus du bouton) */}
+          {/* Tailles */}
           {sizes.length > 0 && (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-[13px] font-light text-gray-900">
                   Taille
                 </span>
-                <button className="text-[11px] text-gray-400 hover:text-gray-900 underline">
-                  Guide des tailles
-                </button>
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {sizes.map((size) => {
@@ -342,7 +327,7 @@ export default function ProductDetailClient({
             </div>
           )}
 
-          {/* Bouton prix + ajouter au panier (carré, sans arrondis) */}
+          {/* Bouton panier */}
           <div className="space-y-0">
             <Button
               onClick={handleAddToCart}

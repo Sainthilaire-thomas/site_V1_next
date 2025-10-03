@@ -2,26 +2,28 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { IMAGE_FORMATS, IMAGE_SIZES, getVariantPath } from '@/lib/images'
-import type { Database } from '@/lib/databasetypes'
+import type { Database } from '@/lib/database.types'
 
 type ProductImageRow = Database['public']['Tables']['product_images']['Row']
 
 export async function GET(
   req: Request,
-  { params }: { params: { imageId: string } }
+  { params }: { params: Promise<{ imageId: string }> }
 ) {
+  const { imageId } = await params
   const url = new URL(req.url)
-  const variant = url.searchParams.get('variant') || 'original' // 'original' | 'xl' | 'lg' | 'md' | 'sm'
+  const variant = url.searchParams.get('variant') || 'original'
   const format = (url.searchParams.get('format') ||
     'webp') as (typeof IMAGE_FORMATS)[number]
   const ttl = Number(url.searchParams.get('ttl') || 600)
 
-  // IMPORTANT : on bypasse la validation stricte de schéma avec 'as any'
-  // et on force le type renvoyé par single<ProductImageRow>()
+  // Mode: 'json' ou 'redirect'
+  const mode = url.searchParams.get('mode') || 'json'
+
   const { data, error } = await supabaseAdmin
     .from('product_images' as any)
     .select('*')
-    .eq('id', params.imageId)
+    .eq('id', imageId)
     .single<ProductImageRow>()
 
   if (error || !data) {
@@ -31,10 +33,8 @@ export async function GET(
     )
   }
 
-  // Si VS Code insiste avec "SelectQueryError", on force via unknown :
   const img = data as unknown as ProductImageRow
 
-  // Chemin par défaut = original
   let path = img.storage_original ?? ''
   if (!path) {
     return NextResponse.json(
@@ -54,12 +54,7 @@ export async function GET(
         { status: 400 }
       )
     }
-    path = getVariantPath(
-      img.product_id,
-      params.imageId,
-      variant as any,
-      format
-    )
+    path = getVariantPath(img.product_id, imageId, variant as any, format)
   }
 
   const { data: signed, error: signErr } = await supabaseAdmin.storage
@@ -73,5 +68,14 @@ export async function GET(
     )
   }
 
+  // ✅ Mode JSON par défaut (pour les composants React)
+  if (mode === 'json') {
+    return NextResponse.json({
+      signedUrl: signed.signedUrl,
+      expiresAt: new Date(Date.now() + ttl * 1000).toISOString(),
+    })
+  }
+
+  // Mode redirect (pour affichage direct dans le navigateur)
   return NextResponse.redirect(signed.signedUrl, 302)
 }

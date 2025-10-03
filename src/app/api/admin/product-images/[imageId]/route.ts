@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { getVariantPath, IMAGE_SIZES, IMAGE_FORMATS } from '@/lib/images'
-import type { Database } from '@/lib/databasetypes'
+import type { Database } from '@/lib/database.types'
 
 type ProductImageRow = Database['public']['Tables']['product_images']['Row']
 

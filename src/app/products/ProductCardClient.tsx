@@ -1,34 +1,33 @@
-"use client";
+'use client'
 
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ShoppingBag } from "lucide-react";
-import { useCartStore } from "@/store/useCartStore";
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { ShoppingBag } from 'lucide-react'
+import { useCartStore } from '@/store/useCartStore'
+import { ProductImage } from '@/components/products/ProductImage'
+import type { ProductWithRelations } from '@/lib/types'
+import { getPrimaryImage } from '@/lib/types'
 
-type Product = {
-  id: string;
-  name: string;
-  short_description: string | null;
-  price: number;
-  sale_price: number | null;
-  stock_quantity: number | null;
-  images?: Array<{ url: string; alt_text: string | null }>;
-  category?: { name: string } | null;
-};
-
-export default function ProductCardClient({ product }: { product: Product }) {
-  const { addItem } = useCartStore();
-  const qty = Math.max(0, product.stock_quantity ?? 0);
-  const mainImage = product.images?.[0];
+export default function ProductCardClient({
+  product,
+}: {
+  product: ProductWithRelations
+}) {
+  const { addItem } = useCartStore()
+  const qty = Math.max(0, product.stock_quantity ?? 0)
+  const primaryImage = getPrimaryImage(product)
 
   return (
     <div className="group">
       <div className="aspect-[3/4] rounded-lg overflow-hidden mb-4 relative">
-        {mainImage?.url ? (
-          <img
-            src={mainImage.url}
-            alt={mainImage.alt_text || product.name}
+        {primaryImage ? (
+          <ProductImage
+            productId={product.id}
+            imageId={primaryImage.id}
+            alt={primaryImage.alt || product.name}
+            size="md"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            priority={false}
           />
         ) : (
           <div className="w-full h-full bg-gray-200 flex items-center justify-center">
@@ -43,7 +42,7 @@ export default function ProductCardClient({ product }: { product: Product }) {
                 id: product.id,
                 name: product.name,
                 price: product.sale_price ?? product.price,
-                image: mainImage?.url ?? '/placeholder.jpg',
+                image: '/placeholder.jpg', // L'URL signée sera régénérée dans le panier
               })
             }
             size="sm"
