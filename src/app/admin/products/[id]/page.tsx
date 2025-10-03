@@ -1,6 +1,7 @@
+// src/app/admin/products/[id]/page.tsx
 import Link from 'next/link'
 import { supabaseAdmin } from '@/lib/supabase-admin'
-import { ProductFormClient } from './ProductFormClient'
+import { ProductPageWrapper } from './ProductPageWrapper'
 
 export default async function AdminProductDetailPage({
   params,
@@ -20,7 +21,7 @@ export default async function AdminProductDetailPage({
       <div className="space-y-4">
         <div className="text-sm">
           <Link href="/admin/products" className="underline hover:text-violet">
-            ← Retour
+            ← Retour aux produits
           </Link>
         </div>
         <h1 className="text-xl font-semibold">Produit introuvable</h1>
@@ -35,7 +36,7 @@ export default async function AdminProductDetailPage({
     .order('created_at', { ascending: true })
 
   return (
-    <ProductFormClient
+    <ProductPageWrapper
       product={product}
       variants={variants ?? []}
       productId={id}
