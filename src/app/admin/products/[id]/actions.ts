@@ -8,22 +8,35 @@ import {
   stockAdjustSchema,
 } from '@/lib/validation/adminProducts'
 
+function emptyToNull(v: unknown) {
+  const s = (v ?? '').toString().trim()
+  return s === '' ? null : s
+}
+
 export async function updateProductAction(
   productId: string,
   formData: FormData
 ) {
+  // ⚠️ Number('') = 0, Number(undefined) = NaN. On protège.
+  const priceRaw = formData.get('price')
+  const price =
+    priceRaw !== null &&
+    priceRaw !== undefined &&
+    String(priceRaw).trim() !== ''
+      ? Number(priceRaw)
+      : undefined
+
   const partial = {
     name: formData.get('name')?.toString(),
     slug: formData.get('slug')?.toString(),
-    price:
-      formData.get('price') !== null
-        ? Number(formData.get('price'))
-        : undefined,
-    short_description:
-      (formData.get('short_description') as string) ?? undefined,
-    description: (formData.get('description') as string) ?? undefined,
-    sku: (formData.get('sku') as string) ?? undefined,
-    category_id: (formData.get('category_id') as string) ?? undefined,
+    price, // ✅ protégé
+    short_description: emptyToNull(formData.get('short_description')), // ✅
+    description: emptyToNull(formData.get('description')), // ✅
+    sku: emptyToNull(formData.get('sku')), // ✅
+    category_id: emptyToNull(formData.get('category_id')) as
+      | string
+      | null
+      | undefined, // ✅ null si "(Aucune)"
     is_active:
       formData.get('is_active') !== null
         ? formData.get('is_active') === 'on'
@@ -32,6 +45,8 @@ export async function updateProductAction(
       formData.get('is_featured') !== null
         ? formData.get('is_featured') === 'on'
         : undefined,
+    // (facultatif) updated_at pour traçabilité :
+    // updated_at: new Date().toISOString(),
   }
 
   const parsed = productUpdateSchema.safeParse(partial)

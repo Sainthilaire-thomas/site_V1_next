@@ -3,7 +3,7 @@
 ║                          ARBORESCENCE DU PROJET                             ║
 ║                                                                              ║
 ║  Projet: site_v1_next                                                    ║
-║  Généré: 02/10/2025 19:15:06                                            ║
+║  Généré: 03/10/2025 10:45:31                                            ║
 ║                                                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -15,7 +15,9 @@
 ├── 📁 docs
 │   ├── 📝 description-projet.md
 │   ├── 📝 elements-desing-brouillon-blanche.md
+│   ├── 📝 etats-des-lieux-admin-photos.md
 │   ├── 📝 gestion-images.md
+│   ├── 📝 guide-dev-fonctions-etendues-photos.md
 │   ├── 📝 installation-module-image.md
 │   ├── 📝 installation-sanity.md
 │   ├── 📝 interface-admin-supabase.md
@@ -55,13 +57,16 @@
 │   │   │   └── 🔷 page.tsx
 │   │   ├── 📁 admin
 │   │   │   ├── 📁 media
+│   │   │   │   ├── 🔷 BreadcrumbProvider.tsx
 │   │   │   │   ├── 🔷 MediaGridClient.tsx
+│   │   │   │   ├── 🔷 MediaGridHeader.tsx
 │   │   │   │   └── 🔷 page.tsx
 │   │   │   ├── 📁 products
 │   │   │   │   ├── 📁 [id]
 │   │   │   │   │   ├── 🔷 actions.ts
 │   │   │   │   │   ├── 🔷 page.tsx
-│   │   │   │   │   └── 🔷 ProductFormClient.tsx
+│   │   │   │   │   ├── 🔷 ProductFormClient.tsx
+│   │   │   │   │   └── 🔷 ProductPageWrapper.tsx
 │   │   │   │   ├── 📁 new
 │   │   │   │   │   └── 🔷 page.tsx
 │   │   │   │   ├── 🔷 actions.ts
@@ -72,15 +77,18 @@
 │   │   │   │   ├── 📁 coupons
 │   │   │   │   ├── 📁 product-images
 │   │   │   │   │   ├── 📁 [imageId]
+│   │   │   │   │   │   ├── 📁 alt
 │   │   │   │   │   │   ├── 📁 signed-url
 │   │   │   │   │   │   └── 🔷 route.ts
+│   │   │   │   │   ├── 📁 edit
+│   │   │   │   │   │   └── 🔷 route.tsx
 │   │   │   │   │   ├── 📁 reorder
 │   │   │   │   │   │   └── 🔷 route.ts
 │   │   │   │   │   └── 📁 upload
-│   │   │   │   │       ├── 📁 [imageId]
 │   │   │   │   │       └── 🔷 route.ts
 │   │   │   │   ├── 📁 products
 │   │   │   │   │   ├── 📁 [id]
+│   │   │   │   │   │   ├── 📁 images
 │   │   │   │   │   │   ├── 📁 stock-recompute
 │   │   │   │   │   │   ├── 📁 variants
 │   │   │   │   │   │   └── 🔷 route.ts
@@ -145,6 +153,10 @@
 │   │   └── 🔷 page.tsx
 │   ├── 📁 components
 │   │   ├── 📁 admin
+│   │   │   ├── 🔷 AdminNav.tsx
+│   │   │   ├── 🔷 Breadcrumb.tsx
+│   │   │   ├── 🔷 ImageEditorModal.tsx
+│   │   │   ├── 🔷 QuickActions.tsx
 │   │   │   ├── 🔷 ThemeProvider.tsx
 │   │   │   ├── 🔷 ThemeToggle.tsx
 │   │   │   └── 🔷 Toast.tsx
@@ -167,7 +179,8 @@
 │   │   │   ├── 🔷 ProductCardJacquemus.tsx
 │   │   │   ├── 🔷 ProductCardMinimal.tsx
 │   │   │   ├── 🔷 ProductGridJacquemus.tsx
-│   │   │   └── 🔷 ProductGridMinimal.tsx
+│   │   │   ├── 🔷 ProductGridMinimal.tsx
+│   │   │   └── 🔷 ProductImage.tsx
 │   │   └── 📁 ui
 │   │       ├── 🔷 accordion.tsx
 │   │       ├── 🔷 alert.tsx
@@ -228,7 +241,6 @@
 │   │   ├── 🔷 api.ts
 │   │   ├── 🔷 constants.ts
 │   │   ├── 🔷 database.types.ts
-│   │   ├── 🔷 databasetypes.ts
 │   │   ├── 🔷 design-tokens.ts
 │   │   ├── 🔷 images-server.ts
 │   │   ├── 🔷 images.ts
@@ -279,8 +291,8 @@
 
 
 📈 Statistiques :
-   • Dossiers : 76
-   • Fichiers : 162
-   • Total : 238 éléments
+   • Dossiers : 78
+   • Fichiers : 170
+   • Total : 248 éléments
 
 💡 Généré automatiquement - Ne pas modifier manuellement

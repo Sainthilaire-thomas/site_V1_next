@@ -12,6 +12,12 @@ export function AdminNav() {
       >
         Produits
       </Link>
+      <Link
+        href="/admin/products"
+        className="hover:text-violet transition-colors"
+      >
+        Catégories
+      </Link>
       <Link href="/admin/media" className="hover:text-violet transition-colors">
         Médias
       </Link>

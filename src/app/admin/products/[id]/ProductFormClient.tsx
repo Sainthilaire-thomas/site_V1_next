@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useTransition } from 'react'
+import { useTransition, useState, useEffect } from 'react'
 import { useToast } from '@/components/admin/Toast'
 import {
   updateProductAction,
@@ -21,6 +21,9 @@ export function ProductFormClient({
 }) {
   const { showToast } = useToast()
   const [isPending, startTransition] = useTransition()
+  const [categories, setCategories] = useState<
+    Array<{ id: string; name: string }>
+  >([])
 
   async function handleUpdateProduct(formData: FormData) {
     startTransition(async () => {
@@ -68,6 +71,20 @@ export function ProductFormClient({
   }
 
   const totalStock = product.stock_quantity ?? 0
+
+  useEffect(() => {
+    let canceled = false
+    ;(async () => {
+      const r = await fetch('/api/admin/categories', { cache: 'no-store' })
+      const json = await r.json()
+      if (!canceled && json?.ok && Array.isArray(json.data)) {
+        setCategories(json.data.map((c: any) => ({ id: c.id, name: c.name })))
+      }
+    })()
+    return () => {
+      canceled = true
+    }
+  }, [])
 
   return (
     <div className="space-y-8">
@@ -135,6 +152,21 @@ export function ProductFormClient({
       <section id="infos" className="space-y-4">
         <h2 className="text-lg font-medium">Infos</h2>
         <form action={handleUpdateProduct} className="grid gap-3 max-w-xl">
+          <label className="grid gap-1">
+            <span className="text-sm font-medium">Catégorie</span>
+            <select
+              name="category_id"
+              defaultValue={product.category_id ?? ''}
+              className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 rounded focus:ring-2 focus:ring-violet focus:border-transparent"
+            >
+              <option value="">(Aucune)</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </label>
           <label className="grid gap-1">
             <span className="text-sm font-medium">Nom</span>
             <input
