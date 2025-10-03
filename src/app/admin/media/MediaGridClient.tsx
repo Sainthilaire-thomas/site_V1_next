@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { ProductImage } from '@/components/products/ProductImage'
+import { ImageEditorModal } from '@/components/admin/ImageEditorModal'
 
 type ProductImageData = {
   id: string
@@ -24,6 +25,11 @@ export function MediaGridClient({ productId }: Props) {
   const [files, setFiles] = useState<FileList | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [editingImage, setEditingImage] = useState<{
+    id: string
+    url: string
+  } | null>(null)
+  const [loadingEditor, setLoadingEditor] = useState(false)
 
   async function refresh() {
     if (!productId) {
@@ -177,6 +183,39 @@ export function MediaGridClient({ productId }: Props) {
       setError(e?.message ?? "Erreur lors de l'enregistrement de l'ordre")
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function openEditor(imageId: string) {
+    setLoadingEditor(true)
+    try {
+      // Récupérer l'URL signée de l'original
+      const res = await fetch(
+        `/api/admin/product-images/${imageId}/signed-url?variant=original&format=jpg&mode=json`,
+        { cache: 'no-store' }
+      )
+
+      if (!res.ok) {
+        throw new Error("Impossible de récupérer l'image")
+      }
+
+      const data = await res.json()
+
+      if (!data.signedUrl) {
+        throw new Error('URL signée manquante')
+      }
+
+      console.log('URL récupérée pour édition:', data.signedUrl)
+
+      setEditingImage({
+        id: imageId,
+        url: data.signedUrl,
+      })
+    } catch (err: any) {
+      console.error("Erreur lors de l'ouverture de l'éditeur:", err)
+      setError(err.message || "Erreur lors de l'ouverture de l'éditeur")
+    } finally {
+      setLoadingEditor(false)
     }
   }
 
@@ -346,7 +385,6 @@ export function MediaGridClient({ productId }: Props) {
                     ↓
                   </button>
                 </div>
-
                 {/* Définir principale */}
                 {!img.is_primary && (
                   <button
@@ -357,8 +395,16 @@ export function MediaGridClient({ productId }: Props) {
                   >
                     Définir principale
                   </button>
-                )}
-
+                )}{' '}
+                {/* Editer */}
+                <button
+                  type="button"
+                  onClick={() => openEditor(img.id)}
+                  disabled={loading || loadingEditor}
+                  className="w-full px-3 py-1.5 border border-violet text-violet rounded text-sm hover:bg-violet hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {loadingEditor ? '⏳ Chargement...' : '✂️ Éditer'}
+                </button>
                 {/* Supprimer */}
                 <button
                   type="button"
@@ -372,6 +418,18 @@ export function MediaGridClient({ productId }: Props) {
             </li>
           ))}
         </ul>
+      )}
+      {editingImage && productId && (
+        <ImageEditorModal
+          imageId={editingImage.id}
+          productId={productId}
+          originalUrl={editingImage.url}
+          onClose={() => setEditingImage(null)}
+          onSave={() => {
+            setEditingImage(null)
+            refresh()
+          }}
+        />
       )}
     </div>
   )

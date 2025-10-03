@@ -23,7 +23,7 @@ export function ProductImage({
   className = '',
   priority = false,
 }: ProductImageProps) {
-  const [signedUrl, setSignedUrl] = useState<string>('/placeholder.jpg')
+  const [signedUrl, setSignedUrl] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(false)
 
@@ -31,6 +31,7 @@ export function ProductImage({
     let cancelled = false
 
     async function fetchSignedUrl() {
+      setIsLoading(true)
       try {
         const format = await detectBestFormat()
 
@@ -66,28 +67,72 @@ export function ProductImage({
     }
   }, [imageId, size])
 
-  if (error) {
+  // ✅ Skeleton loader animé
+  if (isLoading) {
     return (
       <div
-        className={`bg-gray-200 flex items-center justify-center ${className}`}
+        className={`animate-pulse bg-gray-200 dark:bg-gray-700 ${className}`}
       >
-        <span className="text-gray-400 text-sm">Image indisponible</span>
+        <div className="h-full w-full flex items-center justify-center">
+          <svg
+            className="w-12 h-12 text-gray-400 dark:text-gray-500"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+        </div>
       </div>
     )
   }
 
+  // ✅ État d'erreur
+  if (error || !signedUrl) {
+    return (
+      <div
+        className={`flex items-center justify-center bg-gray-100 dark:bg-gray-800 ${className}`}
+      >
+        <div className="text-center">
+          <svg
+            className="w-12 h-12 mx-auto text-gray-400 dark:text-gray-500 mb-2"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+          <span className="text-gray-500 dark:text-gray-400 text-xs">
+            Image indisponible
+          </span>
+        </div>
+      </div>
+    )
+  }
+
+  // ✅ Image chargée
   return (
     <img
       src={signedUrl}
       alt={alt}
       className={className}
       loading={priority ? 'eager' : 'lazy'}
-      style={isLoading ? { opacity: 0.5 } : {}}
+      onError={() => setError(true)}
     />
   )
 }
-
-// ... reste du code (ResponsiveProductImage, detectBestFormat, etc.)
 
 /**
  * Composant responsive avec <picture> pour toutes les tailles
@@ -98,51 +143,137 @@ export function ResponsiveProductImage({
   alt,
   className = '',
 }: Omit<ProductImageProps, 'size'>) {
-  const [urls, setUrls] = useState<Record<ImageSize, string>>({
-    sm: '/placeholder.jpg',
-    md: '/placeholder.jpg',
-    lg: '/placeholder.jpg',
-    xl: '/placeholder.jpg',
-  })
+  const [urls, setUrls] = useState<Record<ImageSize, string> | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(false)
 
   useEffect(() => {
+    let cancelled = false
+
     async function fetchAllUrls() {
-      const format = await detectBestFormat()
-      const sizes: ImageSize[] = ['sm', 'md', 'lg', 'xl']
+      setIsLoading(true)
+      try {
+        const format = await detectBestFormat()
+        const sizes: ImageSize[] = ['sm', 'md', 'lg', 'xl']
 
-      const urlPromises = sizes.map(async (size) => {
-        try {
-          const res = await fetch(
-            `/api/admin/product-images/${imageId}/signed-url?variant=${size}&format=${format}`,
-            { cache: 'no-store' }
-          )
-          return { size, url: res.ok ? res.url : '/placeholder.jpg' }
-        } catch {
-          return { size, url: '/placeholder.jpg' }
+        const urlPromises = sizes.map(async (size) => {
+          try {
+            const res = await fetch(
+              `/api/admin/product-images/${imageId}/signed-url?variant=${size}&format=${format}&mode=json`,
+              { cache: 'no-store' }
+            )
+            if (!res.ok) throw new Error('Failed')
+            const data = await res.json()
+            return { size, url: data.signedUrl }
+          } catch {
+            return { size, url: null }
+          }
+        })
+
+        const results = await Promise.all(urlPromises)
+        const newUrls = results.reduce(
+          (acc, { size, url }) => {
+            if (url) acc[size] = url
+            return acc
+          },
+          {} as Record<ImageSize, string>
+        )
+
+        if (!cancelled) {
+          if (Object.keys(newUrls).length === 0) {
+            setError(true)
+          } else {
+            setUrls(newUrls)
+          }
+          setIsLoading(false)
         }
-      })
-
-      const results = await Promise.all(urlPromises)
-      const newUrls = results.reduce(
-        (acc, { size, url }) => {
-          acc[size] = url
-          return acc
-        },
-        {} as Record<ImageSize, string>
-      )
-
-      setUrls(newUrls)
+      } catch (err) {
+        console.error('Error fetching URLs:', err)
+        if (!cancelled) {
+          setError(true)
+          setIsLoading(false)
+        }
+      }
     }
 
     fetchAllUrls()
+
+    return () => {
+      cancelled = true
+    }
   }, [imageId])
 
+  // ✅ Skeleton loader
+  if (isLoading) {
+    return (
+      <div
+        className={`animate-pulse bg-gray-200 dark:bg-gray-700 ${className}`}
+      >
+        <div className="h-full w-full flex items-center justify-center">
+          <svg
+            className="w-12 h-12 text-gray-400 dark:text-gray-500"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+        </div>
+      </div>
+    )
+  }
+
+  // ✅ État d'erreur
+  if (error || !urls) {
+    return (
+      <div
+        className={`flex items-center justify-center bg-gray-100 dark:bg-gray-800 ${className}`}
+      >
+        <div className="text-center">
+          <svg
+            className="w-12 h-12 mx-auto text-gray-400 dark:text-gray-500 mb-2"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+          <span className="text-gray-500 dark:text-gray-400 text-xs">
+            Image indisponible
+          </span>
+        </div>
+      </div>
+    )
+  }
+
+  // ✅ Picture avec fallback
   return (
     <picture>
-      <source media="(max-width: 640px)" srcSet={urls.sm} />
-      <source media="(max-width: 1024px)" srcSet={urls.md} />
-      <source media="(max-width: 1536px)" srcSet={urls.lg} />
-      <img src={urls.xl} alt={alt} className={className} loading="lazy" />
+      {urls.sm && <source media="(max-width: 640px)" srcSet={urls.sm} />}
+      {urls.md && <source media="(max-width: 1024px)" srcSet={urls.md} />}
+      {urls.lg && <source media="(max-width: 1536px)" srcSet={urls.lg} />}
+      <img
+        src={urls.xl || urls.lg || urls.md || urls.sm}
+        alt={alt}
+        className={className}
+        loading="lazy"
+        onError={(e) => {
+          console.error('Image failed to load')
+          setError(true)
+        }}
+      />
     </picture>
   )
 }
