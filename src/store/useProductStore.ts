@@ -1,132 +1,115 @@
 // src/store/useProductStore.ts
-import { create } from "zustand";
-import { supabase } from "@/lib/supabase";
-import type { Database } from '../lib/database.types'
+import { create } from 'zustand'
+import type { ProductWithRelations } from '@/lib/types'
 
-type Product = Database["public"]["Tables"]["products"]["Row"] & {
-  images?: Database["public"]["Tables"]["product_images"]["Row"][];
-  variants?: Database["public"]["Tables"]["product_variants"]["Row"][];
-  category?: Database["public"]["Tables"]["categories"]["Row"];
-};
-
-interface ProductState {
-  products: Product[];
-  featuredProducts: Product[];
-  isLoading: boolean;
-  error: string | null;
+export interface ProductState {
+  products: ProductWithRelations[]
+  featuredProducts: ProductWithRelations[]
+  isLoading: boolean
+  error: string | null
 
   // Actions
-  fetchProducts: () => Promise<void>;
-  fetchFeaturedProducts: () => Promise<void>;
-  fetchProductById: (id: string) => Promise<Product | null>;
-  fetchProductsByCategory: (categorySlug: string) => Promise<void>;
+  fetchProducts: () => Promise<void>
+  fetchFeaturedProducts: () => Promise<void>
+  fetchProductById: (id: string) => Promise<ProductWithRelations | null>
+  searchProducts: (query: string) => Promise<void>
+  filterByCategory: (categorySlug: string) => Promise<void>
 }
 
-export const useProductStore = create<ProductState>((set, get) => ({
+export const useProductStore = create<ProductState>((set) => ({
   products: [],
   featuredProducts: [],
   isLoading: false,
   error: null,
 
   fetchProducts: async () => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: null })
 
     try {
-      const { data, error } = await supabase
-        .from("products")
-        .select(
-          `
-          *,
-          images:product_images(*),
-          variants:product_variants(*),
-          category:categories(*)
-        `
-        )
-        .eq("is_active", true)
-        .order("created_at", { ascending: false });
+      const response = await fetch('/api/products')
+      const { data } = await response.json()
 
-      if (error) throw error;
-
-      set({ products: data || [], isLoading: false });
+      set({ products: data || [], isLoading: false })
     } catch (error) {
-      set({ error: (error as Error).message, isLoading: false });
+      console.error('Error fetching products:', error)
+      set({
+        error: 'Erreur lors du chargement des produits',
+        isLoading: false,
+      })
     }
   },
 
   fetchFeaturedProducts: async () => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: null })
 
     try {
-      const { data, error } = await supabase
-        .from("products")
-        .select(
-          `
-          *,
-          images:product_images(*),
-          variants:product_variants(*),
-          category:categories(*)
-        `
-        )
-        .eq("is_active", true)
-        .eq("is_featured", true)
-        .order("created_at", { ascending: false });
+      const response = await fetch('/api/products?featured=true')
+      const { data } = await response.json()
 
-      if (error) throw error;
-
-      set({ featuredProducts: data || [], isLoading: false });
+      set({ featuredProducts: data || [], isLoading: false })
     } catch (error) {
-      set({ error: (error as Error).message, isLoading: false });
+      console.error('Error fetching featured products:', error)
+      set({
+        error: 'Erreur lors du chargement des produits à la une',
+        isLoading: false,
+      })
     }
   },
 
   fetchProductById: async (id: string) => {
+    set({ isLoading: true, error: null })
+
     try {
-      const { data, error } = await supabase
-        .from("products")
-        .select(
-          `
-          *,
-          images:product_images(*),
-          variants:product_variants(*),
-          category:categories(*)
-        `
-        )
-        .eq("id", id)
-        .eq("is_active", true)
-        .single();
+      const response = await fetch(`/api/products/${id}`)
+      const { data } = await response.json()
 
-      if (error) throw error;
-
-      return data;
+      set({ isLoading: false })
+      return data || null
     } catch (error) {
-      set({ error: (error as Error).message });
-      return null;
+      console.error('Error fetching product:', error)
+      set({
+        error: 'Erreur lors du chargement du produit',
+        isLoading: false,
+      })
+      return null
     }
   },
 
-  fetchProductsByCategory: async (categorySlug: string) => {
-    set({ isLoading: true, error: null });
+  searchProducts: async (query: string) => {
+    set({ isLoading: true, error: null })
 
     try {
-      const { data, error } = await supabase
-        .from("products")
-        .select(
-          `
-          *,
-          images:product_images(*),
-          variants:product_variants(*),
-          category:categories(*)
-        `
-        )
-        .eq("is_active", true)
-        .eq("categories.slug", categorySlug)
-        .order("created_at", { ascending: false });
+      const response = await fetch(
+        `/api/products?q=${encodeURIComponent(query)}`
+      )
+      const { data } = await response.json()
 
-      if (error) throw error;
-
-      set({ products: data || [], isLoading: false });
+      set({ products: data || [], isLoading: false })
     } catch (error) {
-      set({ error: (error as Error).message, isLoading: false });
+      console.error('Error searching products:', error)
+      set({
+        error: 'Erreur lors de la recherche',
+        isLoading: false,
+      })
     }
   },
-}));
+
+  filterByCategory: async (categorySlug: string) => {
+    set({ isLoading: true, error: null })
+
+    try {
+      const response = await fetch(
+        `/api/products?category=${encodeURIComponent(categorySlug)}`
+      )
+      const { data } = await response.json()
+
+      set({ products: data || [], isLoading: false })
+    } catch (error) {
+      console.error('Error filtering products:', error)
+      set({
+        error: 'Erreur lors du filtrage',
+        isLoading: false,
+      })
+    }
+  },
+}))

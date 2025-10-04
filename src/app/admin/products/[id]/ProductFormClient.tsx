@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useTransition, useState, useEffect } from 'react'
+import { useTransition, useState } from 'react'
 import { useToast } from '@/components/admin/Toast'
 import {
   updateProductAction,
@@ -23,6 +23,10 @@ export function ProductFormClient({
 }) {
   const { showToast } = useToast()
   const [isPending, startTransition] = useTransition()
+
+  // ✅ État local pour les checkboxes
+  const [isActive, setIsActive] = useState(!!product.is_active)
+  const [isFeatured, setIsFeatured] = useState(!!product.is_featured)
 
   async function handleUpdateProduct(formData: FormData) {
     startTransition(async () => {
@@ -203,24 +207,42 @@ export function ProductFormClient({
               className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 rounded focus:ring-2 focus:ring-violet focus:border-transparent"
             />
           </label>
-          <label className="inline-flex items-center gap-2">
+
+          {/* ✅ Checkbox Actif avec champ caché */}
+          <div>
             <input
+              type="hidden"
               name="is_active"
-              type="checkbox"
-              defaultChecked={!!product.is_active}
-              className="rounded border-gray-300 text-violet focus:ring-violet"
+              value={isActive ? 'true' : 'false'}
             />
-            <span className="text-sm">Actif</span>
-          </label>
-          <label className="inline-flex items-center gap-2">
+            <label className="inline-flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isActive}
+                onChange={(e) => setIsActive(e.target.checked)}
+                className="rounded border-gray-300 text-violet focus:ring-violet"
+              />
+              <span className="text-sm">Actif</span>
+            </label>
+          </div>
+
+          {/* ✅ Checkbox Featured avec champ caché */}
+          <div>
             <input
+              type="hidden"
               name="is_featured"
-              type="checkbox"
-              defaultChecked={!!product.is_featured}
-              className="rounded border-gray-300 text-violet focus:ring-violet"
+              value={isFeatured ? 'true' : 'false'}
             />
-            <span className="text-sm">À la une</span>
-          </label>
+            <label className="inline-flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isFeatured}
+                onChange={(e) => setIsFeatured(e.target.checked)}
+                className="rounded border-gray-300 text-violet focus:ring-violet"
+              />
+              <span className="text-sm">À la une</span>
+            </label>
+          </div>
 
           <div className="flex gap-2">
             <button

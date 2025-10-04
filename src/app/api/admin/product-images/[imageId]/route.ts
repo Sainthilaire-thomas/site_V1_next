@@ -7,13 +7,15 @@ type ProductImageRow = Database['public']['Tables']['product_images']['Row']
 
 export async function DELETE(
   _: Request,
-  { params }: { params: { imageId: string } }
+  { params }: { params: Promise<{ imageId: string }> }
 ) {
+  const { imageId } = await params
+
   const { data, error } = await supabaseAdmin
-    .from('product_images' as any) // temporaire si tes types ne sont pas 100% à jour
+    .from('product_images' as any)
     .select('*')
-    .eq('id', params.imageId)
-    .single<ProductImageRow>() // 👈 clé : on force le type ici
+    .eq('id', imageId)
+    .single<ProductImageRow>()
 
   if (error || !data) {
     return NextResponse.json(
@@ -22,12 +24,12 @@ export async function DELETE(
     )
   }
 
-  const img = data // déjà typé ProductImageRow
+  const img = data
 
   const toRemove: string[] = []
   for (const size of IMAGE_SIZES) {
     for (const fmt of IMAGE_FORMATS) {
-      toRemove.push(getVariantPath(img.product_id, params.imageId, size, fmt))
+      toRemove.push(getVariantPath(img.product_id, imageId, size, fmt))
     }
   }
   if (img.storage_original) toRemove.push(img.storage_original)
@@ -38,7 +40,7 @@ export async function DELETE(
   const { error: delErr } = await supabaseAdmin
     .from('product_images' as any)
     .delete()
-    .eq('id', params.imageId)
+    .eq('id', imageId)
 
   if (delErr)
     return NextResponse.json({ error: delErr.message }, { status: 500 })

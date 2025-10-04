@@ -5,11 +5,13 @@ import { stockAdjustSchema } from '@/lib/validation/adminProducts'
 
 export async function POST(
   req: Request,
-  { params }: { params: { variantId: string } }
+  { params }: { params: Promise<{ variantId: string }> }
 ) {
   const auth = await requireAdmin()
   if (!auth.ok)
     return NextResponse.json({ error: auth.message }, { status: auth.status })
+
+  const { variantId } = await params
 
   const body = await req.json()
   const parsed = stockAdjustSchema.safeParse(body)
@@ -18,7 +20,7 @@ export async function POST(
 
   // insère un mouvement (le trigger met à jour le stock)
   const { error } = await supabaseAdmin.from('stock_movements').insert({
-    variant_id: params.variantId,
+    variant_id: variantId,
     delta: parsed.data.delta,
     reason: parsed.data.reason,
     created_by: auth.user.id,
@@ -30,7 +32,7 @@ export async function POST(
   const { data: v, error: e2 } = await supabaseAdmin
     .from('product_variants')
     .select('stock_quantity, product_id')
-    .eq('id', params.variantId)
+    .eq('id', variantId)
     .single()
 
   if (e2) return NextResponse.json({ error: e2.message }, { status: 500 })

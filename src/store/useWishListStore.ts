@@ -1,24 +1,18 @@
-// src/store/useWishlistStore.ts
-import { create } from "zustand";
-import { supabase } from "@/lib/supabase";
-import type { Database } from '../lib/database.types'
-
-type WishlistItem = Database["public"]["Tables"]["wishlist_items"]["Row"] & {
-  product: Database["public"]["Tables"]["products"]["Row"] & {
-    images?: Database["public"]["Tables"]["product_images"]["Row"][];
-  };
-};
+// src/store/useWishListStore.ts
+import { create } from 'zustand'
+import type { WishlistItem } from '@/lib/types'
 
 interface WishlistState {
-  items: WishlistItem[];
-  isLoading: boolean;
-  error: string | null;
+  items: WishlistItem[]
+  isLoading: boolean
+  error: string | null
 
   // Actions
-  fetchWishlist: () => Promise<void>;
-  addToWishlist: (productId: string) => Promise<void>;
-  removeFromWishlist: (productId: string) => Promise<void>;
-  isInWishlist: (productId: string) => boolean;
+  fetchWishlist: (userId: string) => Promise<void>
+  addToWishlist: (userId: string, productId: string) => Promise<void>
+  removeFromWishlist: (itemId: string) => Promise<void>
+  isInWishlist: (productId: string) => boolean
+  clearWishlist: () => void
 }
 
 export const useWishlistStore = create<WishlistState>((set, get) => ({
@@ -26,88 +20,88 @@ export const useWishlistStore = create<WishlistState>((set, get) => ({
   isLoading: false,
   error: null,
 
-  fetchWishlist: async () => {
-    set({ isLoading: true, error: null });
+  fetchWishlist: async (userId: string) => {
+    set({ isLoading: true, error: null })
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        set({ items: [], isLoading: false });
-        return;
+      const response = await fetch(`/api/wishlist?userId=${userId}`)
+      const { data } = await response.json()
+
+      // ✅ Filtrer les items où product n'est pas null
+      const validItems = (data || []).filter(
+        (item: any) => item.product !== null
+      )
+
+      set({ items: validItems, isLoading: false })
+    } catch (error) {
+      console.error('Error fetching wishlist:', error)
+      set({
+        error: 'Erreur lors du chargement de la wishlist',
+        isLoading: false,
+      })
+    }
+  },
+
+  addToWishlist: async (userId: string, productId: string) => {
+    set({ isLoading: true, error: null })
+
+    try {
+      const response = await fetch('/api/wishlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, productId }),
+      })
+
+      if (!response.ok) throw new Error('Failed to add to wishlist')
+
+      const { data } = await response.json()
+
+      // ✅ Vérifier que product n'est pas null avant d'ajouter
+      if (data?.product) {
+        set((state) => ({
+          items: [...state.items, data],
+          isLoading: false,
+        }))
+      } else {
+        set({ isLoading: false })
       }
-
-      const { data, error } = await supabase
-        .from("wishlist_items")
-        .select(
-          `
-          *,
-          product:products(
-            *,
-            images:product_images(*)
-          )
-        `
-        )
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-
-      set({ items: data || [], isLoading: false });
     } catch (error) {
-      set({ error: (error as Error).message, isLoading: false });
+      console.error('Error adding to wishlist:', error)
+      set({
+        error: "Erreur lors de l'ajout à la wishlist",
+        isLoading: false,
+      })
     }
   },
 
-  addToWishlist: async (productId: string) => {
+  removeFromWishlist: async (itemId: string) => {
+    set({ isLoading: true, error: null })
+
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not authenticated");
+      const response = await fetch(`/api/wishlist/${itemId}`, {
+        method: 'DELETE',
+      })
 
-      const { error } = await supabase.from("wishlist_items").insert({
-        user_id: user.id,
-        product_id: productId,
-      });
+      if (!response.ok) throw new Error('Failed to remove from wishlist')
 
-      if (error) throw error;
-
-      // Refresh wishlist
-      get().fetchWishlist();
-    } catch (error) {
-      set({ error: (error as Error).message });
-      throw error;
-    }
-  },
-
-  removeFromWishlist: async (productId: string) => {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not authenticated");
-
-      const { error } = await supabase
-        .from("wishlist_items")
-        .delete()
-        .eq("user_id", user.id)
-        .eq("product_id", productId);
-
-      if (error) throw error;
-
-      // Update local state
       set((state) => ({
-        items: state.items.filter((item) => item.product_id !== productId),
-      }));
+        items: state.items.filter((item) => item.id !== itemId),
+        isLoading: false,
+      }))
     } catch (error) {
-      set({ error: (error as Error).message });
-      throw error;
+      console.error('Error removing from wishlist:', error)
+      set({
+        error: 'Erreur lors de la suppression',
+        isLoading: false,
+      })
     }
   },
 
   isInWishlist: (productId: string) => {
-    return get().items.some((item) => item.product_id === productId);
+    return get().items.some((item) => item.product_id === productId)
   },
-}));
+
+  clearWishlist: () => {
+    set({ items: [], error: null })
+  },
+}))

@@ -7,11 +7,13 @@ const variantUpdateSchema = variantCreateSchema.partial()
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { variantId: string } }
+  { params }: { params: Promise<{ variantId: string }> }
 ) {
   const auth = await requireAdmin()
   if (!auth.ok)
     return NextResponse.json({ error: auth.message }, { status: auth.status })
+
+  const { variantId } = await params
 
   const body = await req.json()
   const parsed = variantUpdateSchema.safeParse(body)
@@ -21,7 +23,7 @@ export async function PATCH(
   const { data, error } = await supabaseAdmin
     .from('product_variants')
     .update({ ...parsed.data })
-    .eq('id', params.variantId)
+    .eq('id', variantId)
     .select('*')
     .single()
 
@@ -31,16 +33,18 @@ export async function PATCH(
 
 export async function DELETE(
   _req: Request,
-  { params }: { params: { variantId: string } }
+  { params }: { params: Promise<{ variantId: string }> }
 ) {
   const auth = await requireAdmin()
   if (!auth.ok)
     return NextResponse.json({ error: auth.message }, { status: auth.status })
 
+  const { variantId } = await params
+
   const { error } = await supabaseAdmin
     .from('product_variants')
     .delete()
-    .eq('id', params.variantId)
+    .eq('id', variantId)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })
 }

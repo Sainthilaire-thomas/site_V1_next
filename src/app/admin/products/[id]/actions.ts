@@ -13,6 +13,15 @@ function emptyToNull(v: unknown) {
   return s === '' ? null : s
 }
 
+// ✅ Nouvelle fonction pour convertir les string boolean
+function stringToBoolean(value: unknown): boolean {
+  if (typeof value === 'boolean') return value
+  if (typeof value === 'string') {
+    return value === 'true' || value === 'on'
+  }
+  return false
+}
+
 export async function updateProductAction(
   productId: string,
   formData: FormData
@@ -37,16 +46,9 @@ export async function updateProductAction(
       | string
       | null
       | undefined, // ✅ null si "(Aucune)"
-    is_active:
-      formData.get('is_active') !== null
-        ? formData.get('is_active') === 'on'
-        : undefined,
-    is_featured:
-      formData.get('is_featured') !== null
-        ? formData.get('is_featured') === 'on'
-        : undefined,
-    // (facultatif) updated_at pour traçabilité :
-    // updated_at: new Date().toISOString(),
+    // ✅ Conversion correcte des boolean
+    is_active: stringToBoolean(formData.get('is_active')),
+    is_featured: stringToBoolean(formData.get('is_featured')),
   }
 
   const parsed = productUpdateSchema.safeParse(partial)
@@ -60,6 +62,7 @@ export async function updateProductAction(
   if (error) return { ok: false as const, error: { message: error.message } }
 
   revalidatePath(`/admin/products/${productId}`)
+  revalidatePath('/admin/products')
   return { ok: true as const }
 }
 

@@ -5,6 +5,7 @@ import ProductGridJacquemus from '@/components/products/ProductGridJacquemus'
 import { getServerSupabase } from '@/lib/supabase-server'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
+import type { ProductWithRelations } from '@/lib/types'
 
 export const revalidate = 60 * 60 * 24 * 30
 export const dynamicParams = false
@@ -68,7 +69,7 @@ export async function generateMetadata({
 
 async function getProductsForCategory(
   categorySlug: string
-): Promise<Product[]> {
+): Promise<ProductWithRelations[]> {
   const supabase = await getServerSupabase()
 
   const { data: parentCategory, error: catErr } = await supabase
@@ -105,7 +106,7 @@ async function getProductsForCategory(
     .order('created_at', { ascending: false })
     .limit(60)
 
-  return (data ?? []) as Product[]
+  return (data ?? []) as ProductWithRelations[]
 }
 
 export default async function ProductsByCategoryPage({

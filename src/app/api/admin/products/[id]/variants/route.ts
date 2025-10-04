@@ -5,11 +5,13 @@ import { variantCreateSchema } from '@/lib/validation/adminProducts'
 
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAdmin()
   if (!auth.ok)
     return NextResponse.json({ error: auth.message }, { status: auth.status })
+
+  const { id } = await params
 
   const body = await req.json()
   const parsed = variantCreateSchema.safeParse(body)
@@ -18,7 +20,7 @@ export async function POST(
 
   const { data, error } = await supabaseAdmin
     .from('product_variants')
-    .insert({ ...parsed.data, product_id: params.id })
+    .insert({ ...parsed.data, product_id: id })
     .select('*')
     .single()
 

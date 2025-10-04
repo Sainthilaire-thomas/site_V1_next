@@ -1,11 +1,12 @@
-// PATCH (update) / DELETE (hard delete)
+// src/app/api/admin/categories/[id]/route.ts
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
-type Params = { params: { id: string } }
-
-export async function PATCH(req: Request, { params }: Params) {
-  const id = params.id
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
   const body = await req.json().catch(() => ({}))
   const { data, error } = await supabaseAdmin
     .from('categories')
@@ -31,11 +32,12 @@ export async function PATCH(req: Request, { params }: Params) {
   return NextResponse.json({ ok: true, data })
 }
 
-export async function DELETE(_req: Request, { params }: Params) {
-  const { error } = await supabaseAdmin
-    .from('categories')
-    .delete()
-    .eq('id', params.id)
+export async function DELETE(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
+  const { error } = await supabaseAdmin.from('categories').delete().eq('id', id)
   if (error)
     return NextResponse.json(
       { ok: false, error: error.message },

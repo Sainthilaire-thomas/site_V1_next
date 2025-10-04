@@ -4,9 +4,8 @@
     "jsx": "preserve",
     "incremental": true,
     "noEmit": true,
-    "types": [
-      "node"
-    ],
+    "skipLibCheck": true,
+    "types": ["node"],
     "plugins": [
       {
         "name": "next"
