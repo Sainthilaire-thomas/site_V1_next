@@ -7,7 +7,7 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import type { ProductWithRelations } from '@/lib/types'
 
-export const revalidate = 60 * 60 * 24 * 30
+export const revalidate = 86400
 export const dynamicParams = false
 
 const CATEGORY_DEFS = [
