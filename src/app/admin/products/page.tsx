@@ -1,17 +1,23 @@
 import Link from 'next/link'
 import { headers, cookies } from 'next/headers'
+import { ProductImage } from '@/components/products/ProductImage'
+import { ProductsFilter } from './ProductsFilter'
+import { ProductsList } from './ProductsList'
 
 export const dynamic = 'force-dynamic'
 
-async function fetchProducts(q?: string) {
+async function fetchProducts(q?: string, showInactive?: boolean) {
   const h = await headers()
   const cookieStore = await cookies()
 
   const proto = h.get('x-forwarded-proto') ?? 'http'
   const host = h.get('x-forwarded-host') ?? h.get('host')!
-  const url =
-    `${proto}://${host}/api/admin/products` +
-    (q ? `?q=${encodeURIComponent(q)}` : '')
+
+  const params = new URLSearchParams()
+  if (q) params.set('q', q)
+  if (showInactive) params.set('show_inactive', '1')
+
+  const url = `${proto}://${host}/api/admin/products${params.toString() ? `?${params}` : ''}`
 
   const cookieHeader = cookieStore
     .getAll()
@@ -33,10 +39,11 @@ async function fetchProducts(q?: string) {
 export default async function AdminProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>
+  searchParams: Promise<{ q?: string; show_inactive?: string }>
 }) {
-  const { q } = await searchParams
-  const data = await fetchProducts(q)
+  const { q, show_inactive } = await searchParams
+  const showInactive = show_inactive === '1'
+  const data = await fetchProducts(q, showInactive)
 
   return (
     <div className="space-y-4">
@@ -50,29 +57,11 @@ export default async function AdminProductsPage({
         </Link>
       </div>
 
-      <div className="grid gap-3">
-        {data.items.map((p) => (
-          <Link
-            key={p.id}
-            href={`/admin/products/${p.id}`}
-            className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-4 rounded-lg hover:border-violet transition-colors"
-          >
-            <div className="font-medium text-lg">{p.name}</div>
-            <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              € {Number(p.price).toFixed(2)} —{' '}
-              <span
-                className={
-                  p.is_active
-                    ? 'text-green-600 dark:text-green-400'
-                    : 'text-red-600 dark:text-red-400'
-                }
-              >
-                {p.is_active ? 'Actif' : 'Inactif'}
-              </span>
-            </div>
-          </Link>
-        ))}
-      </div>
+      {/* Filtre pour afficher les produits inactifs */}
+      <ProductsFilter />
+
+      {/* Liste des produits */}
+      <ProductsList products={data.items} />
     </div>
   )
 }
