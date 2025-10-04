@@ -13,14 +13,14 @@ export function AdminNav() {
         Produits
       </Link>
       <Link
-        href="/admin/products"
+        href="/admin/categories"
         className="hover:text-violet transition-colors"
       >
         Catégories
       </Link>
-      <Link href="/admin/media" className="hover:text-violet transition-colors">
+      {/* <Link href="/admin/media" className="hover:text-violet transition-colors">
         Médias
-      </Link>
+      </Link> */}
       <button
         className="hover:text-violet transition-colors opacity-50 cursor-not-allowed"
         disabled

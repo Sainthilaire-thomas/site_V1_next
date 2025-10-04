@@ -14,16 +14,15 @@ export function ProductFormClient({
   product,
   variants,
   productId,
+  categories,
 }: {
   product: any
   variants: any[]
   productId: string
+  categories: Array<{ id: string; name: string }>
 }) {
   const { showToast } = useToast()
   const [isPending, startTransition] = useTransition()
-  const [categories, setCategories] = useState<
-    Array<{ id: string; name: string }>
-  >([])
 
   async function handleUpdateProduct(formData: FormData) {
     startTransition(async () => {
@@ -71,20 +70,6 @@ export function ProductFormClient({
   }
 
   const totalStock = product.stock_quantity ?? 0
-
-  useEffect(() => {
-    let canceled = false
-    ;(async () => {
-      const r = await fetch('/api/admin/categories', { cache: 'no-store' })
-      const json = await r.json()
-      if (!canceled && json?.ok && Array.isArray(json.data)) {
-        setCategories(json.data.map((c: any) => ({ id: c.id, name: c.name })))
-      }
-    })()
-    return () => {
-      canceled = true
-    }
-  }, [])
 
   return (
     <div className="space-y-8">

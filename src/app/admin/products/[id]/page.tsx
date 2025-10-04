@@ -35,11 +35,19 @@ export default async function AdminProductDetailPage({
     .eq('product_id', id)
     .order('created_at', { ascending: true })
 
+  // ✅ AJOUT : Charger les catégories côté serveur
+  const { data: categories } = await supabaseAdmin
+    .from('categories')
+    .select('id, name')
+    .eq('is_active', true)
+    .order('name', { ascending: true })
+
   return (
     <ProductPageWrapper
       product={product}
       variants={variants ?? []}
       productId={id}
+      categories={categories ?? []} // ✅ PASSER en prop
     />
   )
 }

@@ -8,10 +8,12 @@ export function ProductPageWrapper({
   product,
   variants,
   productId,
+  categories,
 }: {
   product: any
   variants: any[]
   productId: string
+  categories: Array<{ id: string; name: string }>
 }) {
   // Stocker le nom du produit pour le breadcrumb
   useEffect(() => {
@@ -25,6 +27,7 @@ export function ProductPageWrapper({
       product={product}
       variants={variants}
       productId={productId}
+      categories={categories}
     />
   )
 }
