@@ -39,9 +39,10 @@ export function MediaGridClient({ productId }: Props) {
     setLoading(true)
     setError(null)
     try {
-      const r = await fetch(`/api/products/${productId}/images`, {
-        cache: 'no-store',
-      })
+     
+        const r = await fetch(`/api/admin/products/${productId}/images`, {
+          cache: 'no-store',
+        })
       if (!r.ok) throw new Error(await r.text())
       const json = await r.json()
       setImages(json.images ?? [])
@@ -108,11 +109,14 @@ export function MediaGridClient({ productId }: Props) {
     setError(null)
     setSuccess(null)
     try {
-      const r = await fetch(`/api/products/${productId}/images/set-primary`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ imageId: id }),
-      })
+      const r = await fetch(
+        `/api/admin/products/${productId}/images/set-primary`,
+        {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ imageId: id }),
+        }
+      )
       if (!r.ok) throw new Error(await r.text())
       setSuccess('Image principale définie')
       await refresh()
