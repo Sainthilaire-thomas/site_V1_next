@@ -15,7 +15,7 @@
     "docs:watch": "nodemon --watch src --watch components --ext ts,tsx,js,jsx -x 'npm run docs:tree'",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "migrate": "tsx --tsconfig tsconfig.scripts.json scripts/migrate-to-supabase.ts",
-    "db:types": "npx supabase gen types typescript --project-id lnkxfyfkwnfvxvaxnbah --schema public > src/lib/databasetypes.ts",
+    "db:types": "node scripts/db-types.mjs",
     "db:types:check": "npm run db:types && npm run typecheck",
     "postinstall": "npm run db:types"
   },
