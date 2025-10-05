@@ -29,6 +29,12 @@ export function QuickActions() {
       icon: '🖼️',
       show: pathname.includes('/products/') && !pathname.includes('/media'),
     },
+    {
+      label: 'Toutes les commandes',
+      href: '/admin/orders',
+      icon: '📋',
+      show: pathname.includes('/orders/') && pathname !== '/admin/orders',
+    },
   ].filter((action) => action.show)
 
   if (actions.length === 0) return null
