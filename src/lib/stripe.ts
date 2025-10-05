@@ -9,11 +9,8 @@ export function getStripe(): Stripe {
   }
 
   if (!_stripe) {
-    _stripe = new Stripe(key, {
-      // ✅ Supprimer apiVersion évite le conflit de types et
-      //    utilise la version par défaut de ton compte Stripe.
-      // apiVersion: '2024-06-20',
-    })
+    // ✅ Ne PAS passer d'options → évite le conflit de types sur apiVersion
+    _stripe = new Stripe(key)
   }
   return _stripe
 }
