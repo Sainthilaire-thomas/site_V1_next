@@ -16,16 +16,15 @@ export default async function AdminOrderDetailPage({
       `
       *,
       items:order_items(*),
-      history:order_status_history(
-        *,
-        changed_by:profiles(id, email)
-      )
+      history:order_status_history(*)
     `
     )
     .eq('id', id)
     .single()
 
-  if (error || !order) return notFound()
+  if (error || !order) {
+    return notFound()
+  }
 
   return <OrderAdminClient order={order} />
 }
