@@ -2,15 +2,15 @@
 
 type Address = {
   id: string
-  type: string
-  first_name: string
-  last_name: string
-  address_line_1: string
+  type: string | null
+  first_name: string | null  // ✅ Permettre null
+  last_name: string | null   // ✅ Permettre null
+  address_line_1: string | null
   address_line_2: string | null
-  city: string
-  postal_code: string
-  country: string
-  is_default: boolean
+  city: string | null
+  postal_code: string | null
+  country: string | null
+  is_default: boolean | null
 }
 
 type Props = {
@@ -38,7 +38,7 @@ export function AddressesTab({ addresses }: Props) {
               <span className="text-2xl">
                 {address.type === 'shipping' ? '📦' : '🏠'}
               </span>
-              <span className="font-medium capitalize">{address.type}</span>
+              <span className="font-medium capitalize">{address.type || 'Adresse'}</span>
             </div>
             {address.is_default && (
               <span className="px-2 py-0.5 bg-violet/10 text-violet text-xs rounded">
@@ -49,10 +49,10 @@ export function AddressesTab({ addresses }: Props) {
 
           <div className="space-y-1 text-sm">
             <div className="font-medium">
-              {address.first_name} {address.last_name}
+              {address.first_name || ''} {address.last_name || ''}
             </div>
             <div className="text-gray-600 dark:text-gray-400">
-              {address.address_line_1}
+              {address.address_line_1 || 'Adresse non renseignée'}
             </div>
             {address.address_line_2 && (
               <div className="text-gray-600 dark:text-gray-400">
@@ -60,9 +60,9 @@ export function AddressesTab({ addresses }: Props) {
               </div>
             )}
             <div className="text-gray-600 dark:text-gray-400">
-              {address.postal_code} {address.city}
+              {address.postal_code || ''} {address.city || ''}
             </div>
-            <div className="font-medium">{address.country}</div>
+            <div className="font-medium">{address.country || ''}</div>
           </div>
         </div>
       ))}

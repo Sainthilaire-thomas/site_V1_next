@@ -1,19 +1,18 @@
-import Stripe from 'stripe'
+// Stub Webhook Stripe — déployable sans Stripe
+// Ne rien importer depuis "stripe" ici.
 
-let _stripe: Stripe | null = null
+export const runtime = 'nodejs' // évite l’Edge par défaut
+export const dynamic = 'force-dynamic' // pas de mise en cache
 
-export function getStripe(): Stripe {
-  const key = process.env.STRIPE_SECRET_KEY
-  if (!key) {
-    throw new Error('Missing STRIPE_SECRET_KEY at runtime.')
-  }
+// Le validator attend un handler nommé (POST ici)
+export async function POST(_req: Request): Promise<Response> {
+  // On renvoie 204 pour signaler "rien à faire"
+  return new Response(null, { status: 204 })
+}
 
-  if (!_stripe) {
-    _stripe = new Stripe(key, {
-      // ✅ Supprimer apiVersion évite le conflit de types et
-      //    utilise la version par défaut de ton compte Stripe.
-      // apiVersion: '2024-06-20',
-    })
-  }
-  return _stripe
+// (Optionnel) on peut aussi fournir GET pour tester rapidement depuis le navigateur
+export async function GET(): Promise<Response> {
+  return new Response('Stripe webhook désactivé en environnement actuel.', {
+    status: 200,
+  })
 }

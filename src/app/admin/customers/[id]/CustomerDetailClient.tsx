@@ -16,7 +16,7 @@ type Customer = {
   last_name: string | null
   email: string
   phone: string | null
-  role: string
+  role: string | null
   avatar_url: string | null
   created_at: string
 }
@@ -30,22 +30,22 @@ type Stats = {
 type Order = {
   id: string
   order_number: string
-  status: string
+  status: string | null
   total_amount: number
   created_at: string
 }
 
 type Address = {
   id: string
-  type: string
-  first_name: string
-  last_name: string
-  address_line_1: string
+  type: string | null
+  first_name: string | null
+  last_name: string | null
+  address_line_1: string | null
   address_line_2: string | null
-  city: string
-  postal_code: string
-  country: string
-  is_default: boolean
+  city: string | null
+  postal_code: string | null
+  country: string | null
+  is_default: boolean | null
 }
 
 type Note = {
@@ -53,8 +53,8 @@ type Note = {
   note: string
   created_at: string
   admin: {
-    first_name: string
-    last_name: string
+    first_name: string | null
+    last_name: string | null
   }
 }
 
@@ -87,7 +87,7 @@ export function CustomerDetailClient({
     first_name: customer.first_name || '',
     last_name: customer.last_name || '',
     phone: customer.phone || '',
-    role: customer.role,
+    role: customer.role || 'customer',
   })
 
   async function handleSave() {
@@ -101,7 +101,7 @@ export function CustomerDetailClient({
       } else {
         showToast('Erreur lors de la mise à jour', 'error')
       }
-    } catch (error) {
+    } catch {
       showToast('Erreur serveur', 'error')
     }
   }
@@ -111,7 +111,7 @@ export function CustomerDetailClient({
       first_name: customer.first_name || '',
       last_name: customer.last_name || '',
       phone: customer.phone || '',
-      role: customer.role,
+      role: customer.role || 'customer',
     })
     setIsEditing(false)
   }
@@ -120,6 +120,20 @@ export function CustomerDetailClient({
     customer.first_name && customer.last_name
       ? `${customer.first_name} ${customer.last_name}`
       : customer.email
+
+  // Normalisations pour matcher les types attendus par les onglets (non-nullables)
+  const normalizedOrders = allOrders.map((o) => ({
+    ...o,
+    status: o.status ?? '', // OrdersTab attend probablement string
+  }))
+
+  const normalizedNotes = initialNotes.map((n) => ({
+    ...n,
+    admin: {
+      first_name: n.admin.first_name ?? '',
+      last_name: n.admin.last_name ?? '',
+    },
+  }))
 
   return (
     <div className="space-y-6">
@@ -169,7 +183,7 @@ export function CustomerDetailClient({
                   className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded px-3 py-2"
                 />
                 <select
-                  value={editForm.role}
+                  value={editForm.role || 'customer'}
                   onChange={(e) =>
                     setEditForm({ ...editForm, role: e.target.value })
                   }
@@ -261,7 +275,6 @@ export function CustomerDetailClient({
           >
             📧 Envoyer un email
           </a>
-          {/* Autres actions rapides possibles */}
         </div>
       </div>
 
@@ -303,10 +316,15 @@ export function CustomerDetailClient({
 
         {/* Contenu des onglets */}
         <div className="p-6">
-          {activeTab === 'orders' && <OrdersTab orders={allOrders} />}
+          {activeTab === 'orders' && (
+            <OrdersTab orders={normalizedOrders as any} />
+          )}
           {activeTab === 'addresses' && <AddressesTab addresses={addresses} />}
           {activeTab === 'notes' && (
-            <NotesTab customerId={customer.id} initialNotes={initialNotes} />
+            <NotesTab
+              customerId={customer.id}
+              initialNotes={normalizedNotes as any}
+            />
           )}
         </div>
       </div>
