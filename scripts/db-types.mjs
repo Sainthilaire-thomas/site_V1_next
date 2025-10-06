@@ -19,7 +19,7 @@ const tokenArg = process.env.SUPABASE_ACCESS_TOKEN
   ? ` --token ${process.env.SUPABASE_ACCESS_TOKEN}`
   : ''
 
-const outPath = 'src/lib/databasetypes.ts'
+const outPath = 'src/lib/database.types.ts'
 const cmd = `npx supabase gen types typescript --project-id ${projectId}${tokenArg} --schema public > ${outPath}`
 
 console.log('Generating Supabase types:', cmd)

@@ -35,12 +35,16 @@ export function AdminNav() {
       >
         Commandes
       </Link>
-      <button
-        className="hover:text-violet transition-colors opacity-50 cursor-not-allowed"
-        disabled
+      <Link
+        href="/admin/customers"
+        className={`px-3 py-2 rounded transition-colors ${
+          pathname.startsWith('/admin/customers')
+            ? 'bg-violet text-white'
+            : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+        }`}
       >
         Clients
-      </button>
+      </Link>
     </nav>
   )
 }
