@@ -237,10 +237,21 @@ html {
   }
 }
 
-/* Focus visible pour accessibilité */
-*:focus-visible {
+/* Focus visible pour accessibilité - SAUF pour les inputs/textarea */
+*:focus-visible:not(input):not(textarea):not(select) {
   outline: 2px solid var(--violet);
   outline-offset: 2px;
+}
+
+/* Supprime complètement l'outline pour les inputs */
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+select:focus,
+select:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 
 @layer base {

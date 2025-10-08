@@ -103,16 +103,11 @@ export default function HeaderMinimal() {
           </div>
 
           <div className="flex items-center gap-6">
-            <button
-              onClick={() => setIsSearchOpen(true)}
-              aria-label="Search"
-              className="hidden lg:inline-block hover:opacity-60 transition-opacity"
-            >
-              <Search
-                className="w-[18px] h-[18px] text-black"
-                strokeWidth={1.4}
-              />
-            </button>
+            <Link href="/search">
+              <button>
+                <Search className="w-5 h-5" strokeWidth={1.5} />
+              </button>
+            </Link>
             <Link
               href="/account"
               aria-label="Account"

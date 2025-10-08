@@ -2,14 +2,15 @@
 import type { ProductImage } from './types'
 
 /**
- * Génère l'URL d'une image produit pour affichage direct
- * Utilise l'API interne qui gère les URLs signées
+ * Génère l'URL d'une image produit via l'API (URLs signées)
+ * Recommandé pour tous les affichages publics
  */
 export function getProductImageUrl(
   imageId: string,
-  size: 'sm' | 'md' | 'lg' | 'xl' = 'md'
+  size: 'sm' | 'md' | 'lg' | 'xl' = 'md',
+  format: 'avif' | 'webp' | 'jpg' = 'webp'
 ): string {
-  return `/api/admin/product-images/${imageId}/url?variant=${size}`
+  return `/api/admin/product-images/${imageId}/signed-url?variant=${size}&format=${format}`
 }
 
 /**
