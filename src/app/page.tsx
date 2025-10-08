@@ -1,4 +1,4 @@
-// src/app/page.tsx
+// src/app/page.tsx - VERSION CROSSFADE AVEC PRÉCHARGEMENT
 'use client'
 
 import { useState, useRef, useCallback, useEffect, Suspense } from 'react'
@@ -8,10 +8,10 @@ import { sanityClient } from '@/lib/sanity.client'
 import { HOMEPAGE_QUERY } from '@/lib/queries'
 
 const DURATIONS = {
-  arrangeMs: 600,
-  staggerMs: 70,
-  holdMs: 500,
-  fadeOutMs: 300,
+  arrangeMs: 800,
+  staggerMs: 90,
+  holdMs: 1200,
+  fadeOutMs: 600,
 }
 const LINE_SPACING_PCT = 2.8
 
@@ -43,7 +43,13 @@ interface CategoryZone {
   link: string
 }
 
-const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
+const InteractiveEntry = ({
+  onEnter,
+  homepageData,
+}: {
+  onEnter: () => void
+  homepageData: HomepageData | null
+}) => {
   const brandName = '.blancherenaudin'
   const [letters, setLetters] = useState<
     Array<{
@@ -54,13 +60,62 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
       originalX: number
       originalY: number
       delay: number
+      rotation: number
     }>
   >([])
   const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 })
   const [isArranging, setIsArranging] = useState(false)
   const [hideCenter, setHideCenter] = useState(false)
   const [isFading, setIsFading] = useState(false)
+  const [imagesPreloaded, setImagesPreloaded] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  // ✅ PRÉCHARGEMENT DES IMAGES DE LA HOMEPAGE
+  useEffect(() => {
+    if (!homepageData) return
+
+    const preloadImages = async () => {
+      const images = [
+        homepageData.hero?.image,
+        homepageData.zoneHauts?.image,
+        homepageData.zoneBas?.image,
+        homepageData.zoneAccessoires?.image,
+        homepageData.zoneLookbooks?.image,
+        homepageData.zoneSustainability?.image,
+      ].filter(Boolean)
+
+      // Créer un tableau de promesses pour charger toutes les images
+      const imagePromises = images.map((imageData) => {
+        return new Promise((resolve) => {
+          if (!imageData) {
+            resolve(null)
+            return
+          }
+
+          const img = new Image()
+
+          // Construire l'URL Sanity
+          try {
+            const imageUrl =
+              imageData.asset?.url ||
+              `https://cdn.sanity.io/images/${process.env.NEXT_PUBLIC_SANITY_PROJECT_ID}/${process.env.NEXT_PUBLIC_SANITY_DATASET}/${imageData.asset?._ref?.replace('image-', '').replace('-jpg', '.jpg').replace('-png', '.png')}`
+
+            img.onload = () => resolve(img)
+            img.onerror = () => resolve(null)
+            img.src = imageUrl
+          } catch (error) {
+            resolve(null)
+          }
+        })
+      })
+
+      await Promise.all(imagePromises)
+      setImagesPreloaded(true)
+      console.log('✅ Images préchargées')
+    }
+
+    preloadImages()
+  }, [homepageData])
 
   const generateLetters = useCallback(() => {
     const chars = brandName.split('')
@@ -68,6 +123,7 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
       chars.map((char, index) => {
         const x = Math.random() * 80 + 10
         const y = Math.random() * 80 + 10
+        const rotation = Math.random() * 40 - 20
         return {
           char,
           id: `letter-${index}`,
@@ -76,6 +132,7 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
           originalX: x,
           originalY: y,
           delay: index * 0.06,
+          rotation,
         }
       })
     )
@@ -94,23 +151,32 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
           const dx = mouseX - letter.originalX
           const dy = mouseY - letter.originalY
           const distance = Math.sqrt(dx * dx + dy * dy)
-          const repulsionRadius = 20
+          const repulsionRadius = 25
+
           if (distance < repulsionRadius) {
             const force = (repulsionRadius - distance) / repulsionRadius
             const angle = Math.atan2(
               letter.originalY - mouseY,
               letter.originalX - mouseX
             )
-            const repulsionDistance = force * 10
+            const repulsionDistance = force * 15
             const newX = letter.originalX + Math.cos(angle) * repulsionDistance
             const newY = letter.originalY + Math.sin(angle) * repulsionDistance
+            const dynamicRotation = letter.rotation + force * 20
+
             return {
               ...letter,
               x: Math.max(5, Math.min(95, newX)),
               y: Math.max(5, Math.min(95, newY)),
+              rotation: dynamicRotation,
             }
           }
-          return { ...letter, x: letter.originalX, y: letter.originalY }
+          return {
+            ...letter,
+            x: letter.originalX,
+            y: letter.originalY,
+            rotation: letter.rotation,
+          }
         })
       )
     },
@@ -135,21 +201,38 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
 
     const n = brandName.length
     const mid = (n - 1) / 2
+
+    // Phase 1: Éclatement
     setLetters((prev) =>
-      prev.map((l, i) => ({
+      prev.map((l) => ({
         ...l,
-        x: 50 + (i - mid) * LINE_SPACING_PCT,
-        y: 50,
+        x: 50 + (Math.random() - 0.5) * 60,
+        y: 50 + (Math.random() - 0.5) * 60,
+        rotation: (Math.random() - 0.5) * 180,
       }))
     )
 
+    // Phase 2: Alignement après 200ms
+    setTimeout(() => {
+      setLetters((prev) =>
+        prev.map((l, i) => ({
+          ...l,
+          x: 50 + (i - mid) * LINE_SPACING_PCT,
+          y: 50,
+          rotation: 0,
+        }))
+      )
+    }, 200)
+
     const totalMs =
       DURATIONS.arrangeMs + DURATIONS.staggerMs * (n - 1) + DURATIONS.holdMs
-    window.setTimeout(
-      () => setIsFading(true),
-      Math.max(0, totalMs - DURATIONS.fadeOutMs)
-    )
-    window.setTimeout(onEnter, totalMs)
+
+    // ✅ CROSSFADE: Démarrer le fade ET la homepage EN MÊME TEMPS
+    window.setTimeout(() => {
+      setIsFading(true)
+      // Délai minimal pour que le fade commence avant la homepage
+      setTimeout(() => onEnter(), 50)
+    }, totalMs)
   }
 
   const handleCenterKey = (e: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -164,29 +247,47 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
       ref={containerRef}
       className="relative w-full h-screen bg-white overflow-hidden"
     >
-      {letters.map((letter, index) => (
-        <div
-          key={letter.id}
-          className="text-foreground pointer-events-none"
-          style={{
-            position: 'absolute',
-            left: `${letter.x}%`,
-            top: `${letter.y}%`,
-            transform: 'translate(-50%, -50%)',
-            fontSize: 'clamp(1.6rem, 5vw, 3rem)',
-            opacity: 0,
-            animation: `letter-appear 0.35s ease-out ${letter.delay}s forwards`,
-            willChange: 'left, top, opacity, transform',
-            transition: `left ${DURATIONS.arrangeMs}ms ease, top ${DURATIONS.arrangeMs}ms ease, opacity ${DURATIONS.fadeOutMs}ms ease`,
-            transitionDelay: isArranging
-              ? `${index * DURATIONS.staggerMs}ms`
-              : '0ms',
-            ...(isFading ? { opacity: 0 } : {}),
-          }}
-        >
-          {letter.char}
-        </div>
-      ))}
+      {letters.map((letter, index) => {
+        const isAligned = isArranging && !isFading
+
+        return (
+          <div
+            key={letter.id}
+            className="pointer-events-none"
+            style={{
+              position: 'absolute',
+              left: `${letter.x}%`,
+              top: `${letter.y}%`,
+              transform: `translate(-50%, -50%) rotate(${letter.rotation}deg)`,
+              fontSize: 'clamp(1.6rem, 5vw, 3rem)',
+              fontFamily: 'var(--font-archivo-narrow)',
+              fontWeight: 600,
+              color: isArranging ? 'hsl(271 74% 37%)' : 'hsl(0 0% 0%)',
+              opacity: 0,
+              animation: `letter-appear 0.35s ease-out ${letter.delay}s forwards${
+                isAligned ? ', brand-pulse 2s ease-in-out infinite' : ''
+              }`,
+              animationDelay: isAligned
+                ? `${letter.delay}s, ${DURATIONS.arrangeMs + index * DURATIONS.staggerMs + 200}ms`
+                : `${letter.delay}s`,
+              willChange: 'left, top, opacity, transform, color',
+              transition: `
+                left ${DURATIONS.arrangeMs}ms cubic-bezier(0.34, 1.56, 0.64, 1), 
+                top ${DURATIONS.arrangeMs}ms cubic-bezier(0.34, 1.56, 0.64, 1), 
+                opacity ${DURATIONS.fadeOutMs}ms ease,
+                color ${DURATIONS.arrangeMs}ms ease,
+                transform ${DURATIONS.arrangeMs}ms cubic-bezier(0.34, 1.56, 0.64, 1)
+              `,
+              transitionDelay: isArranging
+                ? `${index * DURATIONS.staggerMs}ms`
+                : '0ms',
+              ...(isFading ? { opacity: 0 } : {}),
+            }}
+          >
+            {letter.char}
+          </div>
+        )
+      })}
 
       {!hideCenter && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
@@ -195,13 +296,14 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
             title="Entrer"
             onClick={handleCenterClick}
             onKeyDown={handleCenterKey}
+            className="transition-all duration-300 hover:scale-110 hover:shadow-lg"
             style={{
               width: 44,
               height: 44,
               background: 'black',
-              borderRadius: 4,
+              borderRadius: 0,
               cursor: 'pointer',
-              boxShadow: '0 0 0 1px rgba(255,255,255,0.25) inset',
+              border: '1px solid rgba(255,255,255,0.25)',
             }}
           />
         </div>
@@ -220,28 +322,40 @@ const InteractiveEntry = ({ onEnter }: { onEnter: () => void }) => {
             borderRadius: '9999px',
             background: 'rgba(111, 76, 255, 0.9)',
             zIndex: 40,
+            boxShadow: '0 0 20px rgba(111, 76, 255, 0.6)',
           }}
         />
       )}
 
-      <div
-        className={`fixed inset-0 pointer-events-none transition-opacity duration-[${DURATIONS.fadeOutMs}ms]`}
-        style={{
-          background: 'white',
-          opacity: isFading ? 1 : 0,
-          zIndex: 60,
-        }}
-      />
+      {/* Indicateur de préchargement (optionnel - pour debug) */}
+      {!imagesPreloaded && (
+        <div className="fixed bottom-4 right-4 text-xs text-gray-400 opacity-50">
+          Préchargement...
+        </div>
+      )}
 
       <style jsx>{`
         @keyframes letter-appear {
           0% {
             opacity: 0;
-            transform: translate(-50%, -50%) scale(0.88);
+            transform: translate(-50%, -50%) scale(0.88) rotate(0deg);
           }
           100% {
             opacity: 1;
-            transform: translate(-50%, -50%) scale(1);
+            transform: translate(-50%, -50%) scale(1)
+              rotate(var(--rotation, 0deg));
+          }
+        }
+
+        @keyframes brand-pulse {
+          0%,
+          100% {
+            transform: translate(-50%, -50%) scale(1) rotate(0deg);
+            filter: brightness(1);
+          }
+          50% {
+            transform: translate(-50%, -50%) scale(1.03) rotate(0deg);
+            filter: brightness(1.1);
           }
         }
       `}</style>
@@ -311,13 +425,44 @@ function HomeContent() {
     )
   }
 
-  // Affichage de la homepage avec les données (on vérifie que homepageData existe bien)
-  if (showHomepage && homepageData) {
-    return <Homepage data={homepageData} />
-  }
+  // ✅ CROSSFADE: Afficher les deux composants en même temps pendant la transition
+  return (
+    <div className="relative w-full h-screen">
+      {/* Intro - disparaît en premier */}
+      {!showHomepage && (
+        <div className="absolute inset-0 z-20">
+          <InteractiveEntry
+            onEnter={handleEnterHomepage}
+            homepageData={homepageData}
+          />
+        </div>
+      )}
 
-  // Affichage de l'intro interactive
-  return <InteractiveEntry onEnter={handleEnterHomepage} />
+      {/* Homepage - apparaît en fondu */}
+      {showHomepage && (
+        <div
+          className="absolute inset-0 z-10"
+          style={{
+            animation: 'homepage-fadein 600ms ease-out forwards',
+            opacity: 0,
+          }}
+        >
+          <Homepage data={homepageData} />
+        </div>
+      )}
+
+      <style jsx>{`
+        @keyframes homepage-fadein {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+      `}</style>
+    </div>
+  )
 }
 
 export default function Home() {

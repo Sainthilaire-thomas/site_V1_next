@@ -7,10 +7,12 @@ import { usePathname } from 'next/navigation'
 import { useCartStore } from '@/store/useCartStore'
 import { ShoppingBag, Menu, X, Search, User } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import SearchModal from '@/components/search/SearchModal'
 
 export default function HeaderMinimal() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
   const { totalItems } = useCartStore()
   const pathname = usePathname()
 
@@ -27,20 +29,20 @@ export default function HeaderMinimal() {
     }
   }, [isMenuOpen])
 
-  // ✅ Navigation basée sur vos catégories Supabase
+  // ✅ Navigation based on your Supabase categories
   const nav = [
-    { label: 'hauts', href: '/products/hauts' },
-    { label: 'bas', href: '/products/bas' },
-    { label: 'accessoires', href: '/products/accessoires' },
-    { label: 'lookbooks', href: '/lookbooks' },
-    { label: 'sustainability', href: '/sustainability' },
-    { label: 'à propos', href: '/about', nowrap: true },
-    { label: 'contact', href: '/contact' },
+    { label: '.tops', href: '/products/hauts' },
+    { label: '.bottoms', href: '/products/bas' },
+    { label: '.accessories', href: '/products/accessoires' },
+    { label: '.silhouettes', href: '/lookbooks' },
+    { label: '.impact', href: '/sustainability' },
+    { label: '.about', href: '/about', nowrap: true },
+    { label: '.contact', href: '/contact' },
   ]
 
-  // Détermine si un item est actif :
+  // Determine if an item is active:
   // - exact match
-  // - ou sous-chemin (ex: /products/vestes?...) ou /products/vestes/...
+  // - or sub-path (e.g. /products/vestes?...) or /products/vestes/...
   const isActive = (href: string) => {
     if (!pathname) return false
     return (
@@ -65,7 +67,7 @@ export default function HeaderMinimal() {
           <div className="flex items-center gap-6 flex-1">
             <Link
               href="/"
-              aria-label="Accueil .blancherenaudin"
+              aria-label="Home .blancherenaudin"
               className="shrink-0"
             >
               <Image
@@ -101,19 +103,19 @@ export default function HeaderMinimal() {
           </div>
 
           <div className="flex items-center gap-6">
-            <Link
-              href="/search"
-              aria-label="Rechercher"
+            <button
+              onClick={() => setIsSearchOpen(true)}
+              aria-label="Search"
               className="hidden lg:inline-block hover:opacity-60 transition-opacity"
             >
               <Search
                 className="w-[18px] h-[18px] text-black"
                 strokeWidth={1.4}
               />
-            </Link>
+            </button>
             <Link
               href="/account"
-              aria-label="Compte"
+              aria-label="Account"
               className="hidden lg:inline-block hover:opacity-60 transition-opacity"
             >
               <User
@@ -123,7 +125,7 @@ export default function HeaderMinimal() {
             </Link>
             <Link
               href="/cart"
-              aria-label="Panier"
+              aria-label="Cart"
               className="relative hover:opacity-60 transition-opacity"
             >
               <ShoppingBag
@@ -139,7 +141,7 @@ export default function HeaderMinimal() {
             <button
               onClick={() => setIsMenuOpen(true)}
               className="lg:hidden text-black hover:opacity-60 transition-opacity"
-              aria-label="Ouvrir le menu"
+              aria-label="Open menu"
             >
               <Menu className="w-5 h-5" strokeWidth={1.4} />
             </button>
@@ -158,7 +160,7 @@ export default function HeaderMinimal() {
         />
       )}
 
-      {/* Drawer mobile */}
+      {/* Mobile drawer */}
       <div
         className={[
           'fixed top-0 right-0 bottom-0 z-[70] w-full max-w-lg bg-white shadow-2xl lg:hidden overflow-y-auto',
@@ -173,7 +175,7 @@ export default function HeaderMinimal() {
           <button
             onClick={() => setIsMenuOpen(false)}
             className="text-black hover:opacity-60 transition-opacity"
-            aria-label="Fermer le menu"
+            aria-label="Close menu"
           >
             <X className="w-5 h-5" strokeWidth={1.5} />
           </button>
@@ -187,7 +189,7 @@ export default function HeaderMinimal() {
             />
             <input
               type="text"
-              placeholder="Votre recherche..."
+              placeholder="Search..."
               className="flex-1 text-sm focus:outline-none bg-transparent"
             />
           </div>
@@ -221,7 +223,7 @@ export default function HeaderMinimal() {
                 className="flex items-center gap-2 text-sm text-black hover:opacity-60 transition-opacity"
               >
                 <User className="w-4 h-4" strokeWidth={1.5} />
-                <span>Compte</span>
+                <span>Account</span>
               </Link>
               <Link
                 href="/cart"
@@ -229,18 +231,24 @@ export default function HeaderMinimal() {
                 className="flex items-center gap-2 text-sm text-black hover:opacity-60 transition-opacity"
               >
                 <ShoppingBag className="w-4 h-4" strokeWidth={1.5} />
-                <span>Panier</span>
+                <span>Cart</span>
               </Link>
             </div>
 
             <div className="text-xs text-black/60 leading-relaxed">
-              <p className="mb-1 font-medium text-black">Service client</p>
-              <p>Du lundi au vendredi</p>
-              <p>9h - 18h (GMT+1)</p>
+              <p className="mb-1 font-medium text-black">Customer Service</p>
+              <p>Monday to Friday</p>
+              <p>9am - 6pm (GMT+1)</p>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Search Modal */}
+      <SearchModal
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+      />
     </>
   )
 }

@@ -52,18 +52,42 @@ export default function Homepage({ data }: HomepageProps) {
     zoneSustainability,
   } = data
 
-  // Helper pour obtenir l'URL d'une image de manière sécurisée
+  // Helper pour obtenir l'URL d'une image de manière sécurisée avec hotspot
   const getImageUrl = (
     image: any,
+    width?: number,
+    height?: number,
     fallback: string = 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1920&h=1080&fit=crop'
   ): string => {
     if (!image) return fallback
     try {
-      const url = urlFor(image)?.url()
+      let builder = urlFor(image)
+
+      // Appliquer les dimensions si spécifiées
+      if (width) builder = builder.width(width)
+      if (height) builder = builder.height(height)
+
+      const url = builder.url()
       return url || fallback
     } catch (error) {
       console.error("Erreur lors de la génération de l'URL image:", error)
       return fallback
+    }
+  }
+
+  // Helper pour obtenir la position du hotspot
+  const getHotspotStyle = (image: any): React.CSSProperties => {
+    if (!image?.hotspot) {
+      return { objectPosition: 'center' }
+    }
+
+    const { x, y } = image.hotspot
+    // Convertir les coordonnées Sanity (0-1) en pourcentages CSS
+    const percentX = Math.round(x * 100)
+    const percentY = Math.round(y * 100)
+
+    return {
+      objectPosition: `${percentX}% ${percentY}%`,
     }
   }
 
@@ -79,29 +103,40 @@ export default function Homepage({ data }: HomepageProps) {
         {/* Image de fond */}
         <div className="absolute inset-0">
           <img
-            src={getImageUrl(hero?.image)}
+            src={getImageUrl(hero?.image, 1920, 1080)}
             alt={hero?.title || 'Hero'}
             className="h-full w-full object-cover"
+            style={getHotspotStyle(hero?.image)}
           />
           <div className="absolute inset-0 bg-black/20" />
         </div>
 
-        {/* Texte superposé */}
-        <div className="relative z-10 flex h-full items-end pb-16 px-8">
-          <div className="max-w-4xl">
+        {/* Texte superposé - TITRE CENTRÉ VERTICALEMENT, RESTE EN DESSOUS */}
+        <div className="relative z-10 h-full flex flex-col justify-center items-end px-8 md:px-16 lg:px-24">
+          <div className="max-w-2xl text-right">
+            {/* Titre centré verticalement */}
             <h1
-              className="text-hero text-white mb-4"
+              className="text-hero text-white mb-8"
               style={{ whiteSpace: 'pre-line' }}
             >
               {hero?.title || 'NOUVELLE\nCOLLECTION'}
             </h1>
-            <p className="text-body text-white/90 max-w-md mb-8 text-lg">
+          </div>
+
+          {/* Sous-titre et bouton en dessous du titre */}
+          <div className="max-w-2xl text-right">
+            <p className="text-body text-white/90 mb-8 text-lg ml-auto max-w-md">
               {hero?.subtitle ||
                 'Découvrez les pièces essentielles de la saison'}
             </p>
-            <Link href={hero?.ctaLink || '/hauts'} className="btn-primary">
-              {hero?.ctaLabel || 'DÉCOUVRIR'}
-            </Link>
+            <div className="flex justify-end">
+              <Link
+                href={hero?.ctaLink || '/products/hauts'}
+                className="btn-primary"
+              >
+                {hero?.ctaLabel || 'DÉCOUVRIR'}
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -112,16 +147,14 @@ export default function Homepage({ data }: HomepageProps) {
       </section>
 
       {/* Grille de catégories - Asymétrique style Jacquemus */}
-      <section className="py-24 px-8 bg-white relative z-10">
+      <section className="bg-white relative z-10">
         <div className="max-w-[1920px] mx-auto">
-          <div className="grid grid-cols-12 gap-4">
+          <div className="grid grid-cols-12">
             {/* Grande image - HAUTS */}
             <div className="col-span-12 md:col-span-8 md:row-span-2">
               <CategoryCard
-                image={getImageUrl(
-                  zoneHauts?.image,
-                  'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=1600&h=1200&fit=crop'
-                )}
+                image={getImageUrl(zoneHauts?.image, 1600, 1200)}
+                imageData={zoneHauts?.image}
                 title={zoneHauts?.title || 'HAUTS'}
                 subtitle={zoneHauts?.subtitle}
                 link={zoneHauts?.link || '/hauts'}
@@ -132,10 +165,8 @@ export default function Homepage({ data }: HomepageProps) {
             {/* Petite image - BAS */}
             <div className="col-span-6 md:col-span-4">
               <CategoryCard
-                image={getImageUrl(
-                  zoneBas?.image,
-                  'https://images.unsplash.com/photo-1624206112918-f140f087f9f5?w=800&h=1066&fit=crop'
-                )}
+                image={getImageUrl(zoneBas?.image, 800, 1066)}
+                imageData={zoneBas?.image}
                 title={zoneBas?.title || 'BAS'}
                 subtitle={zoneBas?.subtitle}
                 link={zoneBas?.link || '/bas'}
@@ -146,10 +177,8 @@ export default function Homepage({ data }: HomepageProps) {
             {/* Petite image - ACCESSOIRES */}
             <div className="col-span-6 md:col-span-4">
               <CategoryCard
-                image={getImageUrl(
-                  zoneAccessoires?.image,
-                  'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=800&h=1066&fit=crop'
-                )}
+                image={getImageUrl(zoneAccessoires?.image, 800, 1066)}
+                imageData={zoneAccessoires?.image}
                 title={zoneAccessoires?.title || 'ACCESSOIRES'}
                 subtitle={zoneAccessoires?.subtitle}
                 link={zoneAccessoires?.link || '/accessoires'}
@@ -160,10 +189,8 @@ export default function Homepage({ data }: HomepageProps) {
             {/* Moyenne image - LOOKBOOKS */}
             <div className="col-span-12 md:col-span-6">
               <CategoryCard
-                image={getImageUrl(
-                  zoneLookbooks?.image,
-                  'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=1200&h=900&fit=crop'
-                )}
+                image={getImageUrl(zoneLookbooks?.image, 1200, 900)}
+                imageData={zoneLookbooks?.image}
                 title={zoneLookbooks?.title || 'LOOKBOOKS'}
                 subtitle={zoneLookbooks?.subtitle}
                 link={zoneLookbooks?.link || '/lookbooks'}
@@ -174,10 +201,8 @@ export default function Homepage({ data }: HomepageProps) {
             {/* Moyenne image - SUSTAINABILITY */}
             <div className="col-span-12 md:col-span-6">
               <CategoryCard
-                image={getImageUrl(
-                  zoneSustainability?.image,
-                  'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=1200&h=900&fit=crop'
-                )}
+                image={getImageUrl(zoneSustainability?.image, 1200, 900)}
+                imageData={zoneSustainability?.image}
                 title={zoneSustainability?.title || 'SUSTAINABILITY'}
                 subtitle={zoneSustainability?.subtitle}
                 link={zoneSustainability?.link || '/sustainability'}
@@ -196,6 +221,7 @@ export default function Homepage({ data }: HomepageProps) {
 // Composant CategoryCard
 interface CategoryCardProps {
   image: string
+  imageData: any
   title: string
   subtitle?: string
   link: string
@@ -204,48 +230,65 @@ interface CategoryCardProps {
 
 function CategoryCard({
   image,
+  imageData,
   title,
   subtitle,
   link,
   size,
 }: CategoryCardProps) {
-  const aspectRatios = {
-    small: 'aspect-[3/4]',
-    medium: 'aspect-[4/3]',
-    large: 'aspect-[3/2]',
+  // Hauteurs fixes pour aligner les images horizontalement
+  const heights = {
+    small: 'h-[50vh]',
+    medium: 'h-[50vh]',
+    large: 'h-[100vh]',
+  }
+
+  // Calcul du hotspot pour cette image
+  const getHotspotStyle = (): React.CSSProperties => {
+    if (!imageData?.hotspot) {
+      return { objectPosition: 'center' }
+    }
+
+    const { x, y } = imageData.hotspot
+    const percentX = Math.round(x * 100)
+    const percentY = Math.round(y * 100)
+
+    return {
+      objectPosition: `${percentX}% ${percentY}%`,
+    }
   }
 
   return (
     <Link href={link} className="group block relative overflow-hidden">
-      <div className={`relative ${aspectRatios[size]} w-full`}>
-        {/* Image */}
+      <div className={`relative ${heights[size]} w-full`}>
+        {/* Image avec hotspot appliqué */}
         <img
           src={image}
           alt={title}
           className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+          style={getHotspotStyle()}
         />
 
         {/* Overlay noir au hover */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-500" />
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-500" />
 
-        {/* Titre au centre (visible au hover sur desktop) */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center px-6">
-            <h2 className="text-section text-white opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+        {/* Titre aligné à droite et centré verticalement - visible au HOVER uniquement */}
+        <div className="absolute inset-0 flex items-center justify-end pr-8 md:pr-12 lg:pr-16">
+          <div className="text-right opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-x-4 group-hover:translate-x-0">
+            <h2
+              className="text-section text-white"
+              style={{
+                whiteSpace: 'nowrap',
+              }}
+            >
               {title}
             </h2>
             {subtitle && (
-              <p className="text-body text-white/90 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+              <p className="text-body text-white/90 mt-2 max-w-md ml-auto">
                 {subtitle}
               </p>
             )}
           </div>
-        </div>
-
-        {/* Titre permanent en bas (version mobile) */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-500">
-          <h3 className="text-product text-white">{title}</h3>
-          {subtitle && <p className="text-sm text-white/80 mt-1">{subtitle}</p>}
         </div>
       </div>
     </Link>

@@ -1,4 +1,4 @@
-/* src/app/globals.css */
+/* src/app/globals.css - VERSION CORRIGÉE */
 @import "tailwindcss";
 
 :root {
@@ -22,10 +22,6 @@
   --muted-foreground: hsl(0 0% 60%);
   --ring: hsl(271 74% 37%);
   --radius: 0;
-
-  /* Polices */
-  --font-brand: var(--font-archivo-black);
-  --font-body: var(--font-archivo-narrow);
 }
 
 * {
@@ -39,7 +35,7 @@ body, h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd {
 body {
   background: var(--white);
   color: var(--black);
-  font-family: var(--font-body);
+  font-family: var(--font-archivo-narrow);
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -49,17 +45,17 @@ body {
 
 /* Hero titles - 80-120px */
 .text-hero {
-  font-family: var(--font-brand);
+  font-family: var(--font-archivo-black);
   font-size: clamp(4rem, 10vw, 7.5rem);
   line-height: 0.9;
   letter-spacing: -0.03em;
-  text-transform: uppercase;
+  /* text-transform: uppercase; */
   font-weight: 400;
 }
 
 /* Section titles - 40-60px */
 .text-section {
-  font-family: var(--font-brand);
+  font-family: var(--font-archivo-black);
   font-size: clamp(2.5rem, 5vw, 3.75rem);
   line-height: 1;
   letter-spacing: -0.02em;
@@ -69,7 +65,7 @@ body {
 
 /* Product titles - 14-16px */
 .text-product {
-  font-family: var(--font-body);
+  font-family: var(--font-archivo-narrow);
   font-size: clamp(0.875rem, 1.5vw, 1rem);
   font-weight: 600;
   letter-spacing: 0.1em;
@@ -78,7 +74,7 @@ body {
 
 /* Body text - 14-16px */
 .text-body {
-  font-family: var(--font-body);
+  font-family: var(--font-archivo-narrow);
   font-size: clamp(0.875rem, 1.5vw, 1rem);
   line-height: 1.6;
   font-weight: 400;
@@ -94,7 +90,7 @@ body {
   padding: 1rem 2.5rem;
   background: var(--black);
   color: var(--white);
-  font-family: var(--font-body);
+  font-family: var(--font-archivo-narrow);
   font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.1em;
@@ -128,7 +124,7 @@ body {
   padding: 1rem 2.5rem;
   background: var(--white);
   color: var(--black);
-  font-family: var(--font-body);
+  font-family: var(--font-archivo-narrow);
   font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.1em;
@@ -151,7 +147,7 @@ body {
   padding: 1rem 2.5rem;
   background: transparent;
   color: var(--black);
-  font-family: var(--font-body);
+  font-family: var(--font-archivo-narrow);
   font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.1em;
@@ -175,7 +171,7 @@ body {
   padding: 0;
   background: transparent;
   color: var(--black);
-  font-family: var(--font-body);
+  font-family: var(--font-archivo-narrow);
   font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.1em;
@@ -271,4 +267,16 @@ html {
 
 .animate-slide-in {
   animation: slide-in 0.3s ease-out;
+}
+
+/* === CLASSES UTILITAIRES POUR LES FONTS === */
+
+/* Classe pour forcer Archivo Black (titres) */
+.font-title {
+  font-family: var(--font-archivo-black);
+}
+
+/* Classe pour forcer Archivo Narrow (textes) */
+.font-text {
+  font-family: var(--font-archivo-narrow);
 }
