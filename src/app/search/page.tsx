@@ -275,33 +275,6 @@ function SearchContent() {
                   </Link>
                 ))}
               </div>
-
-              {/* Suggestions populaires */}
-              <div className="mt-16">
-                <h2 className="text-[11px] uppercase tracking-[0.1em] text-black/40 mb-6 text-center">
-                  recherches populaires
-                </h2>
-                <div className="flex flex-wrap gap-3 justify-center">
-                  {[
-                    'bag',
-                    'dress',
-                    'shirt',
-                    'shoes',
-                    'hat',
-                    'jacket',
-                    'pants',
-                    'skirt',
-                  ].map((term) => (
-                    <button
-                      key={term}
-                      onClick={() => handleSuggestedSearch(term)}
-                      className="px-5 py-2.5 border border-black/10 hover:border-black hover:bg-black hover:text-white text-[13px] lowercase tracking-[0.05em] transition-all"
-                    >
-                      {term}
-                    </button>
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
         ) : (

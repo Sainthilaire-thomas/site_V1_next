@@ -7,12 +7,10 @@ import { usePathname } from 'next/navigation'
 import { useCartStore } from '@/store/useCartStore'
 import { ShoppingBag, Menu, X, Search, User } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import SearchModal from '@/components/search/SearchModal'
 
 export default function HeaderMinimal() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
   const { totalItems } = useCartStore()
   const pathname = usePathname()
 
@@ -103,10 +101,12 @@ export default function HeaderMinimal() {
           </div>
 
           <div className="flex items-center gap-6">
-            <Link href="/search">
-              <button>
-                <Search className="w-5 h-5" strokeWidth={1.5} />
-              </button>
+            <Link
+              href="/search"
+              className="hover:opacity-60 transition-opacity"
+              aria-label="Search"
+            >
+              <Search className="w-5 h-5" strokeWidth={1.5} />
             </Link>
             <Link
               href="/account"
@@ -164,8 +164,11 @@ export default function HeaderMinimal() {
         ].join(' ')}
       >
         <div className="flex items-center justify-between px-12 py-6 ">
-          <span className="text-sm font-bold tracking-[0.15em] uppercase text-black">
-            .BLANCHERENAUDIN
+          <span
+            className="text-sm font-bold tracking-[0.15em]"
+            style={{ color: 'hsl(271 74% 37%)' }}
+          >
+            .blancherenaudin
           </span>
           <button
             onClick={() => setIsMenuOpen(false)}
@@ -174,20 +177,6 @@ export default function HeaderMinimal() {
           >
             <X className="w-5 h-5" strokeWidth={1.5} />
           </button>
-        </div>
-
-        <div className="px-8 pb-8">
-          <div className="flex items-center gap-3 border border-black/20 px-4 py-3">
-            <Search
-              className="w-4 h-4 text-black/40 shrink-0"
-              strokeWidth={1.5}
-            />
-            <input
-              type="text"
-              placeholder="Search..."
-              className="flex-1 text-sm focus:outline-none bg-transparent"
-            />
-          </div>
         </div>
 
         <nav className="px-8 pb-8 space-y-1">
@@ -220,30 +209,10 @@ export default function HeaderMinimal() {
                 <User className="w-4 h-4" strokeWidth={1.5} />
                 <span>Account</span>
               </Link>
-              <Link
-                href="/cart"
-                onClick={() => setIsMenuOpen(false)}
-                className="flex items-center gap-2 text-sm text-black hover:opacity-60 transition-opacity"
-              >
-                <ShoppingBag className="w-4 h-4" strokeWidth={1.5} />
-                <span>Cart</span>
-              </Link>
-            </div>
-
-            <div className="text-xs text-black/60 leading-relaxed">
-              <p className="mb-1 font-medium text-black">Customer Service</p>
-              <p>Monday to Friday</p>
-              <p>9am - 6pm (GMT+1)</p>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Search Modal */}
-      <SearchModal
-        isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
-      />
     </>
   )
 }

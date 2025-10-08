@@ -1,31 +1,12 @@
-// src/app/contact/page.tsx - Version avec Sanity
+// src/app/contact/page.tsx
 'use client'
 
-import { useState, useEffect } from 'react'
-import UnifiedHeader from '@/components/layout/UnifiedHeader'
-import RichTextRenderer from '@/components/common/RichTextRenderer'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
+import { useState } from 'react'
+import HeaderMinimal from '@/components/layout/HeaderMinimal'
+import FooterMinimal from '@/components/layout/FooterMinimal'
 import { toast } from 'sonner'
-import { sanityClient } from '@/lib/sanity.client'
-import { PAGE_QUERY } from '@/lib/queries'
-
-interface PageData {
-  _id: string
-  title: string
-  slug: { current: string }
-  content?: any[]
-  seo?: {
-    title?: string
-    description?: string
-    image?: any
-  }
-}
 
 export default function ContactPage() {
-  const [pageData, setPageData] = useState<PageData | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -34,23 +15,6 @@ export default function ContactPage() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Charger les données Sanity
-  useEffect(() => {
-    const fetchContactPage = async () => {
-      try {
-        setIsLoading(true)
-        const data = await sanityClient.fetch(PAGE_QUERY, { slug: 'contact' })
-        setPageData(data || null)
-      } catch (error) {
-        console.error('Erreur lors du fetch de la page Contact:', error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchContactPage()
-  }, [])
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
@@ -58,7 +22,7 @@ export default function ContactPage() {
     // Simulation d'envoi
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
-    toast.success('Message envoyé avec succès !')
+    toast.success('message sent successfully')
     setFormData({ name: '', email: '', subject: '', message: '' })
     setIsSubmitting(false)
   }
@@ -74,217 +38,165 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <UnifiedHeader variant="default" showNavigation={true} />
+      <HeaderMinimal />
 
-      <main className="pt-6">
-        {/* Hero */}
-        <section className="py-20 px-6">
-          <div className="container mx-auto text-center">
-            <h1 className="text-4xl md:text-6xl font-light text-gray-900 mb-6">
-              {pageData?.title || 'Contact'}
-            </h1>
-            {pageData?.seo?.description && (
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                {pageData.seo.description}
-              </p>
-            )}
-            {!pageData?.seo?.description && (
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Une question ? Un projet sur mesure ? Notre équipe est à votre
-                écoute pour vous accompagner dans vos choix.
-              </p>
-            )}
-          </div>
-        </section>
+      <main className="pt-32 pb-24 px-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Titre */}
+          <h1 className="text-section mb-24">.contact</h1>
 
-        {/* Contenu personnalisé depuis Sanity */}
-        {pageData?.content && (
-          <section className="py-12 px-6 bg-gray-50">
-            <div className="container mx-auto max-w-4xl">
-              <RichTextRenderer
-                content={pageData.content}
-                className="text-gray-600"
-              />
-            </div>
-          </section>
-        )}
-
-        {/* Contact Form & Info */}
-        <section className="py-12 px-6">
-          <div className="container mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-              {/* Formulaire */}
+          {/* Grid 2 colonnes */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-24">
+            {/* Colonne gauche - Informations */}
+            <div className="space-y-16">
               <div>
-                <h2 className="text-2xl font-light text-gray-900 mb-8">
-                  Envoyez-nous un message
-                </h2>
-
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label
-                        htmlFor="name"
-                        className="block text-sm font-medium text-gray-700 mb-2"
-                      >
-                        Nom *
-                      </label>
-                      <Input
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        required
-                        placeholder="Votre nom"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="email"
-                        className="block text-sm font-medium text-gray-700 mb-2"
-                      >
-                        Email *
-                      </label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                        placeholder="votre@email.com"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="subject"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                      Sujet *
-                    </label>
-                    <Input
-                      id="subject"
-                      name="subject"
-                      value={formData.subject}
-                      onChange={handleChange}
-                      required
-                      placeholder="Objet de votre message"
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="message"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                      Message *
-                    </label>
-                    <Textarea
-                      id="message"
-                      name="message"
-                      value={formData.message}
-                      onChange={handleChange}
-                      required
-                      placeholder="Votre message..."
-                      rows={6}
-                    />
-                  </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full bg-violet-600 hover:bg-violet-700"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? 'Envoi en cours...' : 'Envoyer le message'}
-                  </Button>
-                </form>
+                <h2 className="text-product mb-3">ATELIER</h2>
+                <p className="text-body text-grey-medium">
+                  25 boulevard de La Tour Maubourg
+                  <br />
+                  75007 Paris, France
+                </p>
               </div>
 
-              {/* Informations */}
               <div>
-                <h2 className="text-2xl font-light text-gray-900 mb-8">
-                  Nos coordonnées
-                </h2>
+                <h2 className="text-product mb-3">HOURS</h2>
+                <p className="text-body text-grey-medium">
+                  monday - friday: 10h - 19h
+                  <br />
+                  saturday: 10h - 18h
+                  <br />
+                  sunday: by appointment
+                </p>
+              </div>
 
-                <div className="space-y-8">
-                  <div>
-                    <h3 className="font-medium text-gray-900 mb-2">
-                      Atelier & Showroom
-                    </h3>
-                    <p className="text-gray-600">
-                      15 rue de la Mode
-                      <br />
-                      75003 Paris, France
-                    </p>
-                  </div>
+              <div>
+                <h2 className="text-product mb-3">CONTACT</h2>
+                <p className="text-body text-grey-medium">
+                  <a
+                    href="tel:+33123456789"
+                    className="hover:text-black transition-colors"
+                  >
+                    +33 1 23 45 67 89
+                  </a>
+                  <br />
+                  <a
+                    href="mailto:contact@blancherenaudin.com"
+                    className="hover:text-black transition-colors"
+                  >
+                    contact@blancherenaudin.com
+                  </a>
+                </p>
+              </div>
 
-                  <div>
-                    <h3 className="font-medium text-gray-900 mb-2">Horaires</h3>
-                    <p className="text-gray-600">
-                      Lundi - Vendredi : 10h - 19h
-                      <br />
-                      Samedi : 10h - 18h
-                      <br />
-                      Dimanche : Sur rendez-vous
-                    </p>
-                  </div>
+              <div>
+                <h2 className="text-product mb-3">CUSTOM MADE</h2>
+                <p className="text-body text-grey-medium mb-6">
+                  We create custom pieces according to your wishes. Book an
+                  appointment for a personalized consultation.
+                </p>
+                <a
+                  href="mailto:hello@blancherenaudin.com?subject=Custom Order Request"
+                  className="inline-block text-[13px] tracking-[0.05em] font-semibold lowercase border-b border-black hover:border-grey-medium transition-colors"
+                >
+                  book appointment
+                </a>
+              </div>
+            </div>
 
-                  <div>
-                    <h3 className="font-medium text-gray-900 mb-2">Contact</h3>
-                    <p className="text-gray-600">
-                      Tél : +33 1 23 45 67 89
-                      <br />
-                      Email : hello@blancherenaudin.com
-                    </p>
-                  </div>
+            {/* Colonne droite - Formulaire */}
+            <div>
+              <h2 className="text-product mb-8">SEND US A MESSAGE</h2>
 
+              <form onSubmit={handleSubmit} className="space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div>
-                    <h3 className="font-medium text-gray-900 mb-4">
-                      Sur mesure
-                    </h3>
-                    <p className="text-gray-600 mb-4">
-                      Nous réalisons des pièces sur mesure selon vos envies.
-                      Prenez rendez-vous pour une consultation personnalisée.
-                    </p>
-                    <Button
-                      variant="outline"
-                      className="border-violet-600 text-violet-600 hover:bg-violet-50"
+                    <label
+                      htmlFor="name"
+                      className="block text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium mb-3"
                     >
-                      Prendre rendez-vous
-                    </Button>
+                      name *
+                    </label>
+                    <input
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      placeholder="your name"
+                      className="w-full border-b border-grey-medium focus:border-black outline-none py-2 text-[13px] tracking-[0.05em] font-semibold lowercase transition-colors bg-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="email"
+                      className="block text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium mb-3"
+                    >
+                      email *
+                    </label>
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      placeholder="your@email.com"
+                      className="w-full border-b border-grey-medium focus:border-black outline-none py-2 text-[13px] tracking-[0.05em] font-semibold lowercase transition-colors bg-transparent"
+                    />
                   </div>
                 </div>
-              </div>
+
+                <div>
+                  <label
+                    htmlFor="subject"
+                    className="block text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium mb-3"
+                  >
+                    subject *
+                  </label>
+                  <input
+                    id="subject"
+                    name="subject"
+                    value={formData.subject}
+                    onChange={handleChange}
+                    required
+                    placeholder="message subject"
+                    className="w-full border-b border-grey-medium focus:border-black outline-none py-2 text-[13px] tracking-[0.05em] font-semibold lowercase transition-colors bg-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="message"
+                    className="block text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium mb-3"
+                  >
+                    message *
+                  </label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    required
+                    placeholder="your message..."
+                    rows={6}
+                    className="w-full border-b border-grey-medium focus:border-black outline-none py-2 text-[13px] tracking-[0.05em] font-semibold lowercase transition-colors bg-transparent resize-none"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-4 text-[13px] tracking-[0.05em] font-semibold lowercase bg-white text-black border border-black hover:bg-black hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? 'sending...' : 'send message'}
+                </button>
+              </form>
             </div>
           </div>
-        </section>
-
-        {/* Map Section */}
-        <section className="py-12 px-6 bg-gray-50">
-          <div className="container mx-auto text-center">
-            <div className="bg-gray-200 rounded-lg h-64 flex items-center justify-center">
-              <p className="text-gray-500">
-                Carte interactive de l'atelier
-                <br />
-                <small>(À intégrer avec Google Maps ou Mapbox)</small>
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Message pour l'admin */}
-        {!pageData && !isLoading && (
-          <section className="py-8 px-6 bg-yellow-50 border-t border-yellow-200">
-            <div className="container mx-auto text-center">
-              <p className="text-sm text-yellow-800">
-                <strong>Admin :</strong> Créez une page "Contact" dans Sanity
-                Studio avec le slug "contact" pour personnaliser ce contenu.
-              </p>
-            </div>
-          </section>
-        )}
+        </div>
       </main>
+
+      <FooterMinimal />
     </div>
   )
 }
