@@ -12,7 +12,7 @@ export default function FooterMinimal() {
             <ul className="space-y-3">
               <li>
                 <Link
-                  href="/hauts"
+                  href="/products/hauts"
                   className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium hover:text-black transition-colors"
                 >
                   .tops
@@ -20,7 +20,7 @@ export default function FooterMinimal() {
               </li>
               <li>
                 <Link
-                  href="/bas"
+                  href="/products/bas"
                   className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium hover:text-black transition-colors"
                 >
                   .bottoms
@@ -28,7 +28,7 @@ export default function FooterMinimal() {
               </li>
               <li>
                 <Link
-                  href="/accessoires"
+                  href="/products/accessoires"
                   className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium hover:text-black transition-colors"
                 >
                   .accessories
