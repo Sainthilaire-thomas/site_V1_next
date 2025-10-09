@@ -49,7 +49,6 @@ body {
   font-size: clamp(4rem, 10vw, 7.5rem);
   line-height: 0.9;
   letter-spacing: -0.03em;
-  /* text-transform: uppercase; */
   font-weight: 400;
 }
 
@@ -59,7 +58,6 @@ body {
   font-size: clamp(2.5rem, 5vw, 3.75rem);
   line-height: 1;
   letter-spacing: -0.02em;
-  text-transform: uppercase;
   font-weight: 400;
 }
 
@@ -94,7 +92,6 @@ body {
   font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.1em;
-  text-transform: uppercase;
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -128,7 +125,6 @@ body {
   font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.1em;
-  text-transform: uppercase;
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -151,7 +147,6 @@ body {
   font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.1em;
-  text-transform: uppercase;
   border: 1px solid var(--black);
   cursor: pointer;
   transition: all 0.3s ease;
@@ -175,7 +170,6 @@ body {
   font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.1em;
-  text-transform: uppercase;
   border: none;
   border-bottom: 1px solid var(--black);
   cursor: pointer;

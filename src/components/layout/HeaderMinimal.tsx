@@ -86,12 +86,22 @@ export default function HeaderMinimal() {
                     key={item.href}
                     href={item.href}
                     className={[
-                      'text-[13px] tracking-[0.05em] font-semibold lowercase transition-colors',
+                      'text-[13px] tracking-[0.05em] font-semibold lowercase transition-all duration-200',
                       item.nowrap ? 'whitespace-nowrap' : '',
                       active
                         ? 'text-black/40'
-                        : 'text-black/70 hover:text-black',
+                        : 'text-black/70 hover:font-bold',
                     ].join(' ')}
+                    onMouseEnter={(e) => {
+                      if (!active) {
+                        e.currentTarget.style.color = 'hsl(271 74% 37%)'
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!active) {
+                        e.currentTarget.style.color = ''
+                      }
+                    }}
                   >
                     {item.label}
                   </Link>
@@ -188,9 +198,21 @@ export default function HeaderMinimal() {
                 href={item.href}
                 onClick={() => setIsMenuOpen(false)}
                 className={[
-                  'block py-2.5 text-[15px] font-normal transition-colors',
-                  active ? 'text-black/40' : 'text-black hover:opacity-60',
+                  'block py-2.5 text-[15px] transition-all duration-200',
+                  active
+                    ? 'text-black/40 font-normal'
+                    : 'text-black font-normal hover:font-bold',
                 ].join(' ')}
+                onMouseEnter={(e) => {
+                  if (!active) {
+                    e.currentTarget.style.color = 'hsl(271 74% 37%)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!active) {
+                    e.currentTarget.style.color = ''
+                  }
+                }}
               >
                 {item.label}
               </Link>

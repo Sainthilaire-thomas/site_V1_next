@@ -13,17 +13,17 @@ export const dynamicParams = false
 const CATEGORY_DEFS = [
   {
     slug: 'hauts',
-    title: 'Hauts',
+    title: '.tops&jackets',
     description: 'Chemises, t-shirts, pulls et blouses.',
   },
   {
     slug: 'bas',
-    title: 'Bas',
+    title: '.bottoms',
     description: 'Pantalons, jeans, jupes et shorts.',
   },
   {
     slug: 'accessoires',
-    title: 'Accessoires',
+    title: '.accessories',
     description: 'Sacs, ceintures, bijoux et plus.',
   },
 ] as const
@@ -140,12 +140,9 @@ export default async function ProductsByCategoryPage({
         <div className="border-b border-black/20 mb-8" />
         {/* Titre centré style Jacquemus */}
         <div className="text-center mb-8 px-4">
-          <h1 className="text-[11px] font-light tracking-[0.2em] uppercase text-black mb-2">
+          <h1 className="text-[11px] font-light tracking-[0.2em] lowercase text-black">
             {def.title}
           </h1>
-          <p className="text-[13px] text-black/40 font-light">
-            {products.length} {products.length > 1 ? 'produits' : 'produit'}
-          </p>
         </div>
 
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">

@@ -114,27 +114,26 @@ export default function Homepage({ data }: HomepageProps) {
         {/* Texte superposé - TITRE CENTRÉ VERTICALEMENT, RESTE EN DESSOUS */}
         <div className="relative z-10 h-full flex flex-col justify-center items-end px-8 md:px-16 lg:px-24">
           <div className="max-w-2xl text-right">
-            {/* Titre centré verticalement */}
+            {/* Titre centré verticalement - EN MINUSCULES */}
             <h1
-              className="text-hero text-white mb-8"
+              className="text-hero text-white mb-8 lowercase"
               style={{ whiteSpace: 'pre-line' }}
             >
-              {hero?.title || 'NOUVELLE\nCOLLECTION'}
+              {hero?.title || 'nouvelle\ncollection'}
             </h1>
           </div>
 
           {/* Sous-titre et bouton en dessous du titre */}
           <div className="max-w-2xl text-right">
             <p className="text-body text-white/90 mb-8 text-lg ml-auto max-w-md">
-              {hero?.subtitle ||
-                'Découvrez les pièces essentielles de la saison'}
+              {hero?.subtitle || ''}
             </p>
             <div className="flex justify-end">
               <Link
                 href={hero?.ctaLink || '/products/hauts'}
-                className="btn-primary"
+                className="btn-primary lowercase"
               >
-                {hero?.ctaLabel || 'DÉCOUVRIR'}
+                {hero?.ctaLabel || 'découvrir'}
               </Link>
             </div>
           </div>
@@ -155,7 +154,7 @@ export default function Homepage({ data }: HomepageProps) {
               <CategoryCard
                 image={getImageUrl(zoneHauts?.image, 1600, 1200)}
                 imageData={zoneHauts?.image}
-                title={zoneHauts?.title || 'HAUTS'}
+                title={zoneHauts?.title || 'hauts'}
                 subtitle={zoneHauts?.subtitle}
                 link={zoneHauts?.link || '/hauts'}
                 size="large"
@@ -167,7 +166,7 @@ export default function Homepage({ data }: HomepageProps) {
               <CategoryCard
                 image={getImageUrl(zoneBas?.image, 800, 1066)}
                 imageData={zoneBas?.image}
-                title={zoneBas?.title || 'BAS'}
+                title={zoneBas?.title || 'bas'}
                 subtitle={zoneBas?.subtitle}
                 link={zoneBas?.link || '/bas'}
                 size="small"
@@ -179,7 +178,7 @@ export default function Homepage({ data }: HomepageProps) {
               <CategoryCard
                 image={getImageUrl(zoneAccessoires?.image, 800, 1066)}
                 imageData={zoneAccessoires?.image}
-                title={zoneAccessoires?.title || 'ACCESSOIRES'}
+                title={zoneAccessoires?.title || 'accessoires'}
                 subtitle={zoneAccessoires?.subtitle}
                 link={zoneAccessoires?.link || '/accessoires'}
                 size="small"
@@ -191,7 +190,7 @@ export default function Homepage({ data }: HomepageProps) {
               <CategoryCard
                 image={getImageUrl(zoneLookbooks?.image, 1200, 900)}
                 imageData={zoneLookbooks?.image}
-                title={zoneLookbooks?.title || 'LOOKBOOKS'}
+                title={zoneLookbooks?.title || 'lookbooks'}
                 subtitle={zoneLookbooks?.subtitle}
                 link={zoneLookbooks?.link || '/lookbooks'}
                 size="medium"
@@ -203,7 +202,7 @@ export default function Homepage({ data }: HomepageProps) {
               <CategoryCard
                 image={getImageUrl(zoneSustainability?.image, 1200, 900)}
                 imageData={zoneSustainability?.image}
-                title={zoneSustainability?.title || 'SUSTAINABILITY'}
+                title={zoneSustainability?.title || 'sustainability'}
                 subtitle={zoneSustainability?.subtitle}
                 link={zoneSustainability?.link || '/sustainability'}
                 size="medium"
@@ -272,11 +271,11 @@ function CategoryCard({
         {/* Overlay noir au hover */}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-500" />
 
-        {/* Titre aligné à droite et centré verticalement - visible au HOVER uniquement */}
+        {/* Titre aligné à droite et centré verticalement - visible au HOVER uniquement - EN MINUSCULES */}
         <div className="absolute inset-0 flex items-center justify-end pr-8 md:pr-12 lg:pr-16">
           <div className="text-right opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-x-4 group-hover:translate-x-0">
             <h2
-              className="text-section text-white"
+              className="text-section text-white lowercase"
               style={{
                 whiteSpace: 'nowrap',
               }}
