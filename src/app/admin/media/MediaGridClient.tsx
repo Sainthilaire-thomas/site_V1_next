@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ProductImage } from '@/components/products/ProductImage'
+import { AdminProductImage } from '@/components/admin/AdminProductImage'
 import { ImageEditorModal } from '@/components/admin/ImageEditorModal'
+import { GripVertical } from 'lucide-react'
 
 type ProductImageData = {
   id: string
@@ -31,6 +32,13 @@ export function MediaGridClient({ productId }: Props) {
   } | null>(null)
   const [loadingEditor, setLoadingEditor] = useState(false)
 
+  // ✅ États pour le drag & drop
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+
+  // ✅ Clé pour forcer le re-render des images après édition
+  const [imageRefreshKey, setImageRefreshKey] = useState(0)
+
   async function refresh() {
     if (!productId) {
       setImages([])
@@ -39,10 +47,9 @@ export function MediaGridClient({ productId }: Props) {
     setLoading(true)
     setError(null)
     try {
-     
-        const r = await fetch(`/api/admin/products/${productId}/images`, {
-          cache: 'no-store',
-        })
+      const r = await fetch(`/api/admin/products/${productId}/images`, {
+        cache: 'no-store',
+      })
       if (!r.ok) throw new Error(await r.text())
       const json = await r.json()
       setImages(json.images ?? [])
@@ -56,7 +63,6 @@ export function MediaGridClient({ productId }: Props) {
 
   useEffect(() => {
     refresh()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId])
 
   async function onUpload(e?: React.MouseEvent<HTMLButtonElement>) {
@@ -89,7 +95,6 @@ export function MediaGridClient({ productId }: Props) {
       setSuccess(`${successCount} image(s) importée(s) avec succès`)
       setFiles(null)
 
-      // Reset input file
       const fileInput = document.querySelector(
         'input[type="file"]'
       ) as HTMLInputElement
@@ -170,7 +175,7 @@ export function MediaGridClient({ productId }: Props) {
     }
   }
 
-  async function saveOrder(next: ProductImageData[]) {
+  async function saveOrder(newImages: ProductImageData[]) {
     setLoading(true)
     setError(null)
     try {
@@ -178,13 +183,16 @@ export function MediaGridClient({ productId }: Props) {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          orders: next.map((img, i) => ({ id: img.id, sort_order: i })),
+          orders: newImages.map((img, i) => ({ id: img.id, sort_order: i })),
         }),
       })
       if (!r.ok) throw new Error(await r.text())
+      setSuccess('Ordre enregistré')
       await refresh()
     } catch (e: any) {
       setError(e?.message ?? "Erreur lors de l'enregistrement de l'ordre")
+      // Rollback en cas d'erreur
+      await refresh()
     } finally {
       setLoading(false)
     }
@@ -193,9 +201,10 @@ export function MediaGridClient({ productId }: Props) {
   async function openEditor(imageId: string) {
     setLoadingEditor(true)
     try {
-      // Récupérer l'URL signée de l'original
+      // ✅ Ajouter un timestamp pour éviter le cache
+      const cacheBuster = Date.now()
       const res = await fetch(
-        `/api/admin/product-images/${imageId}/signed-url?variant=original&format=jpg&mode=json`,
+        `/api/admin/product-images/${imageId}/signed-url?variant=original&format=jpg&mode=json&t=${cacheBuster}`,
         { cache: 'no-store' }
       )
 
@@ -209,8 +218,6 @@ export function MediaGridClient({ productId }: Props) {
         throw new Error('URL signée manquante')
       }
 
-      console.log('URL récupérée pour édition:', data.signedUrl)
-
       setEditingImage({
         id: imageId,
         url: data.signedUrl,
@@ -223,22 +230,92 @@ export function MediaGridClient({ productId }: Props) {
     }
   }
 
-  function move(index: number, dir: -1 | 1) {
-    const copy = [...images]
-    const j = index + dir
-    if (j < 0 || j >= copy.length) return
-    ;[copy[index], copy[j]] = [copy[j], copy[index]]
-    setImages(copy)
-    void saveOrder(copy)
+  // ✅ DRAG & DROP HANDLERS - Version fonctionnelle
+  const handleDragStart = (
+    e: React.DragEvent<HTMLLIElement>,
+    index: number
+  ) => {
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/html', e.currentTarget.innerHTML)
+    setDraggedIndex(index)
   }
 
-  // Auto-hide success after 3s
+  const handleDragOver = (e: React.DragEvent<HTMLLIElement>, index: number) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+
+    if (draggedIndex === null || draggedIndex === index) return
+
+    setDragOverIndex(index)
+  }
+
+  const handleDragLeave = (e: React.DragEvent<HTMLLIElement>) => {
+    e.preventDefault()
+    setDragOverIndex(null)
+  }
+
+  const handleDrop = (e: React.DragEvent<HTMLLIElement>, dropIndex: number) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null)
+      setDragOverIndex(null)
+      return
+    }
+
+    // Réorganiser le tableau
+    const newImages = [...images]
+    const [draggedImage] = newImages.splice(draggedIndex, 1)
+    newImages.splice(dropIndex, 0, draggedImage)
+
+    // Mise à jour optimiste de l'UI
+    setImages(newImages)
+
+    // Sauvegarde en base
+    saveOrder(newImages)
+
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+  }
+
+  const handleDragEnd = (e: React.DragEvent<HTMLLIElement>) => {
+    e.preventDefault()
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+  }
+
+  // Auto-hide success
   useEffect(() => {
     if (success) {
       const timer = setTimeout(() => setSuccess(null), 3000)
       return () => clearTimeout(timer)
     }
   }, [success])
+
+  // ✅ Pattern de disposition : 1, 2, 1, 2, 1...
+  const getLayoutPattern = () => {
+    const rows = []
+    let index = 0
+
+    while (index < images.length) {
+      if (rows.length % 2 === 0) {
+        rows.push([images[index]])
+        index++
+      } else {
+        const pair = [images[index]]
+        if (index + 1 < images.length) {
+          pair.push(images[index + 1])
+        }
+        rows.push(pair)
+        index += pair.length
+      }
+    }
+
+    return rows
+  }
+
+  const imageRows = getLayoutPattern()
 
   return (
     <div className="space-y-6">
@@ -259,7 +336,6 @@ export function MediaGridClient({ productId }: Props) {
         <h3 className="font-medium mb-3">Importer des images</h3>
 
         <div className="space-y-3">
-          {/* Input file stylisé */}
           <label className="block">
             <span className="sr-only">Choisir des fichiers</span>
             <input
@@ -279,7 +355,6 @@ export function MediaGridClient({ productId }: Props) {
             />
           </label>
 
-          {/* Info sur les fichiers sélectionnés */}
           {files && files.length > 0 && (
             <div className="text-sm text-gray-600 dark:text-gray-400">
               📎 {files.length} fichier{files.length > 1 ? 's' : ''} sélectionné
@@ -287,7 +362,6 @@ export function MediaGridClient({ productId }: Props) {
             </div>
           )}
 
-          {/* Bouton d'import */}
           <button
             type="button"
             onClick={onUpload}
@@ -301,7 +375,6 @@ export function MediaGridClient({ productId }: Props) {
             {loading ? 'Import en cours...' : 'Importer les images'}
           </button>
 
-          {/* Message si pas de produit sélectionné */}
           {!productId && (
             <div className="text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-3 rounded">
               ⚠️ Sélectionnez un produit pour pouvoir importer des images
@@ -310,7 +383,56 @@ export function MediaGridClient({ productId }: Props) {
         </div>
       </div>
 
-      {/* Liste des images */}
+      {/* ✅ Preview de la disposition - Version compacte */}
+      {images.length > 0 && (
+        <div className="border border-blue-300 dark:border-blue-600 rounded-lg p-4 bg-blue-50 dark:bg-blue-900/20">
+          <div className="flex items-start justify-between mb-3">
+            <div>
+              <h3 className="font-medium text-blue-900 dark:text-blue-100">
+                📐 Aperçu de la disposition
+              </h3>
+              <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                Pattern : 1 photo → 2 photos → 1 photo (glissez les cartes
+                ci-dessous pour réorganiser)
+              </p>
+            </div>
+          </div>
+          <div className="space-y-0 border border-gray-300 dark:border-gray-600 overflow-hidden rounded max-w-md">
+            {imageRows.map((row, rowIndex) => (
+              <div
+                key={rowIndex}
+                className={`grid gap-0 ${row.length === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}
+              >
+                {row.map((img) => {
+                  const globalIndex = images.indexOf(img)
+                  return (
+                    <div
+                      key={img.id}
+                      className="relative aspect-[3/4] bg-gray-200 dark:bg-gray-700 overflow-hidden"
+                    >
+                      {productId && (
+                        <AdminProductImage
+                          productId={productId}
+                          imageId={img.id}
+                          alt={img.alt || ''}
+                          size="sm"
+                          className="w-full h-full object-cover"
+                          refreshKey={imageRefreshKey}
+                        />
+                      )}
+                      <div className="absolute top-1 left-1 bg-black/70 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">
+                        #{globalIndex + 1}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Liste des images avec drag & drop FONCTIONNEL */}
       {loading && !error ? (
         <div className="text-center py-8 text-gray-500">Chargement…</div>
       ) : !productId ? (
@@ -326,27 +448,46 @@ export function MediaGridClient({ productId }: Props) {
           {images.map((img, i) => (
             <li
               key={img.id}
-              className="border border-gray-300 dark:border-gray-600 rounded-lg p-3 space-y-3 bg-white dark:bg-gray-800"
+              draggable={!loading}
+              onDragStart={(e) => handleDragStart(e, i)}
+              onDragOver={(e) => handleDragOver(e, i)}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(e, i)}
+              onDragEnd={handleDragEnd}
+              className={`
+                border rounded-lg p-3 space-y-3 
+                bg-white dark:bg-gray-800 
+                transition-all
+                ${loading ? 'cursor-not-allowed opacity-50' : 'cursor-move'}
+                ${draggedIndex === i ? 'opacity-40 scale-95' : ''}
+                ${dragOverIndex === i ? 'ring-2 ring-violet border-violet scale-105' : 'border-gray-300 dark:border-gray-600'}
+              `}
             >
-              {/* En-tête */}
+              {/* En-tête avec poignée drag */}
               <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                <span>#{i + 1}</span>
+                <div className="flex items-center gap-2">
+                  <GripVertical className="w-4 h-4 text-gray-400" />
+                  <span className="font-medium">#{i + 1}</span>
+                </div>
                 {img.is_primary && (
-                  <span className="px-2 py-0.5 bg-violet/10 text-violet rounded font-medium">
+                  <span className="px-2 py-0.5 bg-violet/10 text-violet rounded font-medium text-[10px]">
                     ★ Principale
                   </span>
                 )}
               </div>
 
-              {/* ✅ Image avec composant ProductImage */}
+              {/* Image */}
               {productId && (
-                <ProductImage
-                  productId={productId}
-                  imageId={img.id}
-                  alt={img.alt || ''}
-                  size="md"
-                  className="w-full h-48 object-cover rounded"
-                />
+                <div className="relative rounded overflow-hidden">
+                  <AdminProductImage
+                    productId={productId}
+                    imageId={img.id}
+                    alt={img.alt || ''}
+                    size="md"
+                    className="w-full h-48 object-cover"
+                    refreshKey={imageRefreshKey}
+                  />
+                </div>
               )}
 
               {/* Dimensions */}
@@ -366,30 +507,11 @@ export function MediaGridClient({ productId }: Props) {
                     updateAlt(img.id, e.target.value)
                   }
                 }}
+                disabled={loading}
               />
 
               {/* Actions */}
               <div className="space-y-2">
-                {/* Réordonnancement */}
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => move(i, -1)}
-                    disabled={i === 0 || loading}
-                    className="flex-1 px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    ↑
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => move(i, 1)}
-                    disabled={i === images.length - 1 || loading}
-                    className="flex-1 px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    ↓
-                  </button>
-                </div>
-                {/* Définir principale */}
                 {!img.is_primary && (
                   <button
                     type="button"
@@ -399,8 +521,7 @@ export function MediaGridClient({ productId }: Props) {
                   >
                     Définir principale
                   </button>
-                )}{' '}
-                {/* Editer */}
+                )}
                 <button
                   type="button"
                   onClick={() => openEditor(img.id)}
@@ -409,7 +530,6 @@ export function MediaGridClient({ productId }: Props) {
                 >
                   {loadingEditor ? '⏳ Chargement...' : '✂️ Éditer'}
                 </button>
-                {/* Supprimer */}
                 <button
                   type="button"
                   onClick={() => remove(img.id)}
@@ -423,15 +543,25 @@ export function MediaGridClient({ productId }: Props) {
           ))}
         </ul>
       )}
+
       {editingImage && productId && (
         <ImageEditorModal
           imageId={editingImage.id}
           productId={productId}
           originalUrl={editingImage.url}
           onClose={() => setEditingImage(null)}
-          onSave={() => {
+          onSave={async () => {
             setEditingImage(null)
-            refresh()
+            setSuccess('Image recadrée avec succès')
+
+            // ✅ Attendre que les variantes soient régénérées
+            await new Promise((resolve) => setTimeout(resolve, 1500))
+
+            // ✅ Incrémenter la clé pour forcer le re-render
+            setImageRefreshKey((prev) => prev + 1)
+
+            // ✅ Recharger les données
+            await refresh()
           }}
         />
       )}

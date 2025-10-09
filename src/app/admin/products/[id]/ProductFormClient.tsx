@@ -207,7 +207,60 @@ export function ProductFormClient({
               className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 rounded focus:ring-2 focus:ring-violet focus:border-transparent"
             />
           </label>
-
+          // Ajouter ces champs dans le formulaire d'édition, après le champ
+          "description"
+          <label className="grid gap-1">
+            <span className="text-sm font-medium">Composition</span>
+            <textarea
+              name="composition"
+              rows={3}
+              defaultValue={product.composition ?? ''}
+              placeholder="Ex: 100% coton biologique certifié GOTS"
+              className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 rounded focus:ring-2 focus:ring-violet focus:border-transparent"
+            />
+            <span className="text-xs text-gray-500">
+              Détails des matières utilisées
+            </span>
+          </label>
+          <label className="grid gap-1">
+            <span className="text-sm font-medium">Entretien</span>
+            <textarea
+              name="care"
+              rows={3}
+              defaultValue={product.care ?? ''}
+              placeholder="Ex: Lavage en machine à 30°C\nRepassage à basse température"
+              className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 rounded focus:ring-2 focus:ring-violet focus:border-transparent"
+            />
+            <span className="text-xs text-gray-500">
+              Instructions d'entretien du produit
+            </span>
+          </label>
+          <label className="grid gap-1">
+            <span className="text-sm font-medium">Impact</span>
+            <textarea
+              name="impact"
+              rows={3}
+              defaultValue={product.impact ?? ''}
+              placeholder="Ex: Produit fabriqué à partir de matières recyclées\nEmpreinte carbone réduite de 40%"
+              className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 rounded focus:ring-2 focus:ring-violet focus:border-transparent"
+            />
+            <span className="text-xs text-gray-500">
+              Impact environnemental et social
+            </span>
+          </label>
+          <label className="grid gap-1">
+            <span className="text-sm font-medium">Artisanat</span>
+            <textarea
+              name="craftsmanship"
+              rows={3}
+              defaultValue={product.craftsmanship ?? ''}
+              placeholder="Ex: Tissé à la main dans notre atelier en Bretagne\nFinitions cousues main"
+              className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 rounded focus:ring-2 focus:ring-violet focus:border-transparent"
+            />
+            <span className="text-xs text-gray-500">
+              Détails sur la fabrication artisanale
+            </span>
+          </label>
           {/* ✅ Checkbox Actif avec champ caché */}
           <div>
             <input
@@ -225,7 +278,6 @@ export function ProductFormClient({
               <span className="text-sm">Actif</span>
             </label>
           </div>
-
           {/* ✅ Checkbox Featured avec champ caché */}
           <div>
             <input
@@ -243,7 +295,6 @@ export function ProductFormClient({
               <span className="text-sm">À la une</span>
             </label>
           </div>
-
           <div className="flex gap-2">
             <button
               disabled={isPending}

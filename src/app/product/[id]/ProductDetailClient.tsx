@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useCartStore } from '@/store/useCartStore'
-import { ShoppingBag, Check } from 'lucide-react'
+import { ShoppingBag, Check, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { ProductImage } from '@/components/products/ProductImage'
 import type { ProductWithRelations, ProductVariant } from '@/lib/types'
 import { getSortedImages } from '@/lib/types'
@@ -115,6 +115,31 @@ function parseVariants(rows: ProductVariant[] | null | undefined) {
   return out
 }
 
+// ✅ Pattern de disposition des images : 1, 2, 1, 2, 1...
+function getLayoutPattern(images: any[]) {
+  const rows = []
+  let index = 0
+
+  while (index < images.length) {
+    // Première ligne = 1 photo, puis alternance 2, 1, 2, 1...
+    if (rows.length % 2 === 0) {
+      // Ligne avec 1 photo
+      rows.push([images[index]])
+      index++
+    } else {
+      // Ligne avec 2 photos
+      const pair = [images[index]]
+      if (index + 1 < images.length) {
+        pair.push(images[index + 1])
+      }
+      rows.push(pair)
+      index += pair.length
+    }
+  }
+
+  return rows
+}
+
 export default function ProductDetailClient({
   product,
 }: {
@@ -122,7 +147,7 @@ export default function ProductDetailClient({
 }) {
   const { addItem } = useCartStore()
   const sortedImages = getSortedImages(product)
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [selectedColor, setSelectedColor] = useState<string>('')
   const [selectedSize, setSelectedSize] = useState<string>('')
 
@@ -151,7 +176,6 @@ export default function ProductDetailClient({
     (modByColor.get(selectedColor) ?? 0) + (modBySize.get(selectedSize) ?? 0)
   const displayPrice = basePrice + priceDelta
 
-  const selectedImage = sortedImages[selectedImageIndex]
   const canAddToCart =
     inStock &&
     (colors.length === 0 || !!selectedColor) &&
@@ -173,7 +197,7 @@ export default function ProductDetailClient({
           selectedSize ? ` / ${selectedSize}` : '',
         ].join(''),
       price: displayPrice,
-      image: '/placeholder.jpg', // Sera régénéré avec URL signée
+      image: '/placeholder.jpg',
       color: selectedColor || undefined,
       size: selectedSize || undefined,
     })
@@ -181,8 +205,28 @@ export default function ProductDetailClient({
     toast.success(`${product.name} ajouté au panier`)
   }
 
+  const openLightbox = (index: number) => setLightboxIndex(index)
+  const closeLightbox = () => setLightboxIndex(null)
+
+  const navigateLightbox = (direction: 'prev' | 'next') => {
+    if (lightboxIndex === null) return
+    if (direction === 'prev') {
+      setLightboxIndex(
+        lightboxIndex > 0 ? lightboxIndex - 1 : sortedImages.length - 1
+      )
+    } else {
+      setLightboxIndex(
+        lightboxIndex < sortedImages.length - 1 ? lightboxIndex + 1 : 0
+      )
+    }
+  }
+
+  // ✅ Organisation des images selon le pattern
+  const imageRows = getLayoutPattern(sortedImages)
+
   return (
     <div className="max-w-[1600px] mx-auto px-4 py-4">
+      {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-[11px] text-gray-400 mb-6">
         <Link href="/" className="hover:text-gray-900">
           Accueil
@@ -196,59 +240,63 @@ export default function ProductDetailClient({
       </nav>
 
       <div className="grid lg:grid-cols-[1fr_500px] gap-8 lg:gap-20">
-        {/* Image principale */}
-        <div className="space-y-2">
-          <div className="relative bg-gray-100 overflow-hidden">
-            {selectedImage ? (
-              <ProductImage
-                productId={product.id}
-                imageId={selectedImage.id}
-                alt={selectedImage.alt || product.name}
-                size="xl"
-                className="w-full aspect-[3/4] object-cover"
-                priority={selectedImageIndex === 0}
-              />
-            ) : (
-              <div className="w-full aspect-[3/4] bg-gray-200 flex items-center justify-center">
-                <span className="text-gray-400">Pas d'image</span>
-              </div>
-            )}
-            {inStock && (
-              <Badge className="absolute top-2 left-2 bg-white/95 text-black text-[10px] font-normal border-0 px-2 py-0.5">
-                <Check className="w-2.5 h-2.5 mr-1" />
-                En stock
-              </Badge>
-            )}
-          </div>
-
-          {/* Miniatures */}
-          {sortedImages.length > 1 && (
-            <div className="flex gap-1.5">
-              {sortedImages.map((img, i) => (
-                <button
-                  key={img.id}
-                  onClick={() => setSelectedImageIndex(i)}
-                  className={`flex-shrink-0 overflow-hidden transition ${
-                    selectedImageIndex === i
-                      ? 'opacity-100 ring-2 ring-gray-900'
-                      : 'opacity-40 hover:opacity-70'
-                  }`}
+        {/* ✅ GALERIE - Photos collées */}
+        <div>
+          {sortedImages.length > 0 ? (
+            <div className="space-y-0">
+              {imageRows.map((row, rowIndex) => (
+                <div
+                  key={rowIndex}
+                  className={`grid gap-0 ${row.length === 2 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}
                 >
-                  <ProductImage
-                    productId={product.id}
-                    imageId={img.id}
-                    alt={img.alt || `${product.name} ${i + 1}`}
-                    size="sm"
-                    className="w-14 h-14 object-cover"
-                  />
-                </button>
+                  {row.map((image, colIndex) => {
+                    // Calculer l'index global
+                    let globalIndex = 0
+                    for (let i = 0; i < rowIndex; i++) {
+                      globalIndex += imageRows[i].length
+                    }
+                    globalIndex += colIndex
+
+                    return (
+                      <button
+                        key={image.id}
+                        onClick={() => openLightbox(globalIndex)}
+                        className="relative aspect-[3/4] bg-gray-100 overflow-hidden group cursor-zoom-in"
+                      >
+                        <ProductImage
+                          productId={product.id}
+                          imageId={image.id}
+                          alt={image.alt || product.name}
+                          size="xl"
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                          priority={globalIndex === 0}
+                        />
+
+                        {/* Badge stock sur première image */}
+                        {globalIndex === 0 && inStock && (
+                          <Badge className="absolute top-2 left-2 bg-white/95 text-black text-[10px] font-normal border-0 px-2 py-0.5">
+                            <Check className="w-2.5 h-2.5 mr-1" />
+                            En stock
+                          </Badge>
+                        )}
+
+                        {/* Overlay hover */}
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-300" />
+                      </button>
+                    )
+                  })}
+                </div>
               ))}
+            </div>
+          ) : (
+            <div className="aspect-[3/4] bg-gray-100 flex items-center justify-center">
+              <span className="text-gray-400 text-sm">Pas d'image</span>
             </div>
           )}
         </div>
 
-        {/* Colonne droite */}
-        <div className="space-y-6 lg:pt-2">
+        {/* Colonne droite - Infos produit */}
+        <div className="space-y-6 lg:pt-2 lg:sticky lg:top-4">
           {product.category?.name && (
             <span className="text-[10px] tracking-[0.15em] text-gray-400 uppercase block">
               {product.category.name}
@@ -344,59 +392,126 @@ export default function ProductDetailClient({
           <p className="text-[11px] text-gray-400 leading-relaxed underline cursor-pointer hover:text-gray-900 text-center">
             Voir la disponibilité et prendre un rendez-vous en boutique
           </p>
-        </div>
-      </div>
 
-      {/* Détails bas de page */}
-      <div className="mt-16 pt-10 border-t border-gray-200 max-w-3xl mx-auto">
-        <div className="grid md:grid-cols-2 gap-10 text-[12px]">
-          <div className="space-y-3">
-            <h3 className="text-[13px] font-light text-gray-900 mb-4">
-              Détails du produit
-            </h3>
-            <div className="space-y-1.5 text-gray-500">
-              <div className="flex justify-between">
-                <span>Catégorie</span>
-                <span className="text-gray-900">
-                  {product.category?.name || 'N/A'}
-                </span>
+          {/* Détails produit - Version condensée */}
+          <div className="pt-6 space-y-6 text-[12px] border-t border-gray-200">
+            {/* Composition */}
+            {product.composition && (
+              <div className="space-y-2">
+                <h3 className="text-[13px] font-light text-gray-900 uppercase tracking-wider">
+                  Composition
+                </h3>
+                <p className="text-gray-600 leading-relaxed whitespace-pre-line">
+                  {product.composition}
+                </p>
               </div>
-              {sizes.length > 0 && (
-                <div className="flex justify-between">
-                  <span>Tailles disponibles</span>
-                  <span className="text-gray-900">{sizes.join(', ')}</span>
-                </div>
-              )}
-              {colors.length > 0 && (
-                <div className="flex justify-between">
-                  <span>Couleurs disponibles</span>
-                  <span className="text-gray-900 capitalize">
-                    {colors.join(', ')}
-                  </span>
-                </div>
-              )}
-              <div className="flex justify-between">
+            )}
+
+            {/* Entretien */}
+            {product.care && (
+              <div className="space-y-2">
+                <h3 className="text-[13px] font-light text-gray-900 uppercase tracking-wider">
+                  Entretien
+                </h3>
+                <p className="text-gray-600 leading-relaxed whitespace-pre-line">
+                  {product.care}
+                </p>
+              </div>
+            )}
+
+            {/* Impact */}
+            {product.impact && (
+              <div className="space-y-2">
+                <h3 className="text-[13px] font-light text-gray-900 uppercase tracking-wider">
+                  Impact
+                </h3>
+                <p className="text-gray-600 leading-relaxed whitespace-pre-line">
+                  {product.impact}
+                </p>
+              </div>
+            )}
+
+            {/* Artisanat */}
+            {product.craftsmanship && (
+              <div className="space-y-2">
+                <h3 className="text-[13px] font-light text-gray-900 uppercase tracking-wider">
+                  Artisanat
+                </h3>
+                <p className="text-gray-600 leading-relaxed whitespace-pre-line">
+                  {product.craftsmanship}
+                </p>
+              </div>
+            )}
+
+            {/* Référence produit */}
+            <div className="pt-4 border-t border-gray-200">
+              <div className="flex justify-between text-xs text-gray-500">
                 <span>Référence</span>
-                <span className="text-gray-900">
+                <span className="text-gray-900 font-mono">
                   BR-{String(product.id).slice(0, 8).toUpperCase()}
                 </span>
               </div>
             </div>
           </div>
-
-          <div className="space-y-3">
-            <h3 className="text-[13px] font-light text-gray-900 mb-4">
-              Composition & Entretien
-            </h3>
-            <div className="space-y-1.5 text-gray-500">
-              <p>Matières premium sélectionnées</p>
-              <p>Confection artisanale française</p>
-              <p>Lavage délicat recommandé</p>
-              <p>Séchage à plat conseillé</p>
-            </div>
-          </div>
         </div>
       </div>
+
+      {/* Lightbox reste en bas de page */}
+      {lightboxIndex !== null && (
+        <div
+          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+          onClick={closeLightbox}
+        >
+          {/* Bouton fermer */}
+          <button
+            onClick={closeLightbox}
+            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-10"
+          >
+            <X className="w-8 h-8" />
+          </button>
+
+          {/* Navigation précédent */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              navigateLightbox('prev')
+            }}
+            className="absolute left-4 text-white hover:text-gray-300 transition-colors z-10"
+          >
+            <ChevronLeft className="w-12 h-12" />
+          </button>
+
+          {/* Image */}
+          <div
+            className="max-w-5xl max-h-[90vh] mx-auto px-16"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ProductImage
+              productId={product.id}
+              imageId={sortedImages[lightboxIndex].id}
+              alt={sortedImages[lightboxIndex].alt || product.name}
+              size="xl"
+              className="max-w-full max-h-[85vh] object-contain"
+            />
+
+            {/* Compteur */}
+            <div className="text-center text-white mt-4 text-sm">
+              {lightboxIndex + 1} / {sortedImages.length}
+            </div>
+          </div>
+
+          {/* Navigation suivant */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              navigateLightbox('next')
+            }}
+            className="absolute right-4 text-white hover:text-gray-300 transition-colors z-10"
+          >
+            <ChevronRight className="w-12 h-12" />
+          </button>
+        </div>
+      )}
     </div>
   )
 }

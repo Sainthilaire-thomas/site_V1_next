@@ -603,10 +603,14 @@ export type Database = {
       }
       products: {
         Row: {
+          care: string | null
           category_id: string | null
+          composition: string | null
+          craftsmanship: string | null
           created_at: string
           description: string | null
           id: string
+          impact: string | null
           is_active: boolean | null
           is_featured: boolean | null
           name: string
@@ -619,10 +623,14 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          care?: string | null
           category_id?: string | null
+          composition?: string | null
+          craftsmanship?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          impact?: string | null
           is_active?: boolean | null
           is_featured?: boolean | null
           name: string
@@ -635,10 +643,14 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          care?: string | null
           category_id?: string | null
+          composition?: string | null
+          craftsmanship?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          impact?: string | null
           is_active?: boolean | null
           is_featured?: boolean | null
           name?: string
