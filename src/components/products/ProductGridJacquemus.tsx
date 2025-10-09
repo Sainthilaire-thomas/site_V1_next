@@ -12,7 +12,7 @@ export default function ProductGridJacquemus({
   products: ProductWithRelations[]
 }) {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-0">
       {products.map((product) => {
         const primaryImage = getPrimaryImage(product)
         const price = product.sale_price ?? product.price
@@ -24,8 +24,8 @@ export default function ProductGridJacquemus({
             href={`/product/${product.id}`}
             className="group block"
           >
-            {/* Image */}
-            <div className="aspect-[3/4] bg-gray-100 mb-2 overflow-hidden relative">
+            {/* Image - sans margin bottom pour coller verticalement aussi */}
+            <div className="aspect-[3/4] bg-gray-100 overflow-hidden relative">
               {primaryImage ? (
                 <ProductImage
                   productId={product.id}
@@ -42,13 +42,6 @@ export default function ProductGridJacquemus({
                 </div>
               )}
 
-              {/* Badge promo si sale_price */}
-              {hasDiscount && (
-                <div className="absolute top-2 right-2 bg-black text-white text-[9px] px-2 py-0.5 tracking-wider">
-                  PROMO
-                </div>
-              )}
-
               {/* Badge stock */}
               {(product.stock_quantity ?? 0) <= 0 && (
                 <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
@@ -57,36 +50,19 @@ export default function ProductGridJacquemus({
                   </span>
                 </div>
               )}
-            </div>
 
-            {/* Infos */}
-            <div className="space-y-1">
-              <h3 className="text-[11px] font-light tracking-[0.05em] text-black group-hover:underline">
-                {product.name}
-              </h3>
+              {/* Overlay avec infos au hover - affiché par-dessus l'image */}
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-4">
+                <h3 className="text-[13px] font-light tracking-[0.05em] text-white mb-2 text-center">
+                  {product.name}
+                </h3>
 
-              <div className="flex items-center gap-2">
-                {hasDiscount ? (
-                  <>
-                    <span className="text-[11px] font-normal text-black">
-                      {price}€
-                    </span>
-                    <span className="text-[10px] text-black/30 line-through">
-                      {product.price}€
-                    </span>
-                  </>
-                ) : (
-                  <span className="text-[11px] font-normal text-black">
+                <div className="flex items-center gap-2">
+                  <span className="text-[13px] font-normal text-white">
                     {price}€
                   </span>
-                )}
+                </div>
               </div>
-
-              {product.category?.name && (
-                <p className="text-[9px] tracking-[0.1em] uppercase text-black/30">
-                  {product.category.name}
-                </p>
-              )}
             </div>
           </Link>
         )

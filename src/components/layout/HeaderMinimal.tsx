@@ -68,13 +68,14 @@ export default function HeaderMinimal() {
               aria-label="Home .blancherenaudin"
               className="shrink-0"
             >
-              <Image
+              {/* Utilisation d'une balise img native pour meilleure compatibilité Safari */}
+              <img
                 src="/blancherenaudin-ajuste.svg"
                 alt=".blancherenaudin"
                 width={150}
                 height={40}
-                priority
                 className="h-[calc(100%-16px)] w-auto max-h-[92px]"
+                style={{ display: 'block' }}
               />
             </Link>
 

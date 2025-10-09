@@ -145,11 +145,12 @@ export default async function ProductsByCategoryPage({
           </h1>
         </div>
 
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Conteneur sans padding horizontal pour coller les images */}
+        <div className="max-w-[1600px] mx-auto">
           {products.length > 0 ? (
             <ProductGridJacquemus products={products} />
           ) : (
-            <div className="text-center py-32">
+            <div className="text-center py-32 px-4">
               <p className="text-[11px] tracking-[0.15em] uppercase text-black/40 mb-3">
                 Aucun produit disponible
               </p>
