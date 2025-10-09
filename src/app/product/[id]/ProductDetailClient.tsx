@@ -34,6 +34,25 @@ const isLight = (hex: string) => {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b > 190
 }
 
+const translateCategory = (category?: string) => {
+  const translations: Record<string, string> = {
+    BAS: 'bottoms',
+    HAUT: 'tops',
+    HAUTS: 'tops',
+    ACCESSOIRES: 'accessories',
+    CHAUSSURES: 'shoes',
+    ROBES: 'dresses',
+    MANTEAUX: 'coats',
+    VESTES: 'jackets',
+    JUPES: 'skirts',
+    JUPE: 'skirts',
+  }
+
+  if (!category) return category
+  const upper = category.toUpperCase()
+  return translations[upper] || category.toLowerCase()
+}
+
 function isColorKey(name?: string) {
   const n = (name || '').trim().toLowerCase()
   return ['color', 'couleur', 'colorway', 'couleurs'].includes(n)
@@ -68,7 +87,6 @@ function parseVariants(rows: ProductVariant[] | null | undefined) {
     out.modBySize.set(String(r.value), r.price_modifier ?? 0)
   )
 
-  // Regroupement par SKU
   const skuGroups = new Map<
     string,
     { color?: string; size?: string; stock: number }
@@ -90,7 +108,6 @@ function parseVariants(rows: ProductVariant[] | null | undefined) {
     }
   })
 
-  // Fallback si aucun SKU croisé
   if (out.stockByCombo.size === 0) {
     if (!out.colors.length) {
       sizes.forEach((s) => {
@@ -115,19 +132,15 @@ function parseVariants(rows: ProductVariant[] | null | undefined) {
   return out
 }
 
-// ✅ Pattern de disposition des images : 1, 2, 1, 2, 1...
 function getLayoutPattern(images: any[]) {
   const rows = []
   let index = 0
 
   while (index < images.length) {
-    // Première ligne = 1 photo, puis alternance 2, 1, 2, 1...
     if (rows.length % 2 === 0) {
-      // Ligne avec 1 photo
       rows.push([images[index]])
       index++
     } else {
-      // Ligne avec 2 photos
       const pair = [images[index]]
       if (index + 1 < images.length) {
         pair.push(images[index + 1])
@@ -183,26 +196,21 @@ export default function ProductDetailClient({
 
   const handleAddToCart = () => {
     if (colors.length > 0 && !selectedColor)
-      return toast.error('Choisissez une couleur')
+      return toast.error('Please select a color')
     if (sizes.length > 0 && !selectedSize)
-      return toast.error('Choisissez une taille')
-    if (!inStock) return toast.error('Produit non disponible')
+      return toast.error('Please select a size')
+    if (!inStock) return toast.error('Product unavailable')
 
     addItem({
       id: `${product.id}${selectedColor ? `:${selectedColor}` : ''}${selectedSize ? `:${selectedSize}` : ''}`,
-      name:
-        product.name +
-        [
-          selectedColor ? ` — ${selectedColor}` : '',
-          selectedSize ? ` / ${selectedSize}` : '',
-        ].join(''),
+      name: [selectedColor, selectedSize].filter(Boolean).join(' / '),
       price: displayPrice,
       image: '/placeholder.jpg',
       color: selectedColor || undefined,
       size: selectedSize || undefined,
     })
 
-    toast.success(`${product.name} ajouté au panier`)
+    toast.success('Added to cart')
   }
 
   const openLightbox = (index: number) => setLightboxIndex(index)
@@ -221,7 +229,6 @@ export default function ProductDetailClient({
     }
   }
 
-  // ✅ Organisation des images selon le pattern
   const imageRows = getLayoutPattern(sortedImages)
 
   return (
@@ -229,18 +236,18 @@ export default function ProductDetailClient({
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-[11px] text-gray-400 mb-6">
         <Link href="/" className="hover:text-gray-900">
-          Accueil
+          Home
         </Link>
         <span>/</span>
         <Link href="/products" className="hover:text-gray-900">
-          Produits
+          Products
         </Link>
         <span>/</span>
         <span className="text-gray-900">{product.name}</span>
       </nav>
 
       <div className="grid lg:grid-cols-[1fr_500px] gap-8 lg:gap-20">
-        {/* ✅ GALERIE - Photos collées */}
+        {/* Gallery */}
         <div>
           {sortedImages.length > 0 ? (
             <div className="space-y-0">
@@ -250,7 +257,6 @@ export default function ProductDetailClient({
                   className={`grid gap-0 ${row.length === 2 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}
                 >
                   {row.map((image, colIndex) => {
-                    // Calculer l'index global
                     let globalIndex = 0
                     for (let i = 0; i < rowIndex; i++) {
                       globalIndex += imageRows[i].length
@@ -272,15 +278,6 @@ export default function ProductDetailClient({
                           priority={globalIndex === 0}
                         />
 
-                        {/* Badge stock sur première image */}
-                        {globalIndex === 0 && inStock && (
-                          <Badge className="absolute top-2 left-2 bg-white/95 text-black text-[10px] font-normal border-0 px-2 py-0.5">
-                            <Check className="w-2.5 h-2.5 mr-1" />
-                            En stock
-                          </Badge>
-                        )}
-
-                        {/* Overlay hover */}
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-300" />
                       </button>
                     )
@@ -290,38 +287,28 @@ export default function ProductDetailClient({
             </div>
           ) : (
             <div className="aspect-[3/4] bg-gray-100 flex items-center justify-center">
-              <span className="text-gray-400 text-sm">Pas d'image</span>
+              <span className="text-gray-400 text-sm">No image</span>
             </div>
           )}
         </div>
 
-        {/* Colonne droite - Infos produit */}
+        {/* Right column - Product info */}
         <div className="space-y-6 lg:pt-2 lg:sticky lg:top-4">
-          {product.category?.name && (
-            <span className="text-[10px] tracking-[0.15em] text-gray-400 uppercase block">
-              {product.category.name}
-            </span>
-          )}
+          <div className="text-right">
+            <h1 className="text-2xl font-light text-gray-900 leading-tight">
+              {product.name}
+            </h1>
+          </div>
 
-          <h1 className="text-2xl font-light text-gray-900 leading-tight -mt-3">
-            {product.name}
-          </h1>
-
-          {product.short_description && (
-            <p className="text-[13px] text-gray-600 leading-relaxed -mt-2">
-              {product.short_description}
-            </p>
-          )}
-
-          {/* Couleurs */}
+          {/* Colors */}
           {colors.length > 0 && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-end">
                 <span className="text-[13px] font-light text-gray-900">
-                  {selectedColor || 'Couleur'}
+                  {selectedColor || 'Color'}
                 </span>
               </div>
-              <div className="flex gap-1.5">
+              <div className="flex gap-1.5 justify-end">
                 {colors.map((color) => {
                   const selected = selectedColor === color
                   const hex = toHex(color)
@@ -346,25 +333,20 @@ export default function ProductDetailClient({
             </div>
           )}
 
-          {/* Tailles */}
+          {/* Sizes */}
           {sizes.length > 0 && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-[13px] font-light text-gray-900">
-                  Taille
-                </span>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-3 justify-end">
                 {sizes.map((size) => {
                   const selected = selectedSize === size
                   return (
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
-                      className={`px-4 py-1.5 text-[13px] border transition ${
+                      className={`text-[13px] transition-all ${
                         selected
-                          ? 'bg-gray-900 text-white border-gray-900'
-                          : 'bg-white text-gray-900 border-gray-300 hover:border-gray-900'
+                          ? 'text-purple-600 font-semibold underline underline-offset-4'
+                          : 'text-gray-400 hover:text-purple-600 hover:font-semibold'
                       }`}
                     >
                       {size}
@@ -375,7 +357,7 @@ export default function ProductDetailClient({
             </div>
           )}
 
-          {/* Bouton panier */}
+          {/* Add to cart button */}
           <div className="space-y-0">
             <Button
               onClick={handleAddToCart}
@@ -384,17 +366,17 @@ export default function ProductDetailClient({
               className="w-full bg-white hover:bg-gray-50 text-gray-900 border border-gray-900 h-12 text-[12px] font-normal tracking-[0.08em] uppercase transition disabled:opacity-40 disabled:cursor-not-allowed rounded-none"
             >
               <ShoppingBag className="w-3.5 h-3.5 mr-2" />
-              {inStock ? `Ajouter au panier` : 'Produit épuisé'}
+              {inStock ? `Add to cart` : 'Sold out'}
               <span className="ml-auto font-normal">{displayPrice} EUR</span>
             </Button>
           </div>
 
-          <p className="text-[11px] text-gray-400 leading-relaxed underline cursor-pointer hover:text-gray-900 text-center">
-            Voir la disponibilité et prendre un rendez-vous en boutique
+          <p className="text-[11px] text-gray-400 leading-relaxed underline cursor-pointer hover:text-gray-900 text-right">
+            Check availability and book an appointment
           </p>
 
-          {/* Détails produit - Version condensée */}
-          <div className="pt-6 space-y-6 text-[12px] border-t border-gray-200">
+          {/* Product details */}
+          <div className="pt-6 space-y-6 text-[12px] border-t border-gray-200 text-right">
             {/* Composition */}
             {product.composition && (
               <div className="space-y-2">
@@ -407,11 +389,11 @@ export default function ProductDetailClient({
               </div>
             )}
 
-            {/* Entretien */}
+            {/* Care */}
             {product.care && (
               <div className="space-y-2">
                 <h3 className="text-[13px] font-light text-gray-900 uppercase tracking-wider">
-                  Entretien
+                  Care
                 </h3>
                 <p className="text-gray-600 leading-relaxed whitespace-pre-line">
                   {product.care}
@@ -431,7 +413,7 @@ export default function ProductDetailClient({
               </div>
             )}
 
-            {/* Artisanat */}
+            {/* Craftsmanship */}
             {product.craftsmanship && (
               <div className="space-y-2">
                 <h3 className="text-[13px] font-light text-gray-900 uppercase tracking-wider">
@@ -443,10 +425,10 @@ export default function ProductDetailClient({
               </div>
             )}
 
-            {/* Référence produit */}
+            {/* Product reference */}
             <div className="pt-4 border-t border-gray-200">
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>Référence</span>
+              <div className="flex justify-end text-xs text-gray-500">
+                <span className="mr-4">Reference</span>
                 <span className="text-gray-900 font-mono">
                   BR-{String(product.id).slice(0, 8).toUpperCase()}
                 </span>
@@ -456,13 +438,12 @@ export default function ProductDetailClient({
         </div>
       </div>
 
-      {/* Lightbox reste en bas de page */}
+      {/* Lightbox */}
       {lightboxIndex !== null && (
         <div
           className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
           onClick={closeLightbox}
         >
-          {/* Bouton fermer */}
           <button
             onClick={closeLightbox}
             className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-10"
@@ -470,7 +451,6 @@ export default function ProductDetailClient({
             <X className="w-8 h-8" />
           </button>
 
-          {/* Navigation précédent */}
           <button
             onClick={(e) => {
               e.stopPropagation()
@@ -481,7 +461,6 @@ export default function ProductDetailClient({
             <ChevronLeft className="w-12 h-12" />
           </button>
 
-          {/* Image */}
           <div
             className="max-w-5xl max-h-[90vh] mx-auto px-16"
             onClick={(e) => e.stopPropagation()}
@@ -494,13 +473,11 @@ export default function ProductDetailClient({
               className="max-w-full max-h-[85vh] object-contain"
             />
 
-            {/* Compteur */}
             <div className="text-center text-white mt-4 text-sm">
               {lightboxIndex + 1} / {sortedImages.length}
             </div>
           </div>
 
-          {/* Navigation suivant */}
           <button
             onClick={(e) => {
               e.stopPropagation()

@@ -11,6 +11,13 @@ export const structure = (S: StructureBuilder) =>
           S.document().schemaType('homepage').documentId('homepage-singleton')
         ),
 
+      // ← AJOUTER LA PAGE IMPACT ICI
+      S.listItem()
+        .title('Page Impact')
+        .child(
+          S.document().schemaType('impactPage').documentId('impact-singleton')
+        ),
+
       S.divider(),
 
       S.listItem()

@@ -95,6 +95,7 @@ export const LOOKBOOK_QUERY = groq`*[
 ][0]{
   _id,
   title,
+  subtitle,
   season,
   slug,
   images,

@@ -32,9 +32,9 @@ export default function HeaderMinimal() {
     { label: '.tops', href: '/products/hauts' },
     { label: '.bottoms', href: '/products/bas' },
     { label: '.accessories', href: '/products/accessoires' },
-    { label: '.silhouettes', href: '/lookbooks' },
-    { label: '.impact', href: '/sustainability' },
-    { label: '.about', href: '/about', nowrap: true },
+    { label: '.silhouettes', href: '/silhouettes' },
+    { label: '.impact', href: '/impact' },
+    { label: '.essence', href: '/about', nowrap: true },
     { label: '.contact', href: '/contact' },
   ]
 

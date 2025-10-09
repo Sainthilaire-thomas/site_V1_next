@@ -43,7 +43,7 @@ export default function ContactPage() {
       <main className="pt-32 pb-24 px-8">
         <div className="max-w-7xl mx-auto">
           {/* Titre */}
-          <h1 className="text-section mb-24">.contact</h1>
+          <h1 className="text-section mb-24 text-right">.contact</h1>
 
           {/* Grid 2 colonnes */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-24">
@@ -86,20 +86,6 @@ export default function ContactPage() {
                     contact@blancherenaudin.com
                   </a>
                 </p>
-              </div>
-
-              <div>
-                <h2 className="text-product mb-3">CUSTOM MADE</h2>
-                <p className="text-body text-grey-medium mb-6">
-                  We create custom pieces according to your wishes. Book an
-                  appointment for a personalized consultation.
-                </p>
-                <a
-                  href="mailto:hello@blancherenaudin.com?subject=Custom Order Request"
-                  className="inline-block text-[13px] tracking-[0.05em] font-semibold lowercase border-b border-black hover:border-grey-medium transition-colors"
-                >
-                  book appointment
-                </a>
               </div>
             </div>
 

@@ -1,4 +1,4 @@
-// src/app/about/page.tsx — Version alignée, sans CTA, image carrée
+// src/app/about/page.tsx — Version alignée à droite, sans duplication
 import HeaderMinimal from '@/components/layout/HeaderMinimal'
 import FooterMinimal from '@/components/layout/FooterMinimal'
 import RichTextRenderer from '@/components/common/RichTextRenderer'
@@ -33,41 +33,51 @@ export default async function AboutPage() {
       <HeaderMinimal />
 
       <main>
-        {/* Hero sobre aligné */}
-        <section className="py-16">
-          <div className="max-w-[1920px] mx-auto px-8 text-center">
-            <h1 className="text-section text-black mb-3">
-              {pageData?.title || 'À propos'}
-            </h1>
-            {pageData?.seo?.description ? (
-              <p className="text-[15px] tracking-[0.02em] text-grey-medium max-w-3xl mx-auto">
-                {pageData.seo.description}
-              </p>
-            ) : (
-              <p className="text-[15px] tracking-[0.02em] text-grey-medium max-w-3xl mx-auto">
-                .blancherenaudin est née de la passion pour la mode
-                contemporaine et l’artisanat d’exception. Chaque pièce est
-                pensée pour sublimer la femme moderne.
-              </p>
-            )}
-          </div>
-        </section>
-
-        {/* Contenu Sanity (si présent) */}
-        {pageData?.content ? (
-          <section className="pb-20">
-            <div className="max-w-[1920px] mx-auto px-8">
-              {/* On évite toute classe rounded sur un parent de médias */}
-              <div className="max-w-3xl mx-auto prose prose-neutral">
-                <RichTextRenderer
-                  content={pageData.content}
-                  className="text-[15px] tracking-[0.02em] text-black/80"
-                />
+        {/* Contenu Sanity (si présent) OU fallback */}
+        {pageData?.content && pageData.content.length > 0 ? (
+          <>
+            {/* Hero sobre aligné à droite */}
+            <section className="py-16">
+              <div className="max-w-[1920px] mx-auto px-8 text-right">
+                <h1 className="text-section text-black mb-3">
+                  {pageData?.title || '.essence'}
+                </h1>
               </div>
-            </div>
-          </section>
+            </section>
+
+            <section className="pb-20">
+              <div className="max-w-[1920px] mx-auto px-8">
+                <div className="max-w-3xl mx-auto prose prose-neutral">
+                  <RichTextRenderer
+                    content={pageData.content}
+                    className="text-[15px] tracking-[0.02em] text-black/80"
+                  />
+                </div>
+              </div>
+            </section>
+          </>
         ) : (
           <>
+            {/* Hero sobre aligné à droite */}
+            <section className="py-16">
+              <div className="max-w-[1920px] mx-auto px-8 text-right">
+                <h1 className="text-section text-black mb-3">
+                  {pageData?.title || '.essence'}
+                </h1>
+                {pageData?.seo?.description ? (
+                  <p className="text-[15px] tracking-[0.02em] text-grey-medium max-w-3xl ml-auto">
+                    {pageData.seo.description}
+                  </p>
+                ) : (
+                  <p className="text-[15px] tracking-[0.02em] text-grey-medium max-w-3xl ml-auto">
+                    .blancherenaudin est née de la passion pour la mode
+                    contemporaine et l'artisanat d'exception. Chaque pièce est
+                    pensée pour sublimer la femme moderne.
+                  </p>
+                )}
+              </div>
+            </section>
+
             {/* Fallback Histoire — image carrée sans coins arrondis */}
             <section className="py-20 bg-gray-50">
               <div className="max-w-[1920px] mx-auto px-8">
@@ -79,16 +89,16 @@ export default async function AboutPage() {
                     <div className="space-y-5 text-[15px] tracking-[0.02em] text-grey-medium">
                       <p>
                         Fondée en 2020, .blancherenaudin puise son inspiration
-                        dans l’héritage de la haute couture française tout en
+                        dans l'héritage de la haute couture française tout en
                         embrassant une vision résolument contemporaine.
                       </p>
                       <p>
                         Notre atelier parisien perpétue des techniques de
                         savoir-faire adaptées aux besoins de la femme
-                        d’aujourd’hui qui recherche l’élégance sans compromis.
+                        d'aujourd'hui qui recherche l'élégance sans compromis.
                       </p>
                       <p>
-                        Chaque création est le fruit d’un travail minutieux,
+                        Chaque création est le fruit d'un travail minutieux,
                         entre innovation et tradition.
                       </p>
                     </div>

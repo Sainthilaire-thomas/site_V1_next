@@ -36,7 +36,7 @@ export default function FooterMinimal() {
               </li>
               <li>
                 <Link
-                  href="/lookbooks"
+                  href="/silhouettess"
                   className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium hover:text-black transition-colors"
                 >
                   .silhouettes
@@ -54,12 +54,12 @@ export default function FooterMinimal() {
                   href="/about"
                   className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium hover:text-black transition-colors"
                 >
-                  .about
+                  .essence
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/sustainability"
+                  href="/impact"
                   className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium hover:text-black transition-colors"
                 >
                   .impact

@@ -1,4 +1,4 @@
-// sanity/schemas/types/lookbook.ts - Version avec image de couverture + published
+// sanity/schemas/types/lookbook.ts
 import { defineType } from 'sanity'
 
 export default defineType({
@@ -7,6 +7,16 @@ export default defineType({
   type: 'document',
   fields: [
     { name: 'title', type: 'string', title: 'Titre' },
+
+    // ✅ NOUVEAU : Sous-titre
+    {
+      name: 'subtitle',
+      type: 'text',
+      title: 'Sous-titre',
+      description: 'Texte secondaire affiché sous le titre principal',
+      rows: 3,
+    },
+
     {
       name: 'slug',
       type: 'slug',
@@ -14,7 +24,6 @@ export default defineType({
       options: { source: 'title', maxLength: 96 },
     },
 
-    // ✅ Toggle pour (dé)publier sans supprimer
     {
       name: 'published',
       title: 'Publié',
