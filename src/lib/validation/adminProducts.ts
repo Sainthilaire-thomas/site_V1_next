@@ -6,6 +6,12 @@ export const productCreateSchema = z.object({
   price: z.coerce.number().nonnegative(),
   short_description: z.string().optional().nullable(),
   description: z.string().optional().nullable(),
+  // ✅ NOUVEAUX CHAMPS
+  composition: z.string().optional().nullable(),
+  care: z.string().optional().nullable(),
+  impact: z.string().optional().nullable(),
+  craftsmanship: z.string().optional().nullable(),
+  // FIN NOUVEAUX CHAMPS
   sku: z.string().optional().nullable(),
   category_id: z.string().uuid().optional().nullable(),
   is_active: z.coerce.boolean().default(true),

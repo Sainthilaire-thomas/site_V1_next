@@ -39,13 +39,19 @@ export async function updateProductAction(
     name: formData.get('name')?.toString(),
     slug: formData.get('slug')?.toString(),
     price, // ✅ protégé
-    short_description: emptyToNull(formData.get('short_description')), // ✅
-    description: emptyToNull(formData.get('description')), // ✅
-    sku: emptyToNull(formData.get('sku')), // ✅
+    short_description: emptyToNull(formData.get('short_description')),
+    description: emptyToNull(formData.get('description')),
+    // ✅ NOUVEAUX CHAMPS
+    composition: emptyToNull(formData.get('composition')),
+    care: emptyToNull(formData.get('care')),
+    impact: emptyToNull(formData.get('impact')),
+    craftsmanship: emptyToNull(formData.get('craftsmanship')),
+    // FIN NOUVEAUX CHAMPS
+    sku: emptyToNull(formData.get('sku')),
     category_id: emptyToNull(formData.get('category_id')) as
       | string
       | null
-      | undefined, // ✅ null si "(Aucune)"
+      | undefined,
     // ✅ Conversion correcte des boolean
     is_active: stringToBoolean(formData.get('is_active')),
     is_featured: stringToBoolean(formData.get('is_featured')),
