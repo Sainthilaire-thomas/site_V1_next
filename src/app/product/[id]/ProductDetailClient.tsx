@@ -9,7 +9,8 @@ import { useCartStore } from '@/store/useCartStore'
 import { ShoppingBag, Check, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { ProductImage } from '@/components/products/ProductImage'
 import type { ProductWithRelations, ProductVariant } from '@/lib/types'
-import { getSortedImages } from '@/lib/types'
+import { getSortedImages, getPrimaryImage } from '@/lib/types'
+import { getProductImageUrl } from '@/lib/image-helpers'
 
 const toHex = (c?: string) => {
   const map: Record<string, string> = {
@@ -160,6 +161,7 @@ export default function ProductDetailClient({
 }) {
   const { addItem } = useCartStore()
   const sortedImages = getSortedImages(product)
+  const primaryImage = getPrimaryImage(product)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [selectedColor, setSelectedColor] = useState<string>('')
   const [selectedSize, setSelectedSize] = useState<string>('')
@@ -201,15 +203,24 @@ export default function ProductDetailClient({
       return toast.error('Please select a size')
     if (!inStock) return toast.error('Product unavailable')
 
+    // Récupérer l'URL de l'image principale
+    let imageUrl = '/placeholder.jpg'
+    if (primaryImage) {
+      imageUrl = getProductImageUrl(primaryImage.id, 'sm')
+    }
+
     addItem({
       id: `${product.id}${selectedColor ? `:${selectedColor}` : ''}${selectedSize ? `:${selectedSize}` : ''}`,
-      name: [selectedColor, selectedSize].filter(Boolean).join(' / '),
+      name:
+        product.name +
+        (selectedColor || selectedSize ? ' - ' : '') +
+        [selectedColor, selectedSize].filter(Boolean).join(' / '),
       price: displayPrice,
-      image: '/placeholder.jpg',
+      productId: product.id, // ✅ Nouveau
+      imageId: primaryImage?.id, // ✅ Nouveau
       color: selectedColor || undefined,
       size: selectedSize || undefined,
     })
-
     toast.success('Added to cart')
   }
 

@@ -19,7 +19,7 @@ type WishlistItem = {
     name: string
     price: number
     sale_price: number | null
-    images: ProductImageRow[] // Changé de Array<...> à ProductImageRow[]
+    images: ProductImageRow[]
   } | null
 }
 
@@ -55,10 +55,16 @@ export default function WishlistClient({ initialItems }: Props) {
   const handleAddToCart = (product: WishlistItem['product']) => {
     if (!product) return
 
+    const primaryImage =
+      product.images?.find((img) => img.is_primary === true) ??
+      product.images?.[0]
+
     addItem({
       id: product.id,
       name: product.name,
       price: product.sale_price ?? product.price,
+      productId: product.id,
+      imageId: primaryImage?.id,
     })
     toast.success('Ajouté au panier')
   }

@@ -133,7 +133,8 @@ export default function EditorialProductsSection({
                           id: product.id,
                           name: product.name,
                           price: price,
-                          image: mainImage?.url ?? '/placeholder.jpg',
+                          productId: product.id,
+                          imageId: mainImage?.id,
                         })
                       }
                       size="sm"

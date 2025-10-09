@@ -22,7 +22,7 @@ export default function ProductGridClient({
 }: {
   products: Product[];
 }) {
-  const { addItem } = useCartStore();
+  const { addItem } = useCartStore()
 
   if (!products || products.length === 0) {
     return (
@@ -36,14 +36,14 @@ export default function ProductGridClient({
           </Button>
         </Link>
       </div>
-    );
+    )
   }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {products.map((product) => {
-        const qty = Math.max(0, product.stock_quantity ?? 0);
-        const mainImage = product.images?.[0];
+        const qty = Math.max(0, product.stock_quantity ?? 0)
+        const mainImage = product.images?.[0]
 
         return (
           <div key={product.id} className="group">
@@ -67,7 +67,8 @@ export default function ProductGridClient({
                       id: product.id,
                       name: product.name,
                       price: product.sale_price ?? product.price,
-                      image: mainImage?.url ?? "/placeholder.jpg",
+                      productId: product.id,
+                      imageId: mainImage?.id,
                     })
                   }
                   size="sm"
@@ -75,7 +76,7 @@ export default function ProductGridClient({
                   disabled={qty === 0}
                 >
                   <ShoppingBag className="w-4 h-4 mr-1" />
-                  {qty > 0 ? "Panier" : "Épuisé"}
+                  {qty > 0 ? 'Panier' : 'Épuisé'}
                 </Button>
 
                 <Link href={`/products/${product.id}`}>
@@ -96,7 +97,7 @@ export default function ProductGridClient({
                   {product.name}
                 </h3>
                 <span className="text-sm text-gray-500">
-                  {product.category?.name ?? ""}
+                  {product.category?.name ?? ''}
                 </span>
               </div>
 
@@ -125,17 +126,17 @@ export default function ProductGridClient({
                 <span
                   className={`text-xs px-2 py-1 rounded-full ${
                     qty > 0
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-red-100 text-red-800'
                   }`}
                 >
-                  {qty > 0 ? "En stock" : "Épuisé"}
+                  {qty > 0 ? 'En stock' : 'Épuisé'}
                 </span>
               </div>
             </div>
           </div>
-        );
+        )
       })}
     </div>
-  );
+  )
 }

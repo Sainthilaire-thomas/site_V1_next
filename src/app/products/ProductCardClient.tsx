@@ -42,7 +42,8 @@ export default function ProductCardClient({
                 id: product.id,
                 name: product.name,
                 price: product.sale_price ?? product.price,
-                image: '/placeholder.jpg', // L'URL signée sera régénérée dans le panier
+                productId: product.id,
+                imageId: primaryImage?.id,
               })
             }
             size="sm"

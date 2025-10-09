@@ -13,7 +13,7 @@ type Product = {
   price: number
   sale_price: number | null
   stock_quantity: number | null
-  images?: Array<{ url: string; alt_text: string | null }>
+  images?: Array<{ id: string; url: string; alt_text: string | null }>
   category?: { name: string } | null
 }
 
@@ -71,7 +71,8 @@ export default function ProductCardMinimal({ product }: { product: Product }) {
                     id: product.id,
                     name: product.name,
                     price: price,
-                    image: mainImage?.url ?? '/placeholder.jpg',
+                    productId: product.id,
+                    imageId: mainImage?.id,
                   })
                 }}
                 className="bg-black text-white p-3 hover:bg-grey-dark transition-colors"
