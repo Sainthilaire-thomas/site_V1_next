@@ -22,7 +22,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
     { label: '.bottoms', href: '/products/bas' },
     { label: '.accessories', href: '/products/accessoires' },
     { label: '.silhouettes', href: '/silhouettes' },
-    { label: '.impact', href: '/sustainability' },
+    { label: '.impact', href: '/impact' },
   ]
 
   // Focus automatique sur l'input quand le modal s'ouvre

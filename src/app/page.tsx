@@ -27,8 +27,8 @@ interface HomepageData {
   zoneHauts: CategoryZone
   zoneBas: CategoryZone
   zoneAccessoires: CategoryZone
-  zoneLookbooks: CategoryZone
-  zoneSustainability: CategoryZone
+  zoneSilhouettes: CategoryZone
+  zoneImpact: CategoryZone
   seo?: {
     title?: string
     description?: string
@@ -80,8 +80,8 @@ const InteractiveEntry = ({
         homepageData.zoneHauts?.image,
         homepageData.zoneBas?.image,
         homepageData.zoneAccessoires?.image,
-        homepageData.zoneLookbooks?.image,
-        homepageData.zoneSustainability?.image,
+        homepageData.zoneSilhouettes?.image,
+        homepageData.zoneImpact?.image,
       ].filter(Boolean)
 
       // Créer un tableau de promesses pour charger toutes les images

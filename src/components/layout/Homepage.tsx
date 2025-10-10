@@ -19,7 +19,7 @@ interface HomepageData {
   zoneBas: CategoryZone
   zoneAccessoires: CategoryZone
   zoneSilhouettes: CategoryZone
-  zoneSustainability: CategoryZone
+  zoneImpact: CategoryZone
 }
 
 interface CategoryZone {
@@ -49,7 +49,7 @@ export default function Homepage({ data }: HomepageProps) {
     zoneBas,
     zoneAccessoires,
     zoneSilhouettes,
-    zoneSustainability,
+    zoneImpact,
   } = data
 
   // Helper pour obtenir l'URL d'une image de manière sécurisée avec hotspot
@@ -204,11 +204,11 @@ export default function Homepage({ data }: HomepageProps) {
             {/* Moyenne image - SUSTAINABILITY */}
             <div className="col-span-12 md:col-span-6">
               <CategoryCard
-                image={getImageUrl(zoneSustainability?.image, 1200, 900)}
-                imageData={zoneSustainability?.image}
-                title={zoneSustainability?.title || 'sustainability'}
-                subtitle={zoneSustainability?.subtitle}
-                link={zoneSustainability?.link || '/sustainability'}
+                image={getImageUrl(zoneImpact?.image, 1200, 900)}
+                imageData={zoneImpact?.image}
+                title={zoneImpact?.title || 'impact'}
+                subtitle={zoneImpact?.subtitle}
+                link={zoneImpact?.link || '/impact'}
                 size="medium"
               />
             </div>

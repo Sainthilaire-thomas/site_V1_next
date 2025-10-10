@@ -40,7 +40,7 @@ function SearchContent() {
     { label: '.bottoms', href: '/products/bas' },
     { label: '.accessories', href: '/products/accessoires' },
     { label: '.silhouettes', href: '/silhouettes' },
-    { label: '.impact', href: '/sustainability' },
+    { label: '.impact', href: '/impact' },
   ]
 
   // Charger les catégories

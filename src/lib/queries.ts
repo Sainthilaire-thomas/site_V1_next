@@ -34,7 +34,7 @@ export const HOMEPAGE_QUERY = groq`*[_type=="homepage" && _id == "homepage-singl
     subtitle,
     link
   },
-  zoneSustainability {
+   zoneImpact {
     image,
     title,
     subtitle,

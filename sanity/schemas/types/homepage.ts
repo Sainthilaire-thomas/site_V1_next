@@ -147,8 +147,8 @@ export default defineType({
 
     // ========== ZONE SUSTAINABILITY (Moyenne) ==========
     {
-      name: 'zoneSustainability',
-      title: '🌱 Zone SUSTAINABILITY (moyenne image)',
+      name: 'zoneImpact',
+      title: '🌱 Zone IMPACT (moyenne image)',
       type: 'object',
       fields: [
         {
@@ -162,14 +162,14 @@ export default defineType({
           name: 'title',
           type: 'string',
           title: 'Titre',
-          initialValue: 'SUSTAINABILITY',
+          initialValue: 'IMPACT',
         },
         { name: 'subtitle', type: 'text', title: 'Sous-titre (optionnel)' },
         {
           name: 'link',
           type: 'string',
           title: 'Lien',
-          initialValue: '/sustainability',
+          initialValue: '/impact',
         },
       ],
     },
