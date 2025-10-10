@@ -7,7 +7,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 
 // ✅ AJOUTER CES LIGNES - Configuration Next.js
-export const revalidate = 10 // Revalide toutes les 10 secondes
+export const revalidate = 300 // Revalide toutes les 10 secondes
 export const dynamic = 'force-dynamic' // Force le rendu dynamique
 
 // Query GROQ pour récupérer toutes les données de la page Impact
