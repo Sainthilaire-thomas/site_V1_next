@@ -6,6 +6,10 @@ import FooterMinimal from '@/components/layout/FooterMinimal'
 import Link from 'next/link'
 import Image from 'next/image'
 
+// ✅ AJOUTER CES LIGNES - Configuration Next.js
+export const revalidate = 10 // Revalide toutes les 10 secondes
+export const dynamic = 'force-dynamic' // Force le rendu dynamique
+
 // Query GROQ pour récupérer toutes les données de la page Impact
 const query = `*[_type == "impactPage" && _id == "impact-singleton"][0]{
   seo,
@@ -21,7 +25,11 @@ const query = `*[_type == "impactPage" && _id == "impact-singleton"][0]{
 }`
 
 export default async function ImpactPage() {
-  const data = await sanityClient.fetch(query)
+  // ✅ MODIFIER CETTE LIGNE - Ajouter les options de cache
+  const data = await sanityClient.fetch(query, {}, {
+    cache: 'no-store', // Désactive le cache
+    next: { revalidate: 10 } // Revalide toutes les 10 secondes
+  })
 
   // Fallback si pas de données
   if (!data) {
@@ -36,7 +44,6 @@ export default async function ImpactPage() {
     <div className="min-h-screen bg-white">
       <HeaderMinimal />
 
-      {/* Hero Section */}
       {/* Hero Section */}
       {data.hero && (
         <section className="relative h-screen w-full">
