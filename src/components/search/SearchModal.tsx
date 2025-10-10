@@ -21,7 +21,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
     { label: '.tops', href: '/products/hauts' },
     { label: '.bottoms', href: '/products/bas' },
     { label: '.accessories', href: '/products/accessoires' },
-    { label: '.silhouettes', href: '/lookbooks' },
+    { label: '.silhouettes', href: '/silhouettes' },
     { label: '.impact', href: '/sustainability' },
   ]
 

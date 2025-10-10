@@ -116,10 +116,10 @@ export default defineType({
       ],
     },
 
-    // ========== ZONE LOOKBOOKS (Moyenne) ==========
+    // ========== ZONE SILHOUETTES (Moyenne) ==========
     {
-      name: 'zoneLookbooks',
-      title: '📸 Zone LOOKBOOKS (moyenne image)',
+      name: 'zoneSilhouettes',
+      title: '📸 Zone SILHOUETTES (moyenne image)',
       type: 'object',
       fields: [
         {
@@ -133,14 +133,14 @@ export default defineType({
           name: 'title',
           type: 'string',
           title: 'Titre',
-          initialValue: 'LOOKBOOKS',
+          initialValue: '.SILHOUETTES',
         },
         { name: 'subtitle', type: 'text', title: 'Sous-titre (optionnel)' },
         {
           name: 'link',
           type: 'string',
           title: 'Lien',
-          initialValue: '/lookbooks',
+          initialValue: '/silhouettes',
         },
       ],
     },

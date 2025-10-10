@@ -28,7 +28,7 @@ export const HOMEPAGE_QUERY = groq`*[_type=="homepage" && _id == "homepage-singl
     subtitle,
     link
   },
-  zoneLookbooks {
+  zoneSilhouettes {
     image,
     title,
     subtitle,
@@ -72,7 +72,7 @@ export const COLLECTION_EDITORIALE_QUERY = groq`*[
   seo
 }`
 
-// === Lookbooks ===
+// === Lookbooks (affichés comme "Silhouettes" sur le site) ===
 
 // Liste (uniquement publiés)
 export const LOOKBOOKS_QUERY = groq`*[

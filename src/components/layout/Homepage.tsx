@@ -18,7 +18,7 @@ interface HomepageData {
   zoneHauts: CategoryZone
   zoneBas: CategoryZone
   zoneAccessoires: CategoryZone
-  zoneLookbooks: CategoryZone
+  zoneSilhouettes: CategoryZone
   zoneSustainability: CategoryZone
 }
 
@@ -48,7 +48,7 @@ export default function Homepage({ data }: HomepageProps) {
     zoneHauts,
     zoneBas,
     zoneAccessoires,
-    zoneLookbooks,
+    zoneSilhouettes,
     zoneSustainability,
   } = data
 
@@ -59,7 +59,11 @@ export default function Homepage({ data }: HomepageProps) {
     height?: number,
     fallback: string = 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1920&h=1080&fit=crop'
   ): string => {
-    if (!image) return fallback
+    console.log('🖼️ Image reçue:', image)
+    if (!image) {
+      console.log('❌ Image vide, fallback utilisé') // ET CECI
+      return fallback
+    }
     try {
       let builder = urlFor(image)
 
@@ -185,14 +189,14 @@ export default function Homepage({ data }: HomepageProps) {
               />
             </div>
 
-            {/* Moyenne image - LOOKBOOKS */}
+            {/* Moyenne image - SILHOUETTES */}
             <div className="col-span-12 md:col-span-6">
               <CategoryCard
-                image={getImageUrl(zoneLookbooks?.image, 1200, 900)}
-                imageData={zoneLookbooks?.image}
-                title={zoneLookbooks?.title || 'lookbooks'}
-                subtitle={zoneLookbooks?.subtitle}
-                link={zoneLookbooks?.link || '/lookbooks'}
+                image={getImageUrl(zoneSilhouettes?.image, 1200, 900)}
+                imageData={zoneSilhouettes?.image}
+                title={zoneSilhouettes?.title || '.silhouettes'}
+                subtitle={zoneSilhouettes?.subtitle}
+                link={zoneSilhouettes?.link || '/silhouettes'}
                 size="medium"
               />
             </div>
