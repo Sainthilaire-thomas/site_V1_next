@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator'
 import { toast } from 'sonner'
 import HeaderMinimal from '@/components/layout/HeaderMinimal'
 import FooterMinimal from '@/components/layout/FooterMinimal'
+import { AlertCircle } from 'lucide-react'
 
 // Type pour l'adresse
 type AddressInput = {
@@ -25,7 +26,7 @@ type AddressInput = {
   country: string
 }
 
-// Tarifs de livraison en dur pour le moment
+// Tarifs de livraison
 const SHIPPING_RATES = [
   {
     id: '1',
@@ -77,15 +78,53 @@ export default function CheckoutPage() {
     setIsLoading(true)
 
     try {
-      // Simuler un délai de traitement
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      // Préparer les données pour Stripe
+      const checkoutData = {
+        items: items.map((item) => ({
+          product_id: item.productId,
+          variant_id: item.variantId || null,
+          name: item.name,
+          description: item.description || '',
+          price: item.price,
+          quantity: item.quantity,
+          image_url: item.image || '',
+        })),
+        email,
+        phone,
+        billingAddress,
+        shippingMethod: selectedRate?.name,
+        totalAmount: total,
+        shippingAmount: shippingCost,
+        taxAmount,
+      }
 
-      toast.success('Commande créée avec succès !')
-      clearCart()
-      router.push('/')
+      // Appeler l'API pour créer la session Stripe
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(checkoutData),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(
+          error.error || 'Erreur lors de la création de la session'
+        )
+      }
+
+      const { url } = await response.json()
+
+      // Rediriger vers Stripe Checkout
+      if (url) {
+        window.location.href = url
+      } else {
+        throw new Error('No checkout URL returned')
+      }
     } catch (error: any) {
-      toast.error(error.message || 'Erreur lors de la commande')
-    } finally {
+      console.error('Checkout error:', error)
+      toast.error(error.message || 'Erreur lors du paiement')
       setIsLoading(false)
     }
   }
@@ -101,7 +140,7 @@ export default function CheckoutPage() {
     )
   }
 
-  // Si le panier est vide, afficher un message au lieu de rediriger
+  // Si le panier est vide
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-white">
@@ -128,6 +167,12 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen bg-white">
       <HeaderMinimal />
+
+      {/* Bandeau mode test */}
+      <div className="bg-blue-500 text-white py-2 px-8 text-center text-[13px] tracking-[0.05em] font-semibold lowercase">
+        <AlertCircle className="inline-block w-4 h-4 mr-2" />
+        stripe test mode - use card 4242 4242 4242 4242
+      </div>
 
       <main className="pt-32 pb-24 px-8">
         <div className="max-w-7xl mx-auto">
@@ -174,9 +219,9 @@ export default function CheckoutPage() {
                 </div>
               </section>
 
-              {/* Adresse de livraison */}
+              {/* Adresse de facturation */}
               <section>
-                <h2 className="text-product mb-6">SHIPPING ADDRESS</h2>
+                <h2 className="text-product mb-6">BILLING ADDRESS</h2>
                 <div className="grid grid-cols-2 gap-6">
                   <div>
                     <Label className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium mb-3 block">
@@ -352,11 +397,17 @@ export default function CheckoutPage() {
 
                 <Button
                   type="submit"
-                  className="w-full py-4 text-[13px] tracking-[0.05em] font-semibold lowercase bg-black text-white hover:bg-gray-800 transition-colors"
+                  className="w-full py-4 text-[13px] tracking-[0.05em] font-semibold lowercase bg-black text-white hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={isLoading || !selectedShipping}
                 >
-                  {isLoading ? 'processing...' : 'place order'}
+                  {isLoading
+                    ? 'redirecting to payment...'
+                    : 'proceed to payment'}
                 </Button>
+
+                <p className="text-[11px] tracking-[0.05em] lowercase text-grey-medium text-center mt-4">
+                  secure payment powered by stripe
+                </p>
               </div>
             </div>
           </form>

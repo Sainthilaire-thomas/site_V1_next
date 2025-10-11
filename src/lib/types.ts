@@ -67,16 +67,25 @@ export function getSortedImages(product: ProductWithRelations): ProductImage[] {
 // ✅ Types pour le panier (localStorage - pas en DB)
 // ============================================
 export interface CartItem {
-  id: string
-  name: string
-  price: number
-  quantity: number
-  productId: string
-  imageId?: string
-  image?: string
-  size?: string
-  color?: string
-  sku?: string
+  // Identifiants
+  id: string // ID unique du cart item
+  productId: string // ID du produit dans Supabase (pour order_items)
+  variantId?: string | null // ID de la variante (optionnel)
+
+  // Informations produit (pour Stripe et affichage)
+  name: string // Nom du produit
+  description?: string // Description (optionnel)
+  image?: string // URL de l'image principale
+  imageId?: string // ID de l'image dans product_images (optionnel)
+
+  // Prix et quantité
+  price: number // Prix unitaire
+  quantity: number // Quantité
+
+  // Variantes produit (optionnel)
+  size?: string // Taille
+  color?: string // Couleur
+  sku?: string // SKU (optionnel)
 }
 
 // ============================================

@@ -257,8 +257,8 @@ function SearchContent() {
           /* État initial - Quick access (style Jacquemus) */
           <div className="max-w-5xl mx-auto">
             <div>
-              <h2 className="text-[11px] uppercase tracking-[0.1em] text-black/40 mb-6 text-center">
-                explorer par catégorie
+              <h2 className="text-[11px] tracking-[0.1em] text-black/40 mb-6 text-center">
+                .explore by category
               </h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-12">
                 {quickLinks.map((link) => (
