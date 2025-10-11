@@ -146,3 +146,44 @@ export async function adjustStockAction(
   revalidatePath(`/admin/products/${productId}`)
   return { ok: true as const }
 }
+
+// ✅ NOUVELLE ACTION : Mettre à jour une variante existante
+export async function updateVariantAction(
+  productId: string,
+  variantId: string,
+  formData: FormData
+) {
+  const payload = {
+    name: String(formData.get('name') ?? ''),
+    value: String(formData.get('value') ?? ''),
+    sku: ((formData.get('sku') as string) || '').trim() || null,
+    price_modifier: Number(formData.get('price_modifier') ?? 0),
+    is_active: formData.get('is_active') === 'on',
+  }
+
+  // Réutiliser le même schéma de validation (sans stock_quantity)
+  const updateSchema = variantCreateSchema.omit({ stock_quantity: true })
+  const parsed = updateSchema.safeParse(payload)
+  
+  if (!parsed.success) {
+    return { ok: false as const, error: parsed.error.flatten() }
+  }
+
+  const { error } = await supabaseAdmin
+    .from('product_variants')
+    .update(parsed.data)
+    .eq('id', variantId)
+    .eq('product_id', productId) // Sécurité : vérifier que la variante appartient au produit
+
+  if (error) {
+    return { ok: false as const, error: { message: error.message } }
+  }
+
+  // Recalculer le stock produit
+  await supabaseAdmin.rpc('recompute_product_stock', {
+    p_product_id: productId,
+  })
+
+  revalidatePath(`/admin/products/${productId}`)
+  return { ok: true as const }
+}

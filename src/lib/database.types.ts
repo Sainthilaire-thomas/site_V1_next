@@ -408,6 +408,7 @@ export type Database = {
           shipping_amount: number | null
           shipping_method: string | null
           status: string | null
+          stripe_session_id: string | null
           tax_amount: number | null
           total_amount: number
           tracking_number: string | null
@@ -438,6 +439,7 @@ export type Database = {
           shipping_amount?: number | null
           shipping_method?: string | null
           status?: string | null
+          stripe_session_id?: string | null
           tax_amount?: number | null
           total_amount: number
           tracking_number?: string | null
@@ -468,6 +470,7 @@ export type Database = {
           shipping_amount?: number | null
           shipping_method?: string | null
           status?: string | null
+          stripe_session_id?: string | null
           tax_amount?: number | null
           total_amount?: number
           tracking_number?: string | null

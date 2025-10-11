@@ -1,14 +1,7 @@
 // src/app/api/checkout/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
-import { createClient } from '@supabase/supabase-js'
-import type { Database } from '@/lib/database.types'
-
-// Client Supabase avec service role pour bypasser RLS
-const supabaseAdmin = createClient<Database>(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+import { supabaseAdmin } from '@/lib/supabase-admin'
 
 export async function POST(req: NextRequest) {
   try {
@@ -36,9 +29,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 })
     }
 
+    // Générer le numéro de commande AVANT de créer la session
+    const { data: orderNumber, error: orderNumberError } =
+      await supabaseAdmin.rpc('generate_order_number')
+
+    if (orderNumberError) {
+      console.error('Error generating order number:', orderNumberError)
+      throw new Error('Failed to generate order number')
+    }
+
+    console.log('🔍 Order number generated:', orderNumber)
+
     // Créer les line items pour Stripe
     const lineItems = items.map((item: any) => {
-      // Construire le nom du produit avec variantes si présentes
       let productName = item.name || 'Product'
       if (item.size) productName += ` - ${item.size}`
       if (item.color) productName += ` - ${item.color}`
@@ -49,10 +52,9 @@ export async function POST(req: NextRequest) {
           product_data: {
             name: productName,
             description: item.description || undefined,
-            // ✅ FIX : Toujours inclure images (même si vide)
-            images: item.image ? [item.image] : [],
+            images: item.image_url ? [item.image_url] : [],
           },
-          unit_amount: Math.round(item.price * 100), // Convertir en centimes
+          unit_amount: Math.round(item.price * 100),
         },
         quantity: item.quantity,
       }
@@ -66,7 +68,7 @@ export async function POST(req: NextRequest) {
           product_data: {
             name: 'Shipping',
             description: shippingMethod || 'Standard shipping',
-            images: [], // ✅ FIX : Ajouter images vide
+            images: [],
           },
           unit_amount: Math.round(shippingAmount * 100),
         },
@@ -83,50 +85,43 @@ export async function POST(req: NextRequest) {
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout`,
       customer_email: email,
       metadata: {
+        order_number: orderNumber as string, // ✅ Ajouter le order_number dans les métadonnées
         phone: phone || '',
         billing_address: JSON.stringify(billingAddress),
         shipping_method: shippingMethod || 'Standard',
         items: JSON.stringify(
           items.map((item: any) => ({
-            id: item.id,
-            product_id: item.productId,
-            variant_id: item.variantId || null,
+            product_id: item.product_id,
+            variant_id: item.variant_id || null,
             name: item.name,
             size: item.size || null,
             color: item.color || null,
             price: item.price,
             quantity: item.quantity,
+            image: item.image_url || null,
           }))
         ),
       },
-      // Activer la collecte d'adresse de livraison
       shipping_address_collection: {
         allowed_countries: ['FR', 'BE', 'LU', 'CH', 'DE', 'IT', 'ES', 'PT'],
       },
     })
 
-    // ✅ Générer le numéro de commande en appelant la fonction SQL
-    const { data: orderNumberData, error: orderNumberError } =
-      await supabaseAdmin.rpc('generate_order_number')
+    console.log('🔍 Session created:', session.id)
+    console.log('🔍 Payment intent at creation:', session.payment_intent) // Sera null
 
-    if (orderNumberError) {
-      console.error('Error generating order number:', orderNumberError)
-      throw new Error('Failed to generate order number')
-    }
-
-    const orderNumber = orderNumberData as string
-
-    // Créer la commande en attente dans Supabase
+    // ✅ Créer la commande avec session.id comme référence temporaire
     const { data: order, error: orderError } = await supabaseAdmin
       .from('orders')
       .insert({
-        order_number: orderNumber, // ✅ FIX : Ajouter le order_number généré
+        order_number: orderNumber as string,
         customer_email: email,
         customer_name: `${billingAddress.first_name} ${billingAddress.last_name}`,
         customer_phone: phone || null,
         status: 'pending',
         payment_status: 'pending',
-        payment_intent_id: session.payment_intent as string,
+        payment_intent_id: null, // ✅ Sera rempli par le webhook
+        stripe_session_id: session.id, // ✅ IMPORTANT : Ajouter cette colonne
         total_amount: totalAmount,
         shipping_amount: shippingAmount,
         tax_amount: taxAmount,
@@ -140,11 +135,11 @@ export async function POST(req: NextRequest) {
       .single()
 
     if (orderError) {
-      console.error('Error creating order:', orderError)
-      // On continue quand même pour permettre le paiement
-      // Le webhook recréera la commande si nécessaire
+      console.error('❌ Error creating order:', orderError)
+      throw new Error('Failed to create order')
     } else {
-      console.log('Order created:', order.order_number)
+      console.log('✅ Order created:', order.order_number)
+      console.log('✅ Session ID saved:', order.stripe_session_id)
     }
 
     return NextResponse.json({

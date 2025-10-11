@@ -70,8 +70,8 @@ export default function CheckoutPage() {
   const selectedRate = SHIPPING_RATES.find((r) => r.id === selectedShipping)
   const shippingCost = selectedRate?.base_rate || 0
   const subtotal = totalPrice
-  const taxAmount = subtotal * 0.2 // TVA 20%
-  const total = subtotal + shippingCost + taxAmount
+  const taxAmount = subtotal * (0.2 / 1.2) // TVA = 16.67% du TTC
+  const total = subtotal + shippingCost
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

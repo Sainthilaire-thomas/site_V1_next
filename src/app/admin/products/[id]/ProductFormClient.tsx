@@ -8,6 +8,7 @@ import {
   createVariantAction,
   deleteVariantAction,
   adjustStockAction,
+  updateVariantAction, // ✅ NOUVELLE ACTION
 } from './actions'
 
 export function ProductFormClient({
@@ -28,6 +29,10 @@ export function ProductFormClient({
   const [isActive, setIsActive] = useState(!!product.is_active)
   const [isFeatured, setIsFeatured] = useState(!!product.is_featured)
 
+  // ✅ NOUVEAU : État pour l'édition de variante
+  const [editingVariantId, setEditingVariantId] = useState<string | null>(null)
+  const [editForm, setEditForm] = useState<any>({})
+
   async function handleUpdateProduct(formData: FormData) {
     startTransition(async () => {
       const result = await updateProductAction(productId, formData)
@@ -46,6 +51,20 @@ export function ProductFormClient({
         showToast('Variante créée', 'success')
       } else {
         showToast('Erreur lors de la création', 'error')
+      }
+    })
+  }
+
+  // ✅ NOUVELLE FONCTION : Mettre à jour une variante
+  async function handleUpdateVariant(variantId: string, formData: FormData) {
+    startTransition(async () => {
+      const result = await updateVariantAction(productId, variantId, formData)
+      if (result.ok) {
+        showToast('Variante mise à jour', 'success')
+        setEditingVariantId(null)
+        setEditForm({})
+      } else {
+        showToast('Erreur lors de la mise à jour', 'error')
       }
     })
   }
@@ -71,6 +90,24 @@ export function ProductFormClient({
         showToast("Erreur lors de l'ajustement", 'error')
       }
     })
+  }
+
+  // ✅ NOUVELLES FONCTIONS pour édition
+  function startEditVariant(variant: any) {
+    setEditingVariantId(variant.id)
+    setEditForm({
+      name: variant.name,
+      value: variant.value,
+      sku: variant.sku || '',
+      price_modifier: variant.price_modifier || 0,
+      stock_quantity: variant.stock_quantity || 0,
+      is_active: variant.is_active,
+    })
+  }
+
+  function cancelEditVariant() {
+    setEditingVariantId(null)
+    setEditForm({})
   }
 
   const totalStock = product.stock_quantity ?? 0
@@ -108,7 +145,9 @@ export function ProductFormClient({
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-gray-600 dark:text-gray-400">Prix:</span>
+              <span className="text-gray-600 dark:text-gray-400">
+                Prix de base:
+              </span>
               <span className="font-semibold">{product.price}€</span>
             </div>
             <div className="flex items-center gap-2">
@@ -173,7 +212,7 @@ export function ProductFormClient({
             />
           </label>
           <label className="grid gap-1">
-            <span className="text-sm font-medium">Prix (€)</span>
+            <span className="text-sm font-medium">Prix de base (€)</span>
             <input
               name="price"
               type="number"
@@ -181,6 +220,9 @@ export function ProductFormClient({
               defaultValue={product.price}
               className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 rounded focus:ring-2 focus:ring-violet focus:border-transparent"
             />
+            <span className="text-xs text-gray-500">
+              Prix sans variante. Les variantes peuvent ajouter un supplément.
+            </span>
           </label>
           <label className="grid gap-1">
             <span className="text-sm font-medium">SKU</span>
@@ -207,8 +249,6 @@ export function ProductFormClient({
               className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 rounded focus:ring-2 focus:ring-violet focus:border-transparent"
             />
           </label>
-          // Ajouter ces champs dans le formulaire d'édition, après le champ
-          "description"
           <label className="grid gap-1">
             <span className="text-sm font-medium">Composition</span>
             <textarea
@@ -327,82 +367,233 @@ export function ProductFormClient({
                 key={v.id}
                 className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded-lg p-4"
               >
-                {/* En-tête de la variante */}
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <div className="font-medium text-lg mb-1">
-                      {v.name}: {v.value}
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-gray-600 dark:text-gray-400">
-                      <div>
-                        <span className="font-medium">SKU:</span> {v.sku ?? '—'}
-                      </div>
-                      <div>
-                        <span className="font-medium">Stock:</span>{' '}
-                        <span
-                          className={
-                            v.stock_quantity <= 0
-                              ? 'text-red-500'
-                              : 'text-green-600 dark:text-green-400'
-                          }
-                        >
-                          {v.stock_quantity ?? 0}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="font-medium">Prix modif:</span>{' '}
-                        {v.price_modifier ?? 0}€
-                      </div>
-                      <div>
-                        <span
-                          className={`inline-block px-2 py-0.5 rounded text-xs ${
-                            v.is_active
-                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                              : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-                          }`}
-                        >
-                          {v.is_active ? 'Active' : 'Inactive'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-2 flex-wrap items-center pt-3 border-t border-gray-200 dark:border-gray-700">
-                  {/* Ajustement de stock */}
+                {editingVariantId === v.id ? (
+                  // ✅ MODE ÉDITION
                   <form
-                    action={(fd) => handleAdjustStock(v.id, fd)}
-                    className="flex gap-2 flex-1"
+                    action={(fd) => handleUpdateVariant(v.id, fd)}
+                    className="space-y-3"
                   >
-                    <input
-                      name="delta"
-                      type="number"
-                      placeholder="+/- quantité"
-                      className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 rounded w-28 text-sm"
-                    />
-                    <input
-                      name="reason"
-                      placeholder="Raison (inventaire, retour...)"
-                      className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 rounded flex-1 min-w-[200px] text-sm"
-                    />
-                    <button
-                      disabled={isPending}
-                      className="border border-gray-300 dark:border-gray-600 rounded px-4 py-2 text-sm hover:bg-violet hover:text-white hover:border-violet transition-colors disabled:opacity-50 whitespace-nowrap"
-                    >
-                      Ajuster stock
-                    </button>
-                  </form>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium mb-1">
+                          Attribut
+                        </label>
+                        <input
+                          name="name"
+                          value={editForm.name}
+                          onChange={(e) =>
+                            setEditForm({ ...editForm, name: e.target.value })
+                          }
+                          className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 rounded text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium mb-1">
+                          Valeur
+                        </label>
+                        <input
+                          name="value"
+                          value={editForm.value}
+                          onChange={(e) =>
+                            setEditForm({ ...editForm, value: e.target.value })
+                          }
+                          className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 rounded text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium mb-1">
+                          SKU
+                        </label>
+                        <input
+                          name="sku"
+                          value={editForm.sku}
+                          onChange={(e) =>
+                            setEditForm({ ...editForm, sku: e.target.value })
+                          }
+                          className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 rounded text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium mb-1">
+                          Variation de prix (€)
+                        </label>
+                        <input
+                          name="price_modifier"
+                          type="number"
+                          step="0.01"
+                          value={editForm.price_modifier}
+                          onChange={(e) =>
+                            setEditForm({
+                              ...editForm,
+                              price_modifier: e.target.value,
+                            })
+                          }
+                          className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 rounded text-sm"
+                        />
+                        <span className="text-xs text-gray-500 mt-0.5 block">
+                          Ex: +5 / -10 / 0
+                        </span>
+                      </div>
+                    </div>
 
-                  {/* Supprimer */}
-                  <button
-                    onClick={() => handleDeleteVariant(v.id)}
-                    disabled={isPending}
-                    className="border border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 rounded px-4 py-2 text-sm hover:bg-red-600 hover:text-white transition-colors disabled:opacity-50"
-                  >
-                    Supprimer
-                  </button>
-                </div>
+                    <div className="flex items-center gap-4">
+                      <label className="inline-flex items-center gap-2">
+                        <input
+                          name="is_active"
+                          type="checkbox"
+                          checked={editForm.is_active}
+                          onChange={(e) =>
+                            setEditForm({
+                              ...editForm,
+                              is_active: e.target.checked,
+                            })
+                          }
+                          className="rounded border-gray-300 text-violet focus:ring-violet"
+                        />
+                        <span className="text-sm">Active</span>
+                      </label>
+
+                      <div className="flex gap-2 ml-auto">
+                        <button
+                          type="submit"
+                          disabled={isPending}
+                          className="px-4 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors disabled:opacity-50"
+                        >
+                          ✓ Sauver
+                        </button>
+                        <button
+                          type="button"
+                          onClick={cancelEditVariant}
+                          disabled={isPending}
+                          className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                        >
+                          ✕ Annuler
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                ) : (
+                  // ✅ MODE AFFICHAGE
+                  <>
+                    {/* En-tête de la variante */}
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <div className="font-medium text-lg mb-1">
+                          {v.name}: {v.value}
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-gray-600 dark:text-gray-400">
+                          <div>
+                            <span className="font-medium">SKU:</span>{' '}
+                            {v.sku ?? '—'}
+                          </div>
+                          <div>
+                            <span className="font-medium">Stock:</span>{' '}
+                            <span
+                              className={
+                                v.stock_quantity <= 0
+                                  ? 'text-red-500'
+                                  : 'text-green-600 dark:text-green-400'
+                              }
+                            >
+                              {v.stock_quantity ?? 0}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="font-medium">Variation prix:</span>{' '}
+                            <span
+                              className={
+                                v.price_modifier > 0
+                                  ? 'text-orange-600'
+                                  : v.price_modifier < 0
+                                    ? 'text-green-600'
+                                    : ''
+                              }
+                            >
+                              {v.price_modifier > 0 ? '+' : ''}
+                              {v.price_modifier ?? 0}€
+                            </span>
+                          </div>
+                          <div>
+                            <span
+                              className={`inline-block px-2 py-0.5 rounded text-xs ${
+                                v.is_active
+                                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                  : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                              }`}
+                            >
+                              {v.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                          </div>
+                        </div>
+                        {/* ✅ Affichage du prix final */}
+                        <div className="mt-2 text-sm">
+                          <span className="text-gray-600 dark:text-gray-400">
+                            Prix final:{' '}
+                          </span>
+                          <span className="font-semibold text-violet">
+                            {(
+                              Number(product.price) +
+                              Number(v.price_modifier ?? 0)
+                            ).toFixed(2)}
+                            €
+                          </span>
+                          <span className="text-xs text-gray-500 ml-2">
+                            ({product.price}€ {v.price_modifier > 0 ? '+' : ''}
+                            {v.price_modifier !== 0
+                              ? `${v.price_modifier}€`
+                              : ''}
+                            )
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-2 flex-wrap items-center pt-3 border-t border-gray-200 dark:border-gray-700">
+                      {/* Ajustement de stock */}
+                      <form
+                        action={(fd) => handleAdjustStock(v.id, fd)}
+                        className="flex gap-2 flex-1"
+                      >
+                        <input
+                          name="delta"
+                          type="number"
+                          placeholder="+/- quantité"
+                          className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 rounded w-28 text-sm"
+                        />
+                        <input
+                          name="reason"
+                          placeholder="Raison (inventaire, retour...)"
+                          className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 rounded flex-1 min-w-[200px] text-sm"
+                        />
+                        <button
+                          disabled={isPending}
+                          className="border border-gray-300 dark:border-gray-600 rounded px-4 py-2 text-sm hover:bg-violet hover:text-white hover:border-violet transition-colors disabled:opacity-50 whitespace-nowrap"
+                        >
+                          Ajuster stock
+                        </button>
+                      </form>
+
+                      {/* ✅ NOUVEAU : Bouton Éditer */}
+                      <button
+                        onClick={() => startEditVariant(v)}
+                        disabled={isPending}
+                        className="border border-violet text-violet rounded px-4 py-2 text-sm hover:bg-violet hover:text-white transition-colors disabled:opacity-50"
+                      >
+                        ✏️ Éditer
+                      </button>
+
+                      {/* Supprimer */}
+                      <button
+                        onClick={() => handleDeleteVariant(v.id)}
+                        disabled={isPending}
+                        className="border border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 rounded px-4 py-2 text-sm hover:bg-red-600 hover:text-white transition-colors disabled:opacity-50"
+                      >
+                        Supprimer
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             ))}
           </div>
@@ -411,6 +602,44 @@ export function ProductFormClient({
         {/* Ajouter une variante */}
         <div className="border-t border-gray-300 dark:border-gray-600 pt-6 mt-6">
           <h3 className="text-md font-medium mb-3">Ajouter une variante</h3>
+
+          {/* ✅ AIDE VISUELLE */}
+          <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded text-sm">
+            <div className="font-medium text-blue-900 dark:text-blue-100 mb-1">
+              💡 Comment ça marche ?
+            </div>
+            <div className="text-blue-700 dark:text-blue-300 space-y-1">
+              <div>
+                • <strong>Attribut</strong> : Type de variante (ex: Taille,
+                Couleur)
+              </div>
+              <div>
+                • <strong>Valeur</strong> : La valeur spécifique (ex: M, Rouge)
+              </div>
+              <div>
+                • <strong>Variation de prix</strong> : Ajustement par rapport au
+                prix de base
+                <div className="ml-4 mt-1 text-xs">
+                  - Saisissez{' '}
+                  <code className="bg-blue-100 dark:bg-blue-800 px-1 rounded">
+                    0
+                  </code>{' '}
+                  si pas de changement
+                  <br />- Saisissez{' '}
+                  <code className="bg-blue-100 dark:bg-blue-800 px-1 rounded">
+                    +5
+                  </code>{' '}
+                  pour une surcharge de 5€
+                  <br />- Saisissez{' '}
+                  <code className="bg-blue-100 dark:bg-blue-800 px-1 rounded">
+                    -10
+                  </code>{' '}
+                  pour une réduction de 10€
+                </div>
+              </div>
+            </div>
+          </div>
+
           <form
             action={handleCreateVariant}
             className="grid md:grid-cols-6 gap-3"
@@ -442,7 +671,9 @@ export function ProductFormClient({
               />
             </div>
             <div className="md:col-span-1">
-              <label className="block text-sm font-medium mb-1">± Prix</label>
+              <label className="block text-sm font-medium mb-1">
+                Variation de prix (€)
+              </label>
               <input
                 name="price_modifier"
                 type="number"
@@ -451,6 +682,9 @@ export function ProductFormClient({
                 defaultValue="0"
                 className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-2 rounded"
               />
+              <span className="text-xs text-gray-500 mt-0.5 block">
+                Ex: +5 / -10 / 0
+              </span>
             </div>
             <div className="md:col-span-1">
               <label className="block text-sm font-medium mb-1">Stock</label>
