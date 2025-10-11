@@ -1,7 +1,7 @@
 // src/app/api/webhooks/stripe/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
-import { supabaseAdmin } from '@/lib/supabase-admin' // ✅ Import de votre fichier existant
+import { supabaseAdmin } from '@/lib/supabase-admin'
 
 // Désactiver le body parsing de Next.js pour les webhooks
 export const runtime = 'nodejs'
@@ -60,49 +60,11 @@ async function handleCheckoutSessionCompleted(session: any) {
   console.log('🎉 Checkout session completed:', session.id)
 
   try {
-    // ✅ FIX : Ne pas expand shipping_details
-    const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
-      expand: ['line_items', 'customer_details'],
-    })
-
-    console.log('📦 Full session metadata:', fullSession.metadata)
-
-    const paymentIntentId = fullSession.payment_intent as string
-    const customerEmail =
-      fullSession.customer_details?.email || session.customer_email
-
-    // ✅ FIX : Récupérer shipping depuis la session avec cast (ligne 75)
-    const shippingAddress =
-      (fullSession as any).shipping_details?.address || null
-    const customerName = fullSession.customer_details?.name || ''
-
-    console.log('💳 Payment Intent ID:', paymentIntentId)
-    console.log('📍 Shipping address:', shippingAddress)
-
-    // Mettre à jour la commande
-    const { error: updateError } = await supabaseAdmin
-      .from('orders')
-      .update({
-        payment_status: 'paid',
-        status: 'processing',
-        paid_at: new Date().toISOString(),
-        customer_name: customerName,
-        shipping_address: shippingAddress,
-      })
-      .eq('payment_intent_id', paymentIntentId)
-
-    if (updateError) {
-      console.error('❌ Error updating order:', updateError)
-    } else {
-      console.log('✅ Order updated successfully')
-    }
-
-    // Récupérer la commande
-    // ✅ NOUVEAU CODE (fonctionne)
+    // ✅ ÉTAPE 1 : Récupérer la commande
     const { data: order, error: orderError } = await supabaseAdmin
       .from('orders')
-      .select('id')
-      .eq('stripe_session_id', session.id) // ✅ Correct!
+      .select('id, payment_intent_id')
+      .eq('stripe_session_id', session.id)
       .single()
 
     if (orderError || !order) {
@@ -112,7 +74,62 @@ async function handleCheckoutSessionCompleted(session: any) {
 
     console.log('📋 Order found:', order.id)
 
-    // Parser les items depuis les métadonnées
+    // ✅ ÉTAPE 2 : Vérifier si les items existent déjà (protection contre doublons)
+    const { data: existingItems, error: checkError } = await supabaseAdmin
+      .from('order_items')
+      .select('id')
+      .eq('order_id', order.id)
+      .limit(1)
+
+    if (checkError) {
+      console.error('❌ Error checking existing items:', checkError)
+      return
+    }
+
+    if (existingItems && existingItems.length > 0) {
+      console.log('⚠️ Order items already exist, skipping creation')
+      // ✅ Mettre quand même à jour la commande au cas où
+      await updateOrderStatus(order.id, session)
+      return
+    }
+
+    // ✅ ÉTAPE 3 : Récupérer les détails complets de la session
+    const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
+      expand: ['line_items', 'customer_details'],
+    })
+
+    console.log('📦 Full session metadata:', fullSession.metadata)
+
+    const paymentIntentId = fullSession.payment_intent as string
+    const customerEmail =
+      fullSession.customer_details?.email || session.customer_email
+    const shippingAddress =
+      (fullSession as any).shipping_details?.address || null
+    const customerName = fullSession.customer_details?.name || ''
+
+    console.log('💳 Payment Intent ID:', paymentIntentId)
+    console.log('📍 Shipping address:', shippingAddress)
+
+    // ✅ ÉTAPE 4 : Mettre à jour la commande avec le payment_intent_id
+    const { error: updateError } = await supabaseAdmin
+      .from('orders')
+      .update({
+        payment_status: 'paid',
+        status: 'processing',
+        paid_at: new Date().toISOString(),
+        payment_intent_id: paymentIntentId,
+        customer_name: customerName,
+        shipping_address: shippingAddress,
+      })
+      .eq('id', order.id)
+
+    if (updateError) {
+      console.error('❌ Error updating order:', updateError)
+    } else {
+      console.log('✅ Order updated successfully')
+    }
+
+    // ✅ ÉTAPE 5 : Parser les items depuis les métadonnées
     const itemsString = fullSession.metadata?.items || '[]'
     console.log('📦 Raw items string:', itemsString)
 
@@ -124,7 +141,7 @@ async function handleCheckoutSessionCompleted(session: any) {
       return
     }
 
-    // Créer les order items
+    // ✅ ÉTAPE 6 : Créer les order items
     const orderItems = items.map((item: any) => ({
       order_id: order.id,
       product_id: item.product_id,
@@ -152,6 +169,11 @@ async function handleCheckoutSessionCompleted(session: any) {
       .insert(orderItems)
 
     if (itemsError) {
+      // ✅ Si erreur de contrainte unique (code 23505), c'est OK
+      if (itemsError.code === '23505') {
+        console.log('⚠️ Duplicate items detected (unique constraint), skipping')
+        return
+      }
       console.error('❌ Error creating order items:', itemsError)
       console.error('❌ Full error:', JSON.stringify(itemsError, null, 2))
     } else {
@@ -159,6 +181,36 @@ async function handleCheckoutSessionCompleted(session: any) {
     }
   } catch (error) {
     console.error('❌ Error in handleCheckoutSessionCompleted:', error)
+  }
+}
+
+// ✅ Fonction helper pour mettre à jour le statut
+async function updateOrderStatus(orderId: string, session: any) {
+  try {
+    const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
+      expand: ['customer_details'],
+    })
+
+    const paymentIntentId = fullSession.payment_intent as string
+    const shippingAddress =
+      (fullSession as any).shipping_details?.address || null
+    const customerName = fullSession.customer_details?.name || ''
+
+    await supabaseAdmin
+      .from('orders')
+      .update({
+        payment_status: 'paid',
+        status: 'processing',
+        paid_at: new Date().toISOString(),
+        payment_intent_id: paymentIntentId,
+        customer_name: customerName,
+        shipping_address: shippingAddress,
+      })
+      .eq('id', orderId)
+
+    console.log('✅ Order status updated (items already existed)')
+  } catch (error) {
+    console.error('❌ Error updating order status:', error)
   }
 }
 

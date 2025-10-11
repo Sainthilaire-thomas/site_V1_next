@@ -6,7 +6,6 @@ import type { Database } from '@/lib/database.types'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 
-// ✅ CORRECTION : Ajouter les chevrons <>
 const statusColors: Record<
   string,
   'default' | 'secondary' | 'destructive' | 'outline'
@@ -53,18 +52,28 @@ export default async function AccountOrdersPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) redirect('/auth/login')
+
+  if (!user || !user.email) redirect('/auth/login')
 
   const { data: orders } = await supabase
     .from('orders')
     .select(
       `
       *,
-      items:order_items(count)
+      order_items (
+        id,
+        quantity,
+        product_name,
+        unit_price,
+        total_price
+      )
     `
     )
-    .eq('user_id', user.id)
+    .eq('customer_email', user.email)
     .order('created_at', { ascending: false })
+
+  console.log('📦 Orders fetched:', orders?.length)
+  console.log('📦 First order items:', orders?.[0]?.order_items)
 
   return (
     <div className="min-h-screen bg-white pt-20">
@@ -75,6 +84,11 @@ export default async function AccountOrdersPage() {
           <div className="space-y-4">
             {orders.map((order) => {
               const statusInfo = getStatusInfo(order.status)
+              const totalQuantity =
+                order.order_items?.reduce(
+                  (sum, item) => sum + (item.quantity || 0),
+                  0
+                ) || 0
 
               return (
                 <Link
@@ -104,13 +118,37 @@ export default async function AccountOrdersPage() {
 
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-gray-600">
-                      {order.items?.[0]?.count || 0} article
-                      {(order.items?.[0]?.count || 0) > 1 ? 's' : ''}
+                      {totalQuantity} article{totalQuantity > 1 ? 's' : ''}
                     </div>
                     <div className="font-medium">
                       {Number(order.total_amount).toFixed(2)}€
                     </div>
                   </div>
+
+                  {order.order_items && order.order_items.length > 0 && (
+                    <div className="mt-4 pt-4 border-t">
+                      <div className="space-y-2">
+                        {order.order_items.slice(0, 3).map((item) => (
+                          <div
+                            key={item.id}
+                            className="text-sm text-gray-600 flex justify-between"
+                          >
+                            <span>
+                              {item.quantity}x {item.product_name}
+                            </span>
+                            <span className="text-gray-900">
+                              {Number(item.total_price).toFixed(2)}€
+                            </span>
+                          </div>
+                        ))}
+                        {order.order_items.length > 3 && (
+                          <div className="text-sm text-gray-400">
+                            + {order.order_items.length - 3} autre(s) article(s)
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   {order.tracking_number && (
                     <div className="mt-4 pt-4 border-t">
