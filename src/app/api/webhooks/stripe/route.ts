@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
-// Désactiver le body parsing de Next.js pour les webhooks
 export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
@@ -26,16 +25,15 @@ export async function POST(req: NextRequest) {
       process.env.STRIPE_WEBHOOK_SECRET!
     )
   } catch (err: any) {
-    console.error('Webhook signature verification failed:', err.message)
+    console.error('❌ Webhook signature verification failed:', err.message)
     return NextResponse.json(
       { error: `Webhook Error: ${err.message}` },
       { status: 400 }
     )
   }
 
-  console.log('Webhook received:', event.type)
+  console.log(`\n🔔 Webhook received: ${event.type}`)
 
-  // Traiter les différents types d'événements
   switch (event.type) {
     case 'checkout.session.completed':
       await handleCheckoutSessionCompleted(event.data.object)
@@ -50,20 +48,43 @@ export async function POST(req: NextRequest) {
       break
 
     default:
-      console.log(`Unhandled event type: ${event.type}`)
+      console.log(`ℹ️ Unhandled event type: ${event.type}`)
   }
 
   return NextResponse.json({ received: true })
 }
 
 async function handleCheckoutSessionCompleted(session: any) {
-  console.log('🎉 Checkout session completed:', session.id)
+  console.log('\n🎉 Checkout session completed:', session.id)
 
   try {
-    // ✅ ÉTAPE 1 : Récupérer la commande
+    // ÉTAPE 1 : Récupérer les détails complets de la session
+    console.log('📋 Step 1: Fetching full session details...')
+    const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
+      expand: ['line_items', 'customer_details', 'payment_intent'],
+    })
+
+    // ✅ FIX : Gérer les 2 cas (string ou objet)
+    const paymentIntent = fullSession.payment_intent
+    const paymentIntentId =
+      typeof paymentIntent === 'string'
+        ? paymentIntent
+        : paymentIntent?.id || null
+
+    if (!paymentIntentId) {
+      console.log(
+        '⏳ Payment intent not yet created, deferring to payment_intent.succeeded'
+      )
+      return
+    }
+
+    console.log(`✅ Payment Intent found: ${paymentIntentId}`)
+
+    // ÉTAPE 2 : Récupérer la commande
+    console.log('📋 Step 2: Finding order...')
     const { data: order, error: orderError } = await supabaseAdmin
       .from('orders')
-      .select('id, payment_intent_id')
+      .select('id, payment_intent_id, order_number')
       .eq('stripe_session_id', session.id)
       .single()
 
@@ -72,9 +93,10 @@ async function handleCheckoutSessionCompleted(session: any) {
       return
     }
 
-    console.log('📋 Order found:', order.id)
+    console.log(`✅ Order found: ${order.order_number} (${order.id})`)
 
-    // ✅ ÉTAPE 2 : Vérifier si les items existent déjà (protection contre doublons)
+    // ÉTAPE 3 : Vérifier si les items existent déjà
+    console.log('📋 Step 3: Checking for existing items...')
     const { data: existingItems, error: checkError } = await supabaseAdmin
       .from('order_items')
       .select('id')
@@ -87,63 +109,172 @@ async function handleCheckoutSessionCompleted(session: any) {
     }
 
     if (existingItems && existingItems.length > 0) {
-      console.log('⚠️ Order items already exist, skipping creation')
-      // ✅ Mettre quand même à jour la commande au cas où
-      await updateOrderStatus(order.id, session)
+      console.log('⚠️ Order items already exist, just updating order')
+      await updateOrderWithSessionData(order.id, fullSession, paymentIntentId)
       return
     }
 
-    // ✅ ÉTAPE 3 : Récupérer les détails complets de la session
-    const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
-      expand: ['line_items', 'customer_details'],
+    console.log('✅ No existing items, proceeding with creation')
+
+    // ÉTAPE 4 : Créer les items
+    await createOrderItemsFromSession(order.id, fullSession, paymentIntentId)
+  } catch (error) {
+    console.error('❌ Exception in handleCheckoutSessionCompleted:')
+    console.error(error)
+  }
+}
+
+async function handlePaymentIntentSucceeded(paymentIntent: any) {
+  console.log('\n💳 Payment intent succeeded:', paymentIntent.id)
+
+  try {
+    // ✅ Récupérer la session associée
+    console.log('📋 Step 1: Finding associated session...')
+    const sessions = await stripe.checkout.sessions.list({
+      payment_intent: paymentIntent.id,
+      limit: 1,
     })
 
-    console.log('📦 Full session metadata:', fullSession.metadata)
+    if (sessions.data.length === 0) {
+      console.log('⚠️ No session found for this payment intent')
+      // Fallback : mettre à jour via payment_intent_id uniquement
+      await supabaseAdmin
+        .from('orders')
+        .update({
+          payment_status: 'paid',
+          status: 'processing',
+          paid_at: new Date().toISOString(),
+        })
+        .eq('payment_intent_id', paymentIntent.id)
+      return
+    }
 
-    const paymentIntentId = fullSession.payment_intent as string
+    const sessionId = sessions.data[0].id
+    console.log(`✅ Session found: ${sessionId}`)
+
+    // ✅ Récupérer la session COMPLÈTE avec expand
+    console.log('📋 Step 2: Fetching full session details...')
+    const fullSession = await stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ['line_items', 'customer_details', 'payment_intent'],
+    })
+
+    // ✅ Mettre à jour la commande
+    console.log('📋 Step 3: Finding order...')
+    const { data: order, error: orderError } = await supabaseAdmin
+      .from('orders')
+      .select('id, order_number')
+      .eq('stripe_session_id', sessionId)
+      .single()
+
+    if (orderError || !order) {
+      console.error('❌ Error finding order:', orderError)
+      return
+    }
+
+    console.log(`✅ Order found: ${order.order_number} (${order.id})`)
+
+    // ✅ Vérifier si les items existent déjà
+    console.log('📋 Step 4: Checking for existing items...')
+    const { data: existingItems } = await supabaseAdmin
+      .from('order_items')
+      .select('id')
+      .eq('order_id', order.id)
+      .limit(1)
+
+    if (existingItems && existingItems.length > 0) {
+      console.log('✅ Order items already exist, just updating payment status')
+      await supabaseAdmin
+        .from('orders')
+        .update({
+          payment_status: 'paid',
+          status: 'processing',
+          paid_at: new Date().toISOString(),
+          payment_intent_id: paymentIntent.id,
+        })
+        .eq('id', order.id)
+      return
+    }
+
+    // ✅ Les items n'existent pas : les créer maintenant
+    console.log('⚠️ Order items missing, creating them now...')
+    await createOrderItemsFromSession(order.id, fullSession, paymentIntent.id)
+  } catch (error) {
+    console.error('❌ Error in handlePaymentIntentSucceeded:', error)
+  }
+}
+
+// ✅ Fonction utilitaire pour créer les order items
+async function createOrderItemsFromSession(
+  orderId: string,
+  fullSession: any,
+  paymentIntentId: string | any
+) {
+  try {
+    // ✅ FIX : Extraire l'ID si c'est un objet
+    const paymentIntentIdString =
+      typeof paymentIntentId === 'string'
+        ? paymentIntentId
+        : paymentIntentId?.id || null
+
+    if (!paymentIntentIdString) {
+      console.error('❌ No valid payment intent ID')
+      return
+    }
+
     const customerEmail =
-      fullSession.customer_details?.email || session.customer_email
-    const shippingAddress =
-      (fullSession as any).shipping_details?.address || null
+      fullSession.customer_details?.email || fullSession.customer_email
+    const shippingAddress = fullSession.shipping_details?.address || null
     const customerName = fullSession.customer_details?.name || ''
 
-    console.log('💳 Payment Intent ID:', paymentIntentId)
-    console.log('📍 Shipping address:', shippingAddress)
+    console.log('📋 Step A: Updating order with session data...')
+    console.log(`   💳 Payment Intent: ${paymentIntentIdString}`)
+    console.log(`   👤 Customer: ${customerName} (${customerEmail})`)
+    console.log(`   📍 Shipping: ${shippingAddress ? 'Present' : 'None'}`)
 
-    // ✅ ÉTAPE 4 : Mettre à jour la commande avec le payment_intent_id
+    // Mettre à jour la commande
     const { error: updateError } = await supabaseAdmin
       .from('orders')
       .update({
         payment_status: 'paid',
         status: 'processing',
         paid_at: new Date().toISOString(),
-        payment_intent_id: paymentIntentId,
+        payment_intent_id: paymentIntentIdString,
         customer_name: customerName,
         shipping_address: shippingAddress,
       })
-      .eq('id', order.id)
+      .eq('id', orderId)
 
     if (updateError) {
       console.error('❌ Error updating order:', updateError)
-    } else {
-      console.log('✅ Order updated successfully')
+      return
     }
 
-    // ✅ ÉTAPE 5 : Parser les items depuis les métadonnées
-    const itemsString = fullSession.metadata?.items || '[]'
-    console.log('📦 Raw items string:', itemsString)
+    console.log('✅ Order updated successfully')
 
-    const items = JSON.parse(itemsString)
-    console.log('📦 Parsed items:', JSON.stringify(items, null, 2))
+    // Parser les items depuis les métadonnées
+    console.log('📋 Step B: Parsing items from metadata...')
+    const itemsString = fullSession.metadata?.items || '[]'
+
+    let items
+    try {
+      items = JSON.parse(itemsString)
+    } catch (e) {
+      console.error('❌ Error parsing items JSON:', e)
+      console.error('   Raw string:', itemsString)
+      return
+    }
 
     if (!items || items.length === 0) {
       console.error('❌ No items found in metadata')
       return
     }
 
-    // ✅ ÉTAPE 6 : Créer les order items
+    console.log(`✅ Found ${items.length} items in metadata`)
+
+    // Créer les order items
+    console.log('📋 Step C: Creating order items...')
     const orderItems = items.map((item: any) => ({
-      order_id: order.id,
+      order_id: orderId,
       product_id: item.product_id,
       variant_id: item.variant_id || null,
       product_name: item.name || null,
@@ -159,41 +290,51 @@ async function handleCheckoutSessionCompleted(session: any) {
       total_price: item.price * item.quantity,
     }))
 
-    console.log(
-      '📦 Order items to insert:',
-      JSON.stringify(orderItems, null, 2)
-    )
+    console.log('   Items to insert:', JSON.stringify(orderItems, null, 2))
 
-    const { error: itemsError } = await supabaseAdmin
+    const { data: insertedItems, error: itemsError } = await supabaseAdmin
       .from('order_items')
       .insert(orderItems)
+      .select()
 
     if (itemsError) {
-      // ✅ Si erreur de contrainte unique (code 23505), c'est OK
       if (itemsError.code === '23505') {
-        console.log('⚠️ Duplicate items detected (unique constraint), skipping')
+        console.log('⚠️ Duplicate items detected (already created)')
         return
       }
-      console.error('❌ Error creating order items:', itemsError)
-      console.error('❌ Full error:', JSON.stringify(itemsError, null, 2))
-    } else {
-      console.log(`✅ Created ${orderItems.length} order items`)
+
+      console.error('❌ Error creating order items:')
+      console.error('   Code:', itemsError.code)
+      console.error('   Message:', itemsError.message)
+      return
     }
+
+    if (!insertedItems || insertedItems.length === 0) {
+      console.error('⚠️ No items were inserted')
+      return
+    }
+
+    console.log(`✅ Successfully created ${insertedItems.length} order items`)
+    console.log('   IDs:', insertedItems.map((i) => i.id).join(', '))
   } catch (error) {
-    console.error('❌ Error in handleCheckoutSessionCompleted:', error)
+    console.error('❌ Error in createOrderItemsFromSession:', error)
   }
 }
 
-// ✅ Fonction helper pour mettre à jour le statut
-async function updateOrderStatus(orderId: string, session: any) {
+// ✅ Fonction utilitaire pour mettre à jour l'ordre sans créer d'items
+async function updateOrderWithSessionData(
+  orderId: string,
+  fullSession: any,
+  paymentIntentId: string | any
+) {
   try {
-    const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
-      expand: ['customer_details'],
-    })
+    // ✅ FIX : Extraire l'ID si c'est un objet
+    const paymentIntentIdString =
+      typeof paymentIntentId === 'string'
+        ? paymentIntentId
+        : paymentIntentId?.id || null
 
-    const paymentIntentId = fullSession.payment_intent as string
-    const shippingAddress =
-      (fullSession as any).shipping_details?.address || null
+    const shippingAddress = fullSession.shipping_details?.address || null
     const customerName = fullSession.customer_details?.name || ''
 
     await supabaseAdmin
@@ -202,37 +343,20 @@ async function updateOrderStatus(orderId: string, session: any) {
         payment_status: 'paid',
         status: 'processing',
         paid_at: new Date().toISOString(),
-        payment_intent_id: paymentIntentId,
+        payment_intent_id: paymentIntentIdString,
         customer_name: customerName,
         shipping_address: shippingAddress,
       })
       .eq('id', orderId)
 
-    console.log('✅ Order status updated (items already existed)')
+    console.log('✅ Order updated (items already existed)')
   } catch (error) {
-    console.error('❌ Error updating order status:', error)
-  }
-}
-
-async function handlePaymentIntentSucceeded(paymentIntent: any) {
-  console.log('Payment intent succeeded:', paymentIntent.id)
-
-  const { error } = await supabaseAdmin
-    .from('orders')
-    .update({
-      payment_status: 'paid',
-      status: 'processing',
-      paid_at: new Date().toISOString(),
-    })
-    .eq('payment_intent_id', paymentIntent.id)
-
-  if (error) {
-    console.error('Error updating order on payment success:', error)
+    console.error('❌ Error updating order:', error)
   }
 }
 
 async function handlePaymentIntentFailed(paymentIntent: any) {
-  console.log('Payment intent failed:', paymentIntent.id)
+  console.log('\n❌ Payment intent failed:', paymentIntent.id)
 
   const { error } = await supabaseAdmin
     .from('orders')
@@ -244,6 +368,8 @@ async function handlePaymentIntentFailed(paymentIntent: any) {
     .eq('payment_intent_id', paymentIntent.id)
 
   if (error) {
-    console.error('Error updating order on payment failure:', error)
+    console.error('❌ Error updating order on payment failure:', error)
+  } else {
+    console.log('✅ Order marked as failed')
   }
 }

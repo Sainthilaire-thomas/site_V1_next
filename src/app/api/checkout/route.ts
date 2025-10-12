@@ -40,6 +40,17 @@ export async function POST(req: NextRequest) {
 
     console.log('🔍 Order number generated:', orderNumber)
 
+    console.log(
+      '🛒 Items bruts reçus du frontend:',
+      JSON.stringify(items, null, 2)
+    )
+    console.log(
+      '🔍 Premier item - clés disponibles:',
+      items[0] ? Object.keys(items[0]) : 'aucun item'
+    )
+    console.log('🔍 Premier item - productId:', items[0]?.productId)
+    console.log('🔍 Premier item - product_id:', items[0]?.product_id)
+
     // Créer les line items pour Stripe
     const lineItems = items.map((item: any) => {
       let productName = item.name || 'Product'
