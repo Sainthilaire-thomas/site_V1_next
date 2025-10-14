@@ -1,7 +1,6 @@
 // src/lib/email/order-shipped.tsx
 import {
   Body,
-  Button,
   Container,
   Head,
   Heading,
@@ -11,131 +10,99 @@ import {
   Preview,
   Section,
   Text,
+  Button,
   Hr,
 } from '@react-email/components'
-import * as React from 'react'
-
+import { EMAIL_CONFIG } from './utils'
 interface OrderShippedEmailProps {
   orderNumber: string
   customerName: string
   trackingNumber: string
   carrier: string
   trackingUrl: string
-  estimatedDelivery?: string
+  estimatedDelivery: string
 }
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-
 export const OrderShippedEmail = ({
-  orderNumber = 'BR-2025-0001',
-  customerName = 'Marie',
-  trackingNumber = '3SBRCP00012345',
-  carrier = 'Colissimo',
-  trackingUrl = 'https://www.laposte.fr/outils/suivre-vos-envois?code=3SBRCP00012345',
-  estimatedDelivery = 'mercredi 16 octobre',
+  orderNumber,
+  customerName,
+  trackingNumber,
+  carrier,
+  trackingUrl,
+  estimatedDelivery,
 }: OrderShippedEmailProps) => {
   return (
     <Html>
       <Head />
-      <Preview>Votre commande #{orderNumber} est en route</Preview>
+      <Preview>Your order {orderNumber} has been shipped</Preview>
       <Body style={main}>
         <Container style={container}>
+          {/* Logo */}
+           <Section
+                      style={{
+                        textAlign: 'center',
+                        marginBottom: '32px',
+                      }}
+                    >
+                      <Img
+                        src={EMAIL_CONFIG.logoUrl}
+                        width={EMAIL_CONFIG.logoWidth}
+                        height={EMAIL_CONFIG.logoHeight}
+                        alt={EMAIL_CONFIG.brandName}
+                        style={{ margin: '0 auto' }}
+                      />
+                    </Section>
+
           {/* Header */}
           <Section style={header}>
-            <Img
-              src={`${baseUrl}/logo-blancherenaudin.png`}
-              width="200"
-              alt="Blanche Renaudin"
-              style={logo}
-            />
-          </Section>
-
-          {/* Message principal */}
-          <Heading style={h1}>Bonne nouvelle {customerName} !</Heading>
-          <Text style={text}>
-            Votre commande est en route et sera bientôt entre vos mains.
-          </Text>
-
-          {/* Numéro de commande */}
-          <Section style={orderNumberSection}>
-            <Text style={orderNumberLabel}>Numéro de commande</Text>
-            <Text style={orderNumberValue}>#{orderNumber}</Text>
-          </Section>
-
-          <Hr style={hr} />
-
-          {/* Informations de suivi */}
-          <Section style={trackingSection}>
-            <Heading as="h2" style={h2}>
-              Informations de suivi
-            </Heading>
-
-            <table style={trackingTable}>
-              <tr>
-                <td style={trackingLabel}>Transporteur</td>
-                <td style={trackingValue}>{carrier}</td>
-              </tr>
-              <tr>
-                <td style={trackingLabel}>Numéro de suivi</td>
-                <td style={trackingValue}>{trackingNumber}</td>
-              </tr>
-              {estimatedDelivery && (
-                <tr>
-                  <td style={trackingLabel}>Livraison estimée</td>
-                  <td style={trackingValue}>{estimatedDelivery}</td>
-                </tr>
-              )}
-            </table>
-
-            {/* CTA Tracking */}
-            <Section style={ctaSection}>
-              <Button style={button} href={trackingUrl}>
-                Suivre mon colis
-              </Button>
-            </Section>
-          </Section>
-
-          <Hr style={hr} />
-
-          {/* Conseils */}
-          <Section>
-            <Heading as="h2" style={h2}>
-              À savoir
-            </Heading>
-            <Text style={bulletPoint}>
-              • Vous recevrez un email lorsque votre colis sera livré
-            </Text>
-            <Text style={bulletPoint}>
-              • Le transporteur peut demander une signature à la livraison
-            </Text>
-            <Text style={bulletPoint}>
-              • En cas d'absence, un avis de passage sera déposé
+            <Heading style={h1}>Your order is on its way!</Heading>
+            <Text style={subtitle}>
+              Hi {customerName}, your order has been shipped.
             </Text>
           </Section>
 
-          <Hr style={hr} />
+          {/* Order info */}
+          <Section style={infoBox}>
+            <Text style={infoLabel}>Order number</Text>
+            <Text style={infoValue}>#{orderNumber}</Text>
 
-          {/* Questions */}
-          <Section style={questionSection}>
-            <Text style={questionText}>Une question sur votre livraison ?</Text>
-            <Link href={`${baseUrl}/contact`} style={link}>
-              Contactez notre service client
-            </Link>
+            <Hr style={infoHr} />
+
+            <Text style={infoLabel}>Tracking number</Text>
+            <Text style={infoValue}>{trackingNumber}</Text>
+
+            <Hr style={infoHr} />
+
+            <Text style={infoLabel}>Carrier</Text>
+            <Text style={infoValue}>{carrier}</Text>
+
+            <Hr style={infoHr} />
+
+            <Text style={infoLabel}>Estimated delivery</Text>
+            <Text style={infoValue}>{estimatedDelivery}</Text>
           </Section>
+
+          {/* CTA */}
+          <Section style={ctaSection}>
+            <Button href={trackingUrl} style={button}>
+              Track your package
+            </Button>
+          </Section>
+
+          <Hr style={hr} />
 
           {/* Footer */}
           <Section style={footer}>
             <Text style={footerText}>
-              <Link href={`${baseUrl}/account/orders`} style={link}>
-                Mes commandes
-              </Link>
-              {' · '}
-              <Link href={`${baseUrl}/shipping`} style={link}>
-                Politique de livraison
+              Questions?{' '}
+              <Link href="mailto:contact@blancherenaudin.com" style={link}>
+                Contact us
               </Link>
             </Text>
-            <Text style={footerTextSmall}>
-              © 2025 Blanche Renaudin. Tous droits réservés.
+            <Text style={footerText}>
+              <Link href="https://blancherenaudin.com" style={link}>
+                blancherenaudin.com
+              </Link>
             </Text>
           </Section>
         </Container>
@@ -143,8 +110,6 @@ export const OrderShippedEmail = ({
     </Html>
   )
 }
-
-export default OrderShippedEmail
 
 // Styles
 const main = {
@@ -155,168 +120,98 @@ const main = {
 
 const container = {
   margin: '0 auto',
-  padding: '20px 0 48px',
+  padding: '40px 20px',
   maxWidth: '600px',
 }
 
-const header = {
+const logoSection = {
   textAlign: 'center' as const,
-  padding: '32px 0',
+  marginBottom: '32px',
 }
 
 const logo = {
   margin: '0 auto',
 }
 
+const header = {
+  textAlign: 'center' as const,
+  marginBottom: '32px',
+}
+
 const h1 = {
   color: '#000000',
   fontSize: '32px',
   fontWeight: '700',
-  letterSpacing: '-0.5px',
-  lineHeight: '1.2',
-  margin: '16px 0',
-  padding: '0',
-  textAlign: 'center' as const,
-}
-
-const h2 = {
-  color: '#000000',
-  fontSize: '20px',
-  fontWeight: '600',
-  letterSpacing: '0',
-  lineHeight: '1.3',
-  margin: '24px 0 16px',
-  padding: '0',
-}
-
-const text = {
-  color: '#333333',
-  fontSize: '16px',
-  lineHeight: '1.6',
-  margin: '0 0 16px',
-  textAlign: 'center' as const,
-}
-
-const orderNumberSection = {
-  backgroundColor: '#f8f8f8',
-  borderRadius: '8px',
-  padding: '24px',
-  textAlign: 'center' as const,
-  margin: '24px 0',
-}
-
-const orderNumberLabel = {
-  color: '#666666',
-  fontSize: '12px',
-  fontWeight: '500',
-  letterSpacing: '0.5px',
   margin: '0 0 8px',
-  textTransform: 'uppercase' as const,
+  lineHeight: '1.2',
 }
 
-const orderNumberValue = {
-  color: '#000000',
-  fontSize: '24px',
-  fontWeight: '700',
-  letterSpacing: '0.5px',
+const subtitle = {
+  color: '#666666',
+  fontSize: '16px',
+  lineHeight: '1.5',
   margin: '0',
 }
 
-const hr = {
-  borderColor: '#e6e6e6',
-  borderStyle: 'solid',
-  borderWidth: '1px',
-  margin: '32px 0',
-}
-
-const trackingSection = {
-  backgroundColor: '#f8f8f8',
+const infoBox = {
+  backgroundColor: '#f5f5f5',
   borderRadius: '8px',
   padding: '24px',
-  margin: '24px 0',
-}
-
-const trackingTable = {
-  width: '100%',
   marginBottom: '24px',
 }
 
-const trackingLabel = {
+const infoLabel = {
   color: '#666666',
-  fontSize: '14px',
-  lineHeight: '1.6',
-  padding: '8px 0',
-  width: '150px',
+  fontSize: '12px',
+  fontWeight: '600',
+  textTransform: 'uppercase' as const,
+  letterSpacing: '1px',
+  margin: '0 0 4px',
 }
 
-const trackingValue = {
+const infoValue = {
   color: '#000000',
-  fontSize: '14px',
-  fontWeight: '600',
-  lineHeight: '1.6',
-  padding: '8px 0',
+  fontSize: '16px',
+  fontWeight: '500',
+  margin: '0',
+}
+
+const infoHr = {
+  borderColor: '#e5e5e5',
+  margin: '16px 0',
 }
 
 const ctaSection = {
   textAlign: 'center' as const,
-  margin: '16px 0 0',
+  marginBottom: '32px',
 }
 
 const button = {
   backgroundColor: '#000000',
-  borderRadius: '4px',
+  borderRadius: '6px',
   color: '#ffffff',
-  fontSize: '14px',
-  fontWeight: '600',
-  letterSpacing: '0.5px',
-  lineHeight: '1',
-  padding: '16px 32px',
-  textDecoration: 'none',
-  textTransform: 'uppercase' as const,
-  display: 'inline-block',
-}
-
-const bulletPoint = {
-  color: '#333333',
-  fontSize: '14px',
-  lineHeight: '1.8',
-  margin: '8px 0',
-  paddingLeft: '8px',
-}
-
-const questionSection = {
-  textAlign: 'center' as const,
-  padding: '24px',
-  backgroundColor: '#f8f8f8',
-  borderRadius: '8px',
-}
-
-const questionText = {
-  color: '#333333',
   fontSize: '16px',
-  fontWeight: '500',
-  margin: '0 0 12px',
+  fontWeight: '600',
+  textDecoration: 'none',
+  textAlign: 'center' as const,
+  display: 'inline-block',
+  padding: '12px 32px',
+}
+
+const hr = {
+  borderColor: '#e5e5e5',
+  margin: '32px 0',
 }
 
 const footer = {
-  borderTop: '1px solid #e6e6e6',
-  marginTop: '32px',
-  paddingTop: '32px',
   textAlign: 'center' as const,
 }
 
 const footerText = {
-  color: '#666666',
-  fontSize: '14px',
-  lineHeight: '1.6',
-  margin: '0 0 8px',
-}
-
-const footerTextSmall = {
   color: '#999999',
   fontSize: '12px',
-  lineHeight: '1.6',
-  margin: '16px 0 0',
+  lineHeight: '1.5',
+  margin: '4px 0',
 }
 
 const link = {

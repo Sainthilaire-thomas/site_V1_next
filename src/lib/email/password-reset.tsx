@@ -1,7 +1,6 @@
 // src/lib/email/password-reset.tsx
 import {
   Body,
-  Button,
   Container,
   Head,
   Heading,
@@ -11,94 +10,87 @@ import {
   Preview,
   Section,
   Text,
+  Button,
   Hr,
 } from '@react-email/components'
-import * as React from 'react'
-
+import { EMAIL_CONFIG } from './utils'
 interface PasswordResetEmailProps {
   resetUrl: string
   expiresIn: string
 }
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-
 export const PasswordResetEmail = ({
-  resetUrl = `${baseUrl}/auth/reset-password?token=example`,
-  expiresIn = '1 heure',
+  resetUrl,
+  expiresIn,
 }: PasswordResetEmailProps) => {
   return (
     <Html>
       <Head />
-      <Preview>Réinitialisez votre mot de passe</Preview>
+      <Preview>Reset your password</Preview>
       <Body style={main}>
         <Container style={container}>
+          {/* Logo */}
+           <Section
+                      style={{
+                        textAlign: 'center',
+                        marginBottom: '32px',
+                      }}
+                    >
+                      <Img
+                        src={EMAIL_CONFIG.logoUrl}
+                        width={EMAIL_CONFIG.logoWidth}
+                        height={EMAIL_CONFIG.logoHeight}
+                        alt={EMAIL_CONFIG.brandName}
+                        style={{ margin: '0 auto' }}
+                      />
+                    </Section>
+
           {/* Header */}
           <Section style={header}>
-            <Img
-              src={`${baseUrl}/logo-blancherenaudin.png`}
-              width="200"
-              alt="Blanche Renaudin"
-              style={logo}
-            />
+            <Heading style={h1}>Reset your password</Heading>
+            <Text style={subtitle}>You requested to reset your password</Text>
           </Section>
 
-          {/* Message principal */}
-          <Heading style={h1}>Réinitialiser votre mot de passe</Heading>
-          <Text style={text}>
-            Vous avez demandé à réinitialiser le mot de passe de votre compte
-            Blanche Renaudin.
-          </Text>
+          {/* Content */}
+          <Section style={content}>
+            <Text style={text}>
+              Click the button below to create a new password. This link will
+              expire in <strong>{expiresIn}</strong>.
+            </Text>
+            <Text style={text}>
+              If you didn't request a password reset, you can safely ignore this
+              email.
+            </Text>
+          </Section>
 
           {/* CTA */}
           <Section style={ctaSection}>
-            <Button style={button} href={resetUrl}>
-              Réinitialiser mon mot de passe
+            <Button href={resetUrl} style={button}>
+              Reset password
             </Button>
           </Section>
 
-          {/* Info */}
-          <Section style={infoSection}>
-            <Text style={infoText}>
-              Ce lien expirera dans <strong>{expiresIn}</strong>.
+          {/* Security notice */}
+          <Section style={noticeBox}>
+            <Text style={noticeText}>
+              🔒 For security reasons, never share this link with anyone.
             </Text>
-            <Text style={infoText}>
-              Si le bouton ne fonctionne pas, copiez et collez ce lien dans
-              votre navigateur :
-            </Text>
-            <Text style={linkText}>{resetUrl}</Text>
           </Section>
 
           <Hr style={hr} />
 
-          {/* Sécurité */}
-          <Section style={securitySection}>
-            <Heading as="h2" style={h2}>
-              Vous n'avez pas demandé cette réinitialisation ?
-            </Heading>
-            <Text style={securityText}>
-              Si vous n'avez pas demandé à réinitialiser votre mot de passe,
-              vous pouvez ignorer cet email en toute sécurité. Votre mot de
-              passe ne sera pas modifié.
-            </Text>
-            <Text style={securityText}>
-              Pour des raisons de sécurité, nous vous recommandons de ne jamais
-              partager votre mot de passe avec quiconque.
-            </Text>
-          </Section>
-
           {/* Footer */}
           <Section style={footer}>
             <Text style={footerText}>
-              <Link href={`${baseUrl}/contact`} style={link}>
-                Nous contacter
-              </Link>
-              {' · '}
-              <Link href={`${baseUrl}/privacy`} style={link}>
-                Confidentialité
+              Questions?{' '}
+              <Link href="mailto:contact@blancherenaudin.com" style={link}>
+                Contact us
               </Link>
             </Text>
-            <Text style={footerTextSmall}>
-              © 2025 Blanche Renaudin. Tous droits réservés.
+            <Text style={footerText}>
+              <Link href="https://blancherenaudin.com" style={link}>
+                blancherenaudin.com
+              </Link>
             </Text>
           </Section>
         </Container>
@@ -106,8 +98,6 @@ export const PasswordResetEmail = ({
     </Html>
   )
 }
-
-export default PasswordResetEmail
 
 // Styles
 const main = {
@@ -118,130 +108,96 @@ const main = {
 
 const container = {
   margin: '0 auto',
-  padding: '20px 0 48px',
+  padding: '40px 20px',
   maxWidth: '600px',
 }
 
-const header = {
+const logoSection = {
   textAlign: 'center' as const,
-  padding: '32px 0',
+  marginBottom: '32px',
 }
 
 const logo = {
   margin: '0 auto',
 }
 
+const header = {
+  textAlign: 'center' as const,
+  marginBottom: '32px',
+}
+
 const h1 = {
   color: '#000000',
   fontSize: '32px',
   fontWeight: '700',
-  letterSpacing: '-0.5px',
+  margin: '0 0 8px',
   lineHeight: '1.2',
-  margin: '16px 0',
-  padding: '0',
-  textAlign: 'center' as const,
 }
 
-const h2 = {
-  color: '#000000',
-  fontSize: '18px',
-  fontWeight: '600',
-  letterSpacing: '0',
-  lineHeight: '1.3',
-  margin: '24px 0 16px',
-  padding: '0',
+const subtitle = {
+  color: '#666666',
+  fontSize: '16px',
+  lineHeight: '1.5',
+  margin: '0',
+}
+
+const content = {
+  marginBottom: '32px',
 }
 
 const text = {
-  color: '#333333',
-  fontSize: '16px',
+  color: '#666666',
+  fontSize: '14px',
   lineHeight: '1.6',
   margin: '0 0 16px',
-  textAlign: 'center' as const,
 }
 
 const ctaSection = {
   textAlign: 'center' as const,
-  margin: '32px 0',
+  marginBottom: '24px',
 }
 
 const button = {
   backgroundColor: '#000000',
-  borderRadius: '4px',
+  borderRadius: '6px',
   color: '#ffffff',
-  fontSize: '14px',
+  fontSize: '16px',
   fontWeight: '600',
-  letterSpacing: '0.5px',
-  lineHeight: '1',
-  padding: '16px 32px',
   textDecoration: 'none',
-  textTransform: 'uppercase' as const,
+  textAlign: 'center' as const,
   display: 'inline-block',
+  padding: '12px 32px',
 }
 
-const infoSection = {
-  backgroundColor: '#f8f8f8',
+const noticeBox = {
+  backgroundColor: '#f5f5f5',
   borderRadius: '8px',
-  padding: '24px',
-  margin: '24px 0',
+  padding: '16px',
+  marginBottom: '32px',
 }
 
-const infoText = {
-  color: '#333333',
-  fontSize: '14px',
-  lineHeight: '1.6',
-  margin: '0 0 12px',
-}
-
-const linkText = {
+const noticeText = {
   color: '#666666',
-  fontSize: '12px',
-  lineHeight: '1.6',
+  fontSize: '13px',
+  lineHeight: '1.5',
   margin: '0',
-  wordBreak: 'break-all' as const,
+  textAlign: 'center' as const,
 }
 
 const hr = {
-  borderColor: '#e6e6e6',
-  borderStyle: 'solid',
-  borderWidth: '1px',
+  borderColor: '#e5e5e5',
   margin: '32px 0',
 }
 
-const securitySection = {
-  backgroundColor: '#fff9e6',
-  border: '1px solid #ffe066',
-  borderRadius: '8px',
-  padding: '24px',
-  margin: '24px 0',
-}
-
-const securityText = {
-  color: '#333333',
-  fontSize: '14px',
-  lineHeight: '1.6',
-  margin: '0 0 12px',
-}
-
 const footer = {
-  borderTop: '1px solid #e6e6e6',
-  marginTop: '32px',
-  paddingTop: '32px',
   textAlign: 'center' as const,
 }
 
 const footerText = {
-  color: '#666666',
-  fontSize: '14px',
-  lineHeight: '1.6',
-  margin: '0 0 8px',
-}
-
-const footerTextSmall = {
   color: '#999999',
   fontSize: '12px',
-  lineHeight: '1.6',
-  margin: '16px 0 0',
+  lineHeight: '1.5',
+  margin: '4px 0',
 }
 
 const link = {

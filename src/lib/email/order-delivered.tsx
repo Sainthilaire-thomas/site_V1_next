@@ -1,7 +1,6 @@
 // src/lib/email/order-delivered.tsx
 import {
   Body,
-  Button,
   Container,
   Head,
   Heading,
@@ -13,7 +12,7 @@ import {
   Text,
   Hr,
 } from '@react-email/components'
-import * as React from 'react'
+import { EMAIL_CONFIG } from './utils'
 
 interface OrderDeliveredEmailProps {
   orderNumber: string
@@ -21,107 +20,79 @@ interface OrderDeliveredEmailProps {
   deliveredAt: string
 }
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-
 export const OrderDeliveredEmail = ({
-  orderNumber = 'BR-2025-0001',
-  customerName = 'Marie',
-  deliveredAt = 'mercredi 16 octobre à 14h32',
+  orderNumber,
+  customerName,
+  deliveredAt,
 }: OrderDeliveredEmailProps) => {
   return (
     <Html>
       <Head />
-      <Preview>Votre commande #{orderNumber} a été livrée</Preview>
+      <Preview>Your order {orderNumber} has been delivered</Preview>
       <Body style={main}>
         <Container style={container}>
+          {/* Logo */}
+           <Section
+                      style={{
+                        textAlign: 'center',
+                        marginBottom: '32px',
+                      }}
+                    >
+                      <Img
+                        src={EMAIL_CONFIG.logoUrl}
+                        width={EMAIL_CONFIG.logoWidth}
+                        height={EMAIL_CONFIG.logoHeight}
+                        alt={EMAIL_CONFIG.brandName}
+                        style={{ margin: '0 auto' }}
+                      />
+                    </Section>
+
+          {/* Icon */}
+          <Section style={iconSection}>
+            <div style={iconCircle}>✓</div>
+          </Section>
+
           {/* Header */}
           <Section style={header}>
-            <Img
-              src={`${baseUrl}/logo-blancherenaudin.png`}
-              width="200"
-              alt="Blanche Renaudin"
-              style={logo}
-            />
+            <Heading style={h1}>Delivered!</Heading>
+            <Text style={subtitle}>
+              Hi {customerName}, your order has been successfully delivered.
+            </Text>
           </Section>
 
-          {/* Message principal */}
-          <Heading style={h1}>C'est arrivé {customerName} ! 🎉</Heading>
-          <Text style={text}>Votre commande a été livrée avec succès.</Text>
+          {/* Info */}
+          <Section style={infoBox}>
+            <Text style={infoLabel}>Order number</Text>
+            <Text style={infoValue}>#{orderNumber}</Text>
 
-          {/* Info livraison */}
-          <Section style={deliverySection}>
-            <Text style={deliveryLabel}>Livrée le</Text>
-            <Text style={deliveryValue}>{deliveredAt}</Text>
-            {/* ✅ CORRECTION ICI */}
-            <Text style={orderNumberStyle}>Commande #{orderNumber}</Text>
+            <Hr style={infoHr} />
+
+            <Text style={infoLabel}>Delivered on</Text>
+            <Text style={infoValue}>{deliveredAt}</Text>
+          </Section>
+
+          {/* Message */}
+          <Section style={messageSection}>
+            <Text style={message}>
+              We hope you love your new pieces! If you have any questions or
+              concerns, please don't hesitate to reach out to us.
+            </Text>
           </Section>
 
           <Hr style={hr} />
-
-          {/* Satisfait ? */}
-          <Section style={satisfactionSection}>
-            <Heading as="h2" style={h2}>
-              Satisfaite de votre achat ?
-            </Heading>
-            <Text style={satisfactionText}>
-              Nous serions ravis de connaître votre avis sur cette commande.
-              Votre retour nous aide à nous améliorer.
-            </Text>
-            <Section style={ctaSection}>
-              <Button
-                style={button}
-                href={`${baseUrl}/account/orders/${orderNumber}/review`}
-              >
-                Laisser un avis
-              </Button>
-            </Section>
-          </Section>
-
-          <Hr style={hr} />
-
-          {/* Retour */}
-          <Section>
-            <Heading as="h2" style={h2}>
-              Un problème avec votre commande ?
-            </Heading>
-            <Text style={returnText}>
-              Vous avez 30 jours pour retourner vos articles si vous n'êtes pas
-              entièrement satisfaite.
-            </Text>
-            <Section style={ctaSecondarySection}>
-              <Button style={buttonSecondary} href={`${baseUrl}/returns`}>
-                Retourner un article
-              </Button>
-            </Section>
-          </Section>
-
-          <Hr style={hr} />
-
-          {/* Partage */}
-          <Section style={shareSection}>
-            <Text style={shareText}>
-              Partagez votre style avec la communauté
-            </Text>
-            <Text style={shareHashtag}>#BlancheRenaudin</Text>
-          </Section>
 
           {/* Footer */}
           <Section style={footer}>
             <Text style={footerText}>
-              <Link href={`${baseUrl}/contact`} style={link}>
-                Nous contacter
-              </Link>
-              {' · '}
-              <Link href={`${baseUrl}/account/orders`} style={link}>
-                Mes commandes
-              </Link>
-              {' · '}
-              <Link href={`${baseUrl}/returns`} style={link}>
-                Retours
+              Questions?{' '}
+              <Link href="mailto:contact@blancherenaudin.com" style={link}>
+                Contact us
               </Link>
             </Text>
-            <Text style={footerTextSmall}>
-              © 2025 Blanche Renaudin. Tous droits réservés.
+            <Text style={footerText}>
+              <Link href="https://blancherenaudin.com" style={link}>
+                blancherenaudin.com
+              </Link>
             </Text>
           </Section>
         </Container>
@@ -129,8 +100,6 @@ export const OrderDeliveredEmail = ({
     </Html>
   )
 }
-
-export default OrderDeliveredEmail
 
 // Styles
 const main = {
@@ -141,188 +110,111 @@ const main = {
 
 const container = {
   margin: '0 auto',
-  padding: '20px 0 48px',
+  padding: '40px 20px',
   maxWidth: '600px',
 }
 
-const header = {
+const logoSection = {
   textAlign: 'center' as const,
-  padding: '32px 0',
+  marginBottom: '24px',
 }
 
 const logo = {
   margin: '0 auto',
 }
 
+const iconSection = {
+  textAlign: 'center' as const,
+  marginBottom: '24px',
+}
+
+const iconCircle = {
+  width: '64px',
+  height: '64px',
+  borderRadius: '50%',
+  backgroundColor: '#000000',
+  color: '#ffffff',
+  fontSize: '32px',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  margin: '0 auto',
+}
+
+const header = {
+  textAlign: 'center' as const,
+  marginBottom: '32px',
+}
+
 const h1 = {
   color: '#000000',
   fontSize: '32px',
   fontWeight: '700',
-  letterSpacing: '-0.5px',
+  margin: '0 0 8px',
   lineHeight: '1.2',
-  margin: '16px 0',
-  padding: '0',
-  textAlign: 'center' as const,
 }
 
-const h2 = {
-  color: '#000000',
-  fontSize: '20px',
-  fontWeight: '600',
-  letterSpacing: '0',
-  lineHeight: '1.3',
-  margin: '24px 0 16px',
-  padding: '0',
-  textAlign: 'center' as const,
-}
-
-const text = {
-  color: '#333333',
+const subtitle = {
+  color: '#666666',
   fontSize: '16px',
-  lineHeight: '1.6',
-  margin: '0 0 16px',
-  textAlign: 'center' as const,
+  lineHeight: '1.5',
+  margin: '0',
 }
 
-const deliverySection = {
-  backgroundColor: '#f0f8f0',
+const infoBox = {
+  backgroundColor: '#f5f5f5',
   borderRadius: '8px',
-  padding: '32px',
-  textAlign: 'center' as const,
-  margin: '24px 0',
+  padding: '24px',
+  marginBottom: '24px',
 }
 
-const deliveryLabel = {
+const infoLabel = {
   color: '#666666',
   fontSize: '12px',
-  fontWeight: '500',
-  letterSpacing: '0.5px',
-  margin: '0 0 8px',
+  fontWeight: '600',
   textTransform: 'uppercase' as const,
+  letterSpacing: '1px',
+  margin: '0 0 4px',
 }
 
-const deliveryValue = {
+const infoValue = {
   color: '#000000',
-  fontSize: '20px',
-  fontWeight: '700',
-  lineHeight: '1.3',
-  margin: '0 0 16px',
+  fontSize: '16px',
+  fontWeight: '500',
+  margin: '0',
 }
 
-// ✅ AJOUT DU STYLE MANQUANT
-const orderNumberStyle = {
+const infoHr = {
+  borderColor: '#e5e5e5',
+  margin: '16px 0',
+}
+
+const messageSection = {
+  marginBottom: '32px',
+}
+
+const message = {
   color: '#666666',
   fontSize: '14px',
+  lineHeight: '1.6',
   margin: '0',
+  textAlign: 'center' as const,
 }
 
 const hr = {
-  borderColor: '#e6e6e6',
-  borderStyle: 'solid',
-  borderWidth: '1px',
+  borderColor: '#e5e5e5',
   margin: '32px 0',
 }
 
-const satisfactionSection = {
-  textAlign: 'center' as const,
-}
-
-const satisfactionText = {
-  color: '#333333',
-  fontSize: '14px',
-  lineHeight: '1.6',
-  margin: '0 0 24px',
-  textAlign: 'center' as const,
-}
-
-const ctaSection = {
-  textAlign: 'center' as const,
-  margin: '24px 0',
-}
-
-const button = {
-  backgroundColor: '#000000',
-  borderRadius: '4px',
-  color: '#ffffff',
-  fontSize: '14px',
-  fontWeight: '600',
-  letterSpacing: '0.5px',
-  lineHeight: '1',
-  padding: '16px 32px',
-  textDecoration: 'none',
-  textTransform: 'uppercase' as const,
-  display: 'inline-block',
-}
-
-const returnText = {
-  color: '#333333',
-  fontSize: '14px',
-  lineHeight: '1.6',
-  margin: '0 0 24px',
-  textAlign: 'center' as const,
-}
-
-const ctaSecondarySection = {
-  textAlign: 'center' as const,
-  margin: '24px 0',
-}
-
-const buttonSecondary = {
-  backgroundColor: '#ffffff',
-  border: '2px solid #000000',
-  borderRadius: '4px',
-  color: '#000000',
-  fontSize: '14px',
-  fontWeight: '600',
-  letterSpacing: '0.5px',
-  lineHeight: '1',
-  padding: '14px 32px',
-  textDecoration: 'none',
-  textTransform: 'uppercase' as const,
-  display: 'inline-block',
-}
-
-const shareSection = {
-  textAlign: 'center' as const,
-  padding: '32px',
-  backgroundColor: '#f8f8f8',
-  borderRadius: '8px',
-}
-
-const shareText = {
-  color: '#333333',
-  fontSize: '16px',
-  fontWeight: '500',
-  margin: '0 0 8px',
-}
-
-const shareHashtag = {
-  color: '#000000',
-  fontSize: '20px',
-  fontWeight: '700',
-  letterSpacing: '0.5px',
-  margin: '0',
-}
-
 const footer = {
-  borderTop: '1px solid #e6e6e6',
-  marginTop: '32px',
-  paddingTop: '32px',
   textAlign: 'center' as const,
 }
 
 const footerText = {
-  color: '#666666',
-  fontSize: '14px',
-  lineHeight: '1.6',
-  margin: '0 0 8px',
-}
-
-const footerTextSmall = {
   color: '#999999',
   fontSize: '12px',
-  lineHeight: '1.6',
-  margin: '16px 0 0',
+  lineHeight: '1.5',
+  margin: '4px 0',
 }
 
 const link = {

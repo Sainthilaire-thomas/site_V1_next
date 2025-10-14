@@ -1,7 +1,6 @@
 // src/lib/email/order-confirmation.tsx
 import {
   Body,
-  Button,
   Container,
   Head,
   Heading,
@@ -13,8 +12,7 @@ import {
   Text,
   Hr,
 } from '@react-email/components'
-import * as React from 'react'
-
+import { EMAIL_CONFIG } from './utils'
 interface OrderConfirmationEmailProps {
   orderNumber: string
   customerName: string
@@ -36,131 +34,322 @@ interface OrderConfirmationEmailProps {
   }
 }
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-
 export const OrderConfirmationEmail = ({
-  orderNumber = 'BR-2025-0001',
-  customerName = 'Marie',
-  items = [
-    {
-      name: 'Robe longue noire',
-      quantity: 1,
-      price: 29500,
-      imageUrl: undefined,
-    },
-  ],
-  subtotal = 29500,
-  shipping = 0,
-  total = 29500,
-  shippingAddress = {
-    line1: '123 rue de la Mode',
-    city: 'Paris',
-    postalCode: '75001',
-    country: 'France',
-  },
+  orderNumber,
+  customerName,
+  items,
+  subtotal,
+  shipping,
+  total,
+  shippingAddress,
 }: OrderConfirmationEmailProps) => {
-  const formatPrice = (cents: number) => {
-    return new Intl.NumberFormat('fr-FR', {
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'EUR',
-    }).format(cents / 100)
+    }).format(price / 100)
   }
 
   return (
     <Html>
       <Head />
-      <Preview>Merci pour votre commande #{orderNumber}</Preview>
-      <Body style={main}>
-        <Container style={container}>
-          {/* Header avec logo */}
-          <Section style={header}>
+      <Preview>Thank you for your order {orderNumber}</Preview>
+      <Body
+        style={{
+          backgroundColor: '#ffffff',
+          fontFamily:
+            '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
+        }}
+      >
+        <Container
+          style={{
+            margin: '0 auto',
+            padding: '40px 20px',
+            maxWidth: '600px',
+          }}
+        >
+          {/* Logo */}
+          <Section
+            style={{
+              textAlign: 'center',
+              marginBottom: '32px',
+            }}
+          >
             <Img
-              src={`${baseUrl}/logo-blancherenaudin.png`}
-              width="200"
-              alt="Blanche Renaudin"
-              style={logo}
+              src={EMAIL_CONFIG.logoUrl}
+              width={EMAIL_CONFIG.logoWidth}
+              height={EMAIL_CONFIG.logoHeight}
+              alt={EMAIL_CONFIG.brandName}
+              style={{ margin: '0 auto' }}
             />
           </Section>
 
-          {/* Message principal */}
-          <Heading style={h1}>Merci {customerName}</Heading>
-          <Text style={text}>
-            Votre commande a été confirmée et sera bientôt expédiée.
-          </Text>
-
-          {/* Numéro de commande */}
-          <Section style={orderNumberSection}>
-            <Text style={orderNumberLabel}>Numéro de commande</Text>
-            <Text style={orderNumberValue}>#{orderNumber}</Text>
+          {/* Header */}
+          <Section
+            style={{
+              textAlign: 'center',
+              marginBottom: '32px',
+            }}
+          >
+            <Heading
+              style={{
+                color: '#000000',
+                fontSize: '32px',
+                fontWeight: '700',
+                margin: '0 0 8px',
+                padding: '0',
+                lineHeight: '1.2',
+              }}
+            >
+              Thank you {customerName}
+            </Heading>
+            <Text
+              style={{
+                color: '#666666',
+                fontSize: '16px',
+                lineHeight: '1.5',
+                margin: '0',
+              }}
+            >
+              Your order has been confirmed and will be shipped soon.
+            </Text>
           </Section>
 
-          <Hr style={hr} />
+          {/* Order number */}
+          <Section
+            style={{
+              textAlign: 'center',
+              padding: '24px',
+              backgroundColor: '#f5f5f5',
+              borderRadius: '8px',
+              marginBottom: '32px',
+            }}
+          >
+            <Text
+              style={{
+                color: '#666666',
+                fontSize: '12px',
+                fontWeight: '600',
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                margin: '0 0 4px',
+              }}
+            >
+              ORDER NUMBER
+            </Text>
+            <Text
+              style={{
+                color: '#000000',
+                fontSize: '24px',
+                fontWeight: '700',
+                margin: '0',
+              }}
+            >
+              #{orderNumber}
+            </Text>
+          </Section>
 
-          {/* Articles commandés */}
+          <Hr style={{ borderColor: '#e5e5e5', margin: '32px 0' }} />
+
+          {/* Items */}
           <Section>
-            <Heading as="h2" style={h2}>
-              Votre commande
+            <Heading
+              as="h2"
+              style={{
+                color: '#000000',
+                fontSize: '20px',
+                fontWeight: '600',
+                margin: '0 0 16px',
+              }}
+            >
+              Your order
             </Heading>
             {items.map((item, index) => (
-              <Section key={index} style={itemSection}>
-                <table style={itemTable}>
-                  <tr>
-                    {item.imageUrl && (
-                      <td style={itemImageCell}>
-                        <Img
-                          src={item.imageUrl}
-                          width="80"
-                          height="80"
-                          alt={item.name}
-                          style={itemImage}
-                        />
+              <Section key={index} style={{ marginBottom: '16px' }}>
+                <table
+                  style={{
+                    width: '100%',
+                    padding: '16px',
+                    border: '1px solid #e5e5e5',
+                    borderRadius: '8px',
+                  }}
+                >
+                  <tbody>
+                    <tr>
+                      {item.imageUrl && (
+                        <td
+                          style={{
+                            width: '80px',
+                            paddingRight: '16px',
+                          }}
+                        >
+                          <Img
+                            src={item.imageUrl}
+                            width="80"
+                            height="80"
+                            alt={item.name}
+                            style={{ borderRadius: '4px' }}
+                          />
+                        </td>
+                      )}
+                      <td style={{ verticalAlign: 'middle' }}>
+                        <Text
+                          style={{
+                            color: '#000000',
+                            fontSize: '16px',
+                            fontWeight: '500',
+                            margin: '0 0 4px',
+                          }}
+                        >
+                          {item.name}
+                        </Text>
+                        <Text
+                          style={{
+                            color: '#666666',
+                            fontSize: '14px',
+                            margin: '0',
+                          }}
+                        >
+                          Quantity: {item.quantity}
+                        </Text>
                       </td>
-                    )}
-                    <td style={itemDetailsCell}>
-                      <Text style={itemName}>{item.name}</Text>
-                      <Text style={itemQuantity}>
-                        Quantité: {item.quantity}
-                      </Text>
-                    </td>
-                    <td style={itemPriceCell}>
-                      <Text style={itemPrice}>{formatPrice(item.price)}</Text>
-                    </td>
-                  </tr>
+                      <td
+                        style={{
+                          verticalAlign: 'middle',
+                          textAlign: 'right',
+                          width: '100px',
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: '#000000',
+                            fontSize: '16px',
+                            fontWeight: '600',
+                            margin: '0',
+                          }}
+                        >
+                          {formatPrice(item.price)}
+                        </Text>
+                      </td>
+                    </tr>
+                  </tbody>
                 </table>
               </Section>
             ))}
           </Section>
 
-          <Hr style={hr} />
+          <Hr style={{ borderColor: '#e5e5e5', margin: '32px 0' }} />
 
-          {/* Totaux */}
-          <Section style={totalsSection}>
-            <table style={totalsTable}>
-              <tr>
-                <td style={totalLabel}>Sous-total</td>
-                <td style={totalValue}>{formatPrice(subtotal)}</td>
-              </tr>
-              <tr>
-                <td style={totalLabel}>Livraison</td>
-                <td style={totalValue}>
-                  {shipping === 0 ? 'Gratuite' : formatPrice(shipping)}
-                </td>
-              </tr>
-              <tr>
-                <td style={totalLabelBold}>Total</td>
-                <td style={totalValueBold}>{formatPrice(total)}</td>
-              </tr>
+          {/* Totals */}
+          <Section style={{ marginTop: '24px' }}>
+            <table style={{ width: '100%' }}>
+              <tbody>
+                <tr>
+                  <td>
+                    <Text
+                      style={{
+                        color: '#666666',
+                        fontSize: '14px',
+                        margin: '0',
+                      }}
+                    >
+                      Subtotal
+                    </Text>
+                  </td>
+                  <td align="right">
+                    <Text
+                      style={{
+                        color: '#000000',
+                        fontSize: '14px',
+                        margin: '0',
+                      }}
+                    >
+                      {formatPrice(subtotal)}
+                    </Text>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <Text
+                      style={{
+                        color: '#666666',
+                        fontSize: '14px',
+                        margin: '0',
+                      }}
+                    >
+                      Shipping
+                    </Text>
+                  </td>
+                  <td align="right">
+                    <Text
+                      style={{
+                        color: '#000000',
+                        fontSize: '14px',
+                        margin: '0',
+                      }}
+                    >
+                      {shipping === 0 ? 'Free' : formatPrice(shipping)}
+                    </Text>
+                  </td>
+                </tr>
+                <tr>
+                  <td colSpan={2}>
+                    <Hr style={{ borderColor: '#e5e5e5', margin: '16px 0' }} />
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <Text
+                      style={{
+                        color: '#000000',
+                        fontSize: '16px',
+                        fontWeight: '700',
+                        margin: '0',
+                      }}
+                    >
+                      Total
+                    </Text>
+                  </td>
+                  <td align="right">
+                    <Text
+                      style={{
+                        color: '#000000',
+                        fontSize: '16px',
+                        fontWeight: '700',
+                        margin: '0',
+                      }}
+                    >
+                      {formatPrice(total)}
+                    </Text>
+                  </td>
+                </tr>
+              </tbody>
             </table>
           </Section>
 
-          <Hr style={hr} />
+          <Hr style={{ borderColor: '#e5e5e5', margin: '32px 0' }} />
 
-          {/* Adresse de livraison */}
+          {/* Shipping address */}
           <Section>
-            <Heading as="h2" style={h2}>
-              Adresse de livraison
+            <Heading
+              as="h2"
+              style={{
+                color: '#000000',
+                fontSize: '20px',
+                fontWeight: '600',
+                margin: '0 0 16px',
+              }}
+            >
+              Shipping address
             </Heading>
-            <Text style={address}>
+            <Text
+              style={{
+                color: '#666666',
+                fontSize: '14px',
+                lineHeight: '1.6',
+                margin: '0',
+              }}
+            >
               {shippingAddress.line1}
               {shippingAddress.line2 && (
                 <>
@@ -175,268 +364,55 @@ export const OrderConfirmationEmail = ({
             </Text>
           </Section>
 
-          <Hr style={hr} />
-
-          {/* CTA */}
-          <Section style={ctaSection}>
-            <Button style={button} href={`${baseUrl}/account/orders`}>
-              Suivre ma commande
-            </Button>
-          </Section>
+          <Hr style={{ borderColor: '#e5e5e5', margin: '32px 0' }} />
 
           {/* Footer */}
-          <Section style={footer}>
-            <Text style={footerText}>
-              Vous avez des questions ?{' '}
-              <Link href={`${baseUrl}/contact`} style={link}>
-                Contactez-nous
+          <Section
+            style={{
+              textAlign: 'center',
+              marginTop: '32px',
+            }}
+          >
+            <Text
+              style={{
+                color: '#999999',
+                fontSize: '12px',
+                lineHeight: '1.5',
+                margin: '4px 0',
+              }}
+            >
+              Questions?{' '}
+              <Link
+                href="mailto:contact@blancherenaudin.com"
+                style={{
+                  color: '#000000',
+                  textDecoration: 'underline',
+                }}
+              >
+                Contact us
               </Link>
             </Text>
-            <Text style={footerText}>
-              <Link href={`${baseUrl}/returns`} style={link}>
-                Politique de retour
+            <Text
+              style={{
+                color: '#999999',
+                fontSize: '12px',
+                lineHeight: '1.5',
+                margin: '4px 0',
+              }}
+            >
+              <Link
+                href="https://blancherenaudin.com"
+                style={{
+                  color: '#000000',
+                  textDecoration: 'underline',
+                }}
+              >
+                blancherenaudin.com
               </Link>
-              {' · '}
-              <Link href={`${baseUrl}/shipping`} style={link}>
-                Livraison
-              </Link>
-            </Text>
-            <Text style={footerTextSmall}>
-              © 2025 Blanche Renaudin. Tous droits réservés.
             </Text>
           </Section>
         </Container>
       </Body>
     </Html>
   )
-}
-
-export default OrderConfirmationEmail
-
-// Styles inspirés de Jacquemus - minimaliste et élégant
-const main = {
-  backgroundColor: '#ffffff',
-  fontFamily:
-    '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
-}
-
-const container = {
-  margin: '0 auto',
-  padding: '20px 0 48px',
-  maxWidth: '600px',
-}
-
-const header = {
-  textAlign: 'center' as const,
-  padding: '32px 0',
-}
-
-const logo = {
-  margin: '0 auto',
-}
-
-const h1 = {
-  color: '#000000',
-  fontSize: '32px',
-  fontWeight: '700',
-  letterSpacing: '-0.5px',
-  lineHeight: '1.2',
-  margin: '16px 0',
-  padding: '0',
-  textAlign: 'center' as const,
-}
-
-const h2 = {
-  color: '#000000',
-  fontSize: '20px',
-  fontWeight: '600',
-  letterSpacing: '0',
-  lineHeight: '1.3',
-  margin: '24px 0 16px',
-  padding: '0',
-}
-
-const text = {
-  color: '#333333',
-  fontSize: '16px',
-  lineHeight: '1.6',
-  margin: '0 0 16px',
-  textAlign: 'center' as const,
-}
-
-const orderNumberSection = {
-  backgroundColor: '#f8f8f8',
-  borderRadius: '8px',
-  padding: '24px',
-  textAlign: 'center' as const,
-  margin: '24px 0',
-}
-
-const orderNumberLabel = {
-  color: '#666666',
-  fontSize: '12px',
-  fontWeight: '500',
-  letterSpacing: '0.5px',
-  margin: '0 0 8px',
-  textTransform: 'uppercase' as const,
-}
-
-const orderNumberValue = {
-  color: '#000000',
-  fontSize: '24px',
-  fontWeight: '700',
-  letterSpacing: '0.5px',
-  margin: '0',
-}
-
-const hr = {
-  borderColor: '#e6e6e6',
-  borderStyle: 'solid',
-  borderWidth: '1px',
-  margin: '32px 0',
-}
-
-const itemSection = {
-  margin: '16px 0',
-}
-
-const itemTable = {
-  width: '100%',
-}
-
-const itemImageCell = {
-  width: '80px',
-  paddingRight: '16px',
-  verticalAlign: 'top' as const,
-}
-
-const itemImage = {
-  borderRadius: '4px',
-  objectFit: 'cover' as const,
-}
-
-const itemDetailsCell = {
-  verticalAlign: 'top' as const,
-}
-
-const itemName = {
-  color: '#000000',
-  fontSize: '16px',
-  fontWeight: '500',
-  lineHeight: '1.4',
-  margin: '0 0 4px',
-}
-
-const itemQuantity = {
-  color: '#666666',
-  fontSize: '14px',
-  lineHeight: '1.4',
-  margin: '0',
-}
-
-const itemPriceCell = {
-  textAlign: 'right' as const,
-  verticalAlign: 'top' as const,
-  paddingLeft: '16px',
-}
-
-const itemPrice = {
-  color: '#000000',
-  fontSize: '16px',
-  fontWeight: '600',
-  lineHeight: '1.4',
-  margin: '0',
-  whiteSpace: 'nowrap' as const,
-}
-
-const totalsSection = {
-  margin: '24px 0',
-}
-
-const totalsTable = {
-  width: '100%',
-  borderCollapse: 'collapse' as const,
-}
-
-const totalLabel = {
-  color: '#666666',
-  fontSize: '14px',
-  lineHeight: '1.6',
-  padding: '8px 0',
-  textAlign: 'left' as const,
-}
-
-const totalValue = {
-  color: '#000000',
-  fontSize: '14px',
-  lineHeight: '1.6',
-  padding: '8px 0',
-  textAlign: 'right' as const,
-}
-
-const totalLabelBold = {
-  ...totalLabel,
-  color: '#000000',
-  fontSize: '16px',
-  fontWeight: '600',
-  paddingTop: '16px',
-}
-
-const totalValueBold = {
-  ...totalValue,
-  fontSize: '18px',
-  fontWeight: '700',
-  paddingTop: '16px',
-}
-
-const address = {
-  color: '#333333',
-  fontSize: '14px',
-  lineHeight: '1.6',
-  margin: '0',
-}
-
-const ctaSection = {
-  textAlign: 'center' as const,
-  margin: '32px 0',
-}
-
-const button = {
-  backgroundColor: '#000000',
-  borderRadius: '4px',
-  color: '#ffffff',
-  fontSize: '14px',
-  fontWeight: '600',
-  letterSpacing: '0.5px',
-  lineHeight: '1',
-  padding: '16px 32px',
-  textDecoration: 'none',
-  textTransform: 'uppercase' as const,
-  display: 'inline-block',
-}
-
-const footer = {
-  borderTop: '1px solid #e6e6e6',
-  marginTop: '32px',
-  paddingTop: '32px',
-  textAlign: 'center' as const,
-}
-
-const footerText = {
-  color: '#666666',
-  fontSize: '14px',
-  lineHeight: '1.6',
-  margin: '0 0 8px',
-}
-
-const footerTextSmall = {
-  color: '#999999',
-  fontSize: '12px',
-  lineHeight: '1.6',
-  margin: '16px 0 0',
-}
-
-const link = {
-  color: '#000000',
-  textDecoration: 'underline',
 }
