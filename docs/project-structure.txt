@@ -3,16 +3,20 @@
 ║                          ARBORESCENCE DU PROJET                             ║
 ║                                                                              ║
 ║  Projet: site_v1_next                                                    ║
-║  Généré: 09/10/2025 16:07:11                                            ║
+║  Généré: 12/10/2025 21:06:24                                            ║
 ║                                                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 🌳 Structure du projet :
 
 📁 site_v1_next
+├── 📁 .vercel
+│   ├── 📋 project.json
+│   └── 📄 README.txt
 ├── 📁 .vscode
 │   └── 📋 tasks.json
 ├── 📁 docs
+│   ├── 📝 config-stripe-production.md
 │   ├── 📝 description-projet.md
 │   ├── 📝 elements-desing-brouillon-blanche.md
 │   ├── 📝 etats-des-lieux-admin-photos.md
@@ -22,6 +26,8 @@
 │   ├── 📝 installation-sanity.md
 │   ├── 📝 interface-admin-supabase.md
 │   ├── 📝 mep-module-client-admin.md
+│   ├── 📝 mep-stripe.md
+│   ├── 📝 point-etape-9-oct-2025.md
 │   ├── 📄 project-structure.txt
 │   ├── 📝 refonte-type-jacquemus.md
 │   ├── 📝 roadmap-site.md
@@ -149,6 +155,8 @@
 │   │   │   ├── 📁 auth
 │   │   │   │   └── 📁 ensure-profile
 │   │   │   │       └── 🔷 route.ts
+│   │   │   ├── 📁 checkout
+│   │   │   │   └── 🔷 route.ts
 │   │   │   ├── 📁 collections
 │   │   │   │   ├── 📁 [slug]
 │   │   │   │   │   └── 🔷 route.ts
@@ -172,6 +180,9 @@
 │   │   ├── 📁 cart
 │   │   │   └── 🔷 page.tsx
 │   │   ├── 📁 checkout
+│   │   │   ├── 📁 success
+│   │   │   │   ├── 🔷 CheckoutSuccessContent.tsx
+│   │   │   │   └── 🔷 page.tsx
 │   │   │   └── 🔷 page.tsx
 │   │   ├── 📁 collections
 │   │   │   ├── 📁 [slug]
@@ -187,10 +198,6 @@
 │   │   ├── 📁 impact
 │   │   │   └── 🔷 page.tsx
 │   │   ├── 📁 legal-notice
-│   │   │   └── 🔷 page.tsx
-│   │   ├── 📁 lookbooks
-│   │   │   ├── 📁 [slug]
-│   │   │   │   └── 🔷 page.tsx
 │   │   │   └── 🔷 page.tsx
 │   │   ├── 📁 privacy
 │   │   │   └── 🔷 page.tsx
@@ -375,8 +382,8 @@
 
 
 📈 Statistiques :
-   • Dossiers : 111
-   • Fichiers : 219
-   • Total : 330 éléments
+   • Dossiers : 112
+   • Fichiers : 221
+   • Total : 333 éléments
 
 💡 Généré automatiquement - Ne pas modifier manuellement
