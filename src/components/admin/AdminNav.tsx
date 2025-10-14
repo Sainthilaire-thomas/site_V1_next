@@ -45,6 +45,16 @@ export function AdminNav() {
       >
         Clients
       </Link>
+      <Link
+        href="/admin/email-preview"
+        className={`px-3 py-2 rounded transition-colors ${
+          pathname.startsWith('/admin/customers')
+            ? 'bg-violet text-white'
+            : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+        }`}
+      >
+        Emails preview
+      </Link>
     </nav>
   )
 }

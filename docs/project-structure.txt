@@ -3,7 +3,7 @@
 ║                          ARBORESCENCE DU PROJET                             ║
 ║                                                                              ║
 ║  Projet: site_v1_next                                                    ║
-║  Généré: 12/10/2025 21:06:24                                            ║
+║  Généré: 14/10/2025 16:32:31                                            ║
 ║                                                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -20,6 +20,7 @@
 │   ├── 📝 description-projet.md
 │   ├── 📝 elements-desing-brouillon-blanche.md
 │   ├── 📝 etats-des-lieux-admin-photos.md
+│   ├── 📝 gestion-automatique-stock.md
 │   ├── 📝 gestion-images.md
 │   ├── 📝 guide-dev-fonctions-etendues-photos.md
 │   ├── 📝 installation-module-image.md
@@ -29,7 +30,6 @@
 │   ├── 📝 mep-stripe.md
 │   ├── 📝 point-etape-9-oct-2025.md
 │   ├── 📄 project-structure.txt
-│   ├── 📝 refonte-type-jacquemus.md
 │   ├── 📝 roadmap-site.md
 │   ├── 📝 supabase-desc.md
 │   └── 📝 systeme-gestion-commandes.md
@@ -90,6 +90,8 @@
 │   │   │   │   │   └── 🔷 page.tsx
 │   │   │   │   ├── 🔷 CustomersClient.tsx
 │   │   │   │   └── 🔷 page.tsx
+│   │   │   ├── 📁 email-preview
+│   │   │   │   └── 🔷 page.tsx
 │   │   │   ├── 📁 media
 │   │   │   │   ├── 🔷 BreadcrumbProvider.tsx
 │   │   │   │   ├── 🔷 MediaGridClient.tsx
@@ -130,6 +132,20 @@
 │   │   │   │   │   ├── 📁 stats
 │   │   │   │   │   │   └── 🔷 route.ts
 │   │   │   │   │   └── 🔷 route.ts
+│   │   │   │   ├── 📁 email-preview
+│   │   │   │   │   ├── 📁 order-confirmation
+│   │   │   │   │   │   └── 🔷 route.ts
+│   │   │   │   │   ├── 📁 order-delivered
+│   │   │   │   │   │   └── 🔷 route.ts
+│   │   │   │   │   ├── 📁 order-shipped
+│   │   │   │   │   │   └── 🔷 route.ts
+│   │   │   │   │   ├── 📁 password-reset
+│   │   │   │   │   │   └── 🔷 route.ts
+│   │   │   │   │   └── 📁 welcome
+│   │   │   │   │       └── 🔷 route.ts
+│   │   │   │   ├── 📁 orders
+│   │   │   │   │   └── 📁 [id]
+│   │   │   │   │       └── 📁 send-tracking
 │   │   │   │   ├── 📁 product-images
 │   │   │   │   │   ├── 📁 [imageId]
 │   │   │   │   │   │   ├── 📁 alt
@@ -161,12 +177,21 @@
 │   │   │   │   ├── 📁 [slug]
 │   │   │   │   │   └── 🔷 route.ts
 │   │   │   │   └── 🔷 route.ts
+│   │   │   ├── 📁 orders
+│   │   │   │   └── 📁 by-session
+│   │   │   │       └── 📁 [sessionId]
+│   │   │   │           └── 🔷 route.ts
 │   │   │   ├── 📁 products
 │   │   │   │   ├── 📁 [id]
 │   │   │   │   │   └── 🔷 route.ts
 │   │   │   │   ├── 📁 by-ids
 │   │   │   │   │   └── 🔷 route.ts
 │   │   │   │   └── 🔷 route.ts
+│   │   │   ├── 📁 test
+│   │   │   │   ├── 📁 send-confirmation
+│   │   │   │   │   └── 🔷 route.ts
+│   │   │   │   └── 📁 send-shipped
+│   │   │   │       └── 🔷 route.ts
 │   │   │   ├── 📁 webhooks
 │   │   │   │   └── 📁 stripe
 │   │   │   │       └── 🔷 route.ts
@@ -223,6 +248,11 @@
 │   │   ├── 📁 studio
 │   │   │   └── 📁 [[...index]]
 │   │   │       └── 🔷 page.tsx
+│   │   ├── 📁 test-emails
+│   │   │   ├── 📁 confirmation
+│   │   │   │   └── 🔷 page.tsx
+│   │   │   └── 📁 shipped
+│   │   │       └── 🔷 page.tsx
 │   │   ├── 📁 test-search
 │   │   │   └── 🔷 page.tsx
 │   │   ├── 📄 favicon.ico
@@ -238,6 +268,7 @@
 │   │   │   ├── 🔷 Breadcrumb.tsx
 │   │   │   ├── 🔷 ImageEditorModal.tsx
 │   │   │   ├── 🔷 QuickActions.tsx
+│   │   │   ├── 🔷 SendTrackingModal.tsx
 │   │   │   ├── 🔷 ThemeProvider.tsx
 │   │   │   ├── 🔷 ThemeToggle.tsx
 │   │   │   └── 🔷 Toast.tsx
@@ -323,7 +354,12 @@
 │   │   │   └── 🔷 requireAdmin.ts
 │   │   ├── 📁 email
 │   │   │   ├── 🔷 order-confirmation.tsx
-│   │   │   └── 🔷 send.ts
+│   │   │   ├── 🔷 order-delivered.tsx
+│   │   │   ├── 🔷 order-shipped.tsx
+│   │   │   ├── 🔷 password-reset.tsx
+│   │   │   ├── 🔷 send-order-confirmation-hook.ts
+│   │   │   ├── 🔷 send.ts
+│   │   │   └── 🔷 welcome.tsx
 │   │   ├── 📁 services
 │   │   │   └── 🔷 customerService.ts
 │   │   ├── 📁 validation
@@ -382,8 +418,8 @@
 
 
 📈 Statistiques :
-   • Dossiers : 112
-   • Fichiers : 221
-   • Total : 333 éléments
+   • Dossiers : 131
+   • Fichiers : 238
+   • Total : 369 éléments
 
 💡 Généré automatiquement - Ne pas modifier manuellement
