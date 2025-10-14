@@ -32,20 +32,25 @@ export const OrderDeliveredEmail = ({
       <Body style={main}>
         <Container style={container}>
           {/* Logo */}
-           <Section
-                      style={{
-                        textAlign: 'center',
-                        marginBottom: '32px',
-                      }}
-                    >
-                      <Img
-                        src={EMAIL_CONFIG.logoUrl}
-                        width={EMAIL_CONFIG.logoWidth}
-                        height={EMAIL_CONFIG.logoHeight}
-                        alt={EMAIL_CONFIG.brandName}
-                        style={{ margin: '0 auto' }}
-                      />
-                    </Section>
+          <Section
+            style={{
+              textAlign: 'center',
+              marginBottom: '32px',
+            }}
+          >
+            <Img
+              src={EMAIL_CONFIG.logoUrl}
+              alt={EMAIL_CONFIG.brandName}
+              width="200"
+              height="80"
+              style={{
+                display: 'block',
+                margin: '0 auto 32px',
+                maxWidth: '200px',
+                height: 'auto',
+              }}
+            />
+          </Section>
 
           {/* Icon */}
           <Section style={iconSection}>

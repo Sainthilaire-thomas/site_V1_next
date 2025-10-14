@@ -1,101 +1,100 @@
 // src/app/api/admin/email/send-test/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { render } from '@react-email/render'
+import { Resend } from 'resend'
 import { OrderConfirmationEmail } from '@/lib/email/order-confirmation'
 import { OrderShippedEmail } from '@/lib/email/order-shipped'
 import { OrderDeliveredEmail } from '@/lib/email/order-delivered'
 import { WelcomeEmail } from '@/lib/email/welcome'
 import { PasswordResetEmail } from '@/lib/email/password-reset'
-// import { sendEmail } from '@/lib/email/send' // Décommenter quand configuré
+
+const resend = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null
 
 export async function POST(request: NextRequest) {
+  console.log('🚀 API Route appelée')
+
   try {
-    const { email, type } = await request.json()
+    const body = await request.json()
+    console.log('📦 Body reçu:', body)
+
+    const { email, type } = body
 
     if (!email || !type) {
+      console.log('❌ Email ou type manquant')
       return NextResponse.json(
         { error: 'Email and type are required' },
         { status: 400 }
       )
     }
 
-    // Générer le contenu selon le type
-    let emailHtml: string
-    let subject: string
+    console.log("📧 Génération de l'email pour:", email, 'type:', type)
+
+    let emailComponent
+    let subject
 
     switch (type) {
       case 'order-confirmation':
-        emailHtml = await render(
-          OrderConfirmationEmail({
-            orderNumber: 'BR-2025-TEST',
-            customerName: 'Test User',
-            items: [
-              {
-                name: 'Robe longue noire',
-                quantity: 1,
-                price: 29500,
-                imageUrl:
-                  'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400',
-              },
-            ],
-            subtotal: 29500,
-            shipping: 0,
-            total: 29500,
-            shippingAddress: {
-              line1: '123 rue de la Mode',
-              city: 'Paris',
-              postalCode: '75001',
-              country: 'France',
+        emailComponent = OrderConfirmationEmail({
+          orderNumber: 'BR-2025-TEST',
+          customerName: 'Test User',
+          items: [
+            {
+              name: 'Black long dress',
+              quantity: 1,
+              price: 29500,
+              imageUrl:
+                'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400',
             },
-          })
-        )
-        subject = '[TEST] Order Confirmation - BR-2025-TEST'
+          ],
+          subtotal: 29500,
+          shipping: 0,
+          total: 29500,
+          shippingAddress: {
+            line1: '123 Fashion Street',
+            city: 'Paris',
+            postalCode: '75001',
+            country: 'France',
+          },
+        })
+        subject = '[TEST] Order Confirmation'
         break
 
       case 'order-shipped':
-        emailHtml = await render(
-          OrderShippedEmail({
-            orderNumber: 'BR-2025-TEST',
-            customerName: 'Test User',
-            trackingNumber: '3SBRCP00012345',
-            carrier: 'Colissimo',
-            trackingUrl:
-              'https://www.laposte.fr/outils/suivre-vos-envois?code=3SBRCP00012345',
-            estimatedDelivery: 'Wednesday, October 16',
-          })
-        )
-        subject = '[TEST] Your order has been shipped - BR-2025-TEST'
+        emailComponent = OrderShippedEmail({
+          orderNumber: 'BR-2025-TEST',
+          customerName: 'Test User',
+          trackingNumber: '3SBRCP00012345',
+          carrier: 'Colissimo',
+          trackingUrl: 'https://www.laposte.fr/suivre',
+          estimatedDelivery: 'Wednesday, October 16',
+        })
+        subject = '[TEST] Order Shipped'
         break
 
       case 'order-delivered':
-        emailHtml = await render(
-          OrderDeliveredEmail({
-            orderNumber: 'BR-2025-TEST',
-            customerName: 'Test User',
-            deliveredAt: 'Wednesday, October 16 at 2:32 PM',
-          })
-        )
-        subject = '[TEST] Your order has been delivered - BR-2025-TEST'
+        emailComponent = OrderDeliveredEmail({
+          orderNumber: 'BR-2025-TEST',
+          customerName: 'Test User',
+          deliveredAt: 'Wednesday, October 16 at 2:32 PM',
+        })
+        subject = '[TEST] Order Delivered'
         break
 
       case 'welcome':
-        emailHtml = await render(
-          WelcomeEmail({
-            firstName: 'Test',
-          })
-        )
-        subject = '[TEST] Welcome to Blanche Renaudin'
+        emailComponent = WelcomeEmail({
+          firstName: 'Test',
+        })
+        subject = '[TEST] Welcome'
         break
 
       case 'password-reset':
-        emailHtml = await render(
-          PasswordResetEmail({
-            resetUrl:
-              'http://localhost:3000/auth/reset-password?token=test-token',
-            expiresIn: '1 hour',
-          })
-        )
-        subject = '[TEST] Reset your password'
+        emailComponent = PasswordResetEmail({
+          resetUrl: 'http://localhost:3000/auth/reset-password?token=test',
+          expiresIn: '1 hour',
+        })
+        subject = '[TEST] Password Reset'
         break
 
       default:
@@ -105,33 +104,49 @@ export async function POST(request: NextRequest) {
         )
     }
 
-    // TODO: Décommenter quand vous aurez configuré Resend/SendGrid
-    /*
-    await sendEmail({
-      to: email,
-      subject: subject,
-      html: emailHtml,
-    })
-    */
+    console.log('🎨 Rendu du composant email...')
+    const html = await render(emailComponent)
+    console.log('✅ HTML généré, longueur:', html.length)
 
-    // Pour l'instant, on log juste (à retirer en production)
-    console.log('📧 Test email would be sent to:', email)
-    console.log('📧 Subject:', subject)
-    console.log('📧 Type:', type)
+    if (resend) {
+      console.log('📨 Envoi avec Resend...')
+      const { data, error } = await resend.emails.send({
+        from: 'Blanche Renaudin <onboarding@resend.dev>',
+        to: email,
+        subject: subject,
+        html: html,
+      })
 
-    // Simuler un délai
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+      if (error) {
+        console.error('❌ Erreur Resend:', error)
+        throw error
+      }
 
-    return NextResponse.json({
-      success: true,
-      message: `Test email sent to ${email}`,
-      // Temporaire: retourner le HTML pour debug
-      preview: `Email would be sent with subject: ${subject}`,
-    })
+      console.log('✅ Email envoyé! ID:', data?.id)
+
+      return NextResponse.json({
+        success: true,
+        message: `Email sent to ${email}`,
+        emailId: data?.id,
+      })
+    } else {
+      console.log('⚠️ Mode simulation (pas de RESEND_API_KEY)')
+
+      return NextResponse.json({
+        success: true,
+        message: `[SIMULATION] Email would be sent to ${email}`,
+        emailId: 'test-' + Date.now(),
+        note: 'Configure RESEND_API_KEY to send real emails',
+      })
+    }
   } catch (error) {
-    console.error('Error sending test email:', error)
+    console.error('💥 Erreur complète:', error)
     return NextResponse.json(
-      { error: 'Failed to send test email' },
+      {
+        error: 'Failed to send test email',
+        details: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      },
       { status: 500 }
     )
   }

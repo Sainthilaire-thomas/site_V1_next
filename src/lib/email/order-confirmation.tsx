@@ -77,10 +77,15 @@ export const OrderConfirmationEmail = ({
           >
             <Img
               src={EMAIL_CONFIG.logoUrl}
-              width={EMAIL_CONFIG.logoWidth}
-              height={EMAIL_CONFIG.logoHeight}
               alt={EMAIL_CONFIG.brandName}
-              style={{ margin: '0 auto' }}
+              width="200"
+              height="80"
+              style={{
+                display: 'block',
+                margin: '0 auto 32px',
+                maxWidth: '200px',
+                height: 'auto',
+              }}
             />
           </Section>
 

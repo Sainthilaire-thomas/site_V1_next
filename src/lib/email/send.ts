@@ -3,11 +3,21 @@ import { Resend } from 'resend'
 import { render } from '@react-email/render'
 import type { ReactElement } from 'react'
 
-if (!process.env.RESEND_API_KEY) {
+// Mode développement : autoriser les tests sans clé API
+const isDevelopment = process.env.NODE_ENV === 'development'
+const hasResendKey = !!process.env.RESEND_API_KEY
+
+// Logs au démarrage du module
+console.log('🔍 RESEND_API_KEY présente:', hasResendKey)
+if (hasResendKey) {
+  console.log('🔍 RESEND_API_KEY (premiers caractères):', process.env.RESEND_API_KEY?.substring(0, 10))
+}
+
+if (!hasResendKey && !isDevelopment) {
   throw new Error("RESEND_API_KEY manquante dans les variables d'environnement")
 }
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+const resend = hasResendKey ? new Resend(process.env.RESEND_API_KEY) : null
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'
 const FROM_NAME = 'Blanche Renaudin'
 
@@ -46,6 +56,25 @@ export async function sendEmail({
   try {
     const html = await render(react)
 
+    // Mode test : simulation sans Resend
+    if (!resend) {
+      console.log('📧 [TEST MODE] Email simulé:')
+      console.log('   To:', to)
+      console.log('   Subject:', subject)
+      console.log('   Type:', type)
+      console.log(
+        '   ⚠️  Configure RESEND_API_KEY pour envoyer de vrais emails'
+      )
+
+      return {
+        id: 'test-' + Date.now(),
+        from: `${FROM_NAME} <${FROM_EMAIL}>`,
+        to: Array.isArray(to) ? to : [to],
+        created_at: new Date().toISOString(),
+      }
+    }
+
+    // Envoi réel avec Resend
     const { data, error } = await resend.emails.send({
       from: `${FROM_NAME} <${FROM_EMAIL}>`,
       to: Array.isArray(to) ? to : [to],
@@ -97,7 +126,7 @@ export async function sendOrderConfirmationEmail(
   const { OrderConfirmationEmail } = await import('./order-confirmation')
   return sendEmail({
     to: email,
-    subject: `Confirmation de commande #${orderData.orderNumber}`,
+    subject: `Order confirmation #${orderData.orderNumber}`,
     react: OrderConfirmationEmail(orderData),
     type: 'order-confirmation',
   })
@@ -111,13 +140,13 @@ export async function sendOrderShippedEmail(
     trackingNumber: string
     carrier: string
     trackingUrl: string
-    estimatedDelivery?: string
+    estimatedDelivery: string // ✅ Retiré le "?"
   }
 ) {
   const { OrderShippedEmail } = await import('./order-shipped')
   return sendEmail({
     to: email,
-    subject: `Votre commande #${orderData.orderNumber} a été expédiée`,
+    subject: `Your order #${orderData.orderNumber} has been shipped`,
     react: OrderShippedEmail(orderData),
     type: 'order-shipped',
   })
@@ -134,7 +163,7 @@ export async function sendOrderDeliveredEmail(
   const { OrderDeliveredEmail } = await import('./order-delivered')
   return sendEmail({
     to: email,
-    subject: `Votre commande #${orderData.orderNumber} a été livrée`,
+    subject: `Your order #${orderData.orderNumber} has been delivered`,
     react: OrderDeliveredEmail(orderData),
     type: 'order-delivered',
   })
@@ -150,7 +179,7 @@ export async function sendPasswordResetEmail(
   const { PasswordResetEmail } = await import('./password-reset')
   return sendEmail({
     to: email,
-    subject: 'Réinitialisation de votre mot de passe',
+    subject: 'Reset your password',
     react: PasswordResetEmail(data),
     type: 'password-reset',
   })
@@ -165,14 +194,14 @@ export async function sendWelcomeEmail(
   const { WelcomeEmail } = await import('./welcome')
   return sendEmail({
     to: email,
-    subject: 'Bienvenue chez Blanche Renaudin',
+    subject: 'Welcome to Blanche Renaudin',
     react: WelcomeEmail(data),
     type: 'welcome',
   })
 }
 
 export function formatPrice(cents: number): string {
-  return new Intl.NumberFormat('fr-FR', {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'EUR',
   }).format(cents / 100)

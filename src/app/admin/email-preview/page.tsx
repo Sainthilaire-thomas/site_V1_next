@@ -12,14 +12,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
-import {
   Mail,
   Package,
   Truck,
@@ -28,11 +20,18 @@ import {
   Sparkles,
   Send,
   Loader2,
+  AlertCircle,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 export default function EmailPreviewPage() {
   const [sendingEmail, setSendingEmail] = useState<string | null>(null)
+  // ✅ CHANGEZ ICI : Mettez votre email par défaut
+  const [testEmail, setTestEmail] = useState('sonearthomas@gmail.com')
+
+  // ✅ L'email autorisé en mode gratuit Resend
+  const ALLOWED_EMAIL = 'sonearthomas@gmail.com'
 
   const emailTemplates = [
     {
@@ -40,7 +39,6 @@ export default function EmailPreviewPage() {
       href: '/api/admin/email-preview/order-confirmation',
       description: 'Sent after payment validation',
       icon: Package,
-      testEndpoint: '/api/admin/email/send-test',
       type: 'order-confirmation',
     },
     {
@@ -48,7 +46,6 @@ export default function EmailPreviewPage() {
       href: '/api/admin/email-preview/order-shipped',
       description: 'Tracking email after shipment',
       icon: Truck,
-      testEndpoint: '/api/admin/email/send-test',
       type: 'order-shipped',
     },
     {
@@ -56,7 +53,6 @@ export default function EmailPreviewPage() {
       href: '/api/admin/email-preview/order-delivered',
       description: 'Delivery confirmation email',
       icon: CheckCircle,
-      testEndpoint: '/api/admin/email/send-test',
       type: 'order-delivered',
     },
     {
@@ -64,7 +60,6 @@ export default function EmailPreviewPage() {
       href: '/api/admin/email-preview/welcome',
       description: 'Welcome email for new customers',
       icon: Sparkles,
-      testEndpoint: '/api/admin/email/send-test',
       type: 'welcome',
     },
     {
@@ -72,33 +67,56 @@ export default function EmailPreviewPage() {
       href: '/api/admin/email-preview/password-reset',
       description: 'Email with reset link',
       icon: Key,
-      testEndpoint: '/api/admin/email/send-test',
       type: 'password-reset',
     },
   ]
 
-  const handleSendTest = async (
-    email: string,
-    type: string,
-    templateName: string
-  ) => {
+  const handleSendTest = async (type: string, templateName: string) => {
+    // ✅ Vérification : l'email doit correspondre à l'email autorisé
+    if (testEmail !== ALLOWED_EMAIL) {
+      toast.error(`You can only send to ${ALLOWED_EMAIL} with free Resend plan`)
+      return
+    }
+
+    console.log('🚀 handleSendTest appelé', {
+      type,
+      templateName,
+      email: testEmail,
+    })
     setSendingEmail(type)
 
     try {
+      console.log('📡 Envoi de la requête...')
       const response = await fetch('/api/admin/email/send-test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, type }),
+        body: JSON.stringify({ email: testEmail, type }),
       })
 
-      if (!response.ok) {
-        throw new Error('Failed to send email')
+      console.log('📥 Réponse reçue:', response.status, response.statusText)
+
+      let data
+      try {
+        data = await response.json()
+        console.log('📦 Data:', data)
+      } catch (e) {
+        console.error('❌ Impossible de parser la réponse JSON:', e)
+        throw new Error('Invalid response from server')
       }
 
-      toast.success(`${templateName} sent to ${email}`)
+      if (!response.ok) {
+        console.error('❌ Erreur serveur:', data)
+        throw new Error(data.error || data.details || 'Failed to send email')
+      }
+
+      toast.success(`✅ ${templateName} sent! Check your inbox at ${testEmail}`)
+      console.log('✅ Success!', data)
     } catch (error) {
-      toast.error('Failed to send test email')
-      console.error(error)
+      console.error('❌ Erreur complète:', error)
+
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error'
+      toast.error(`Failed: ${errorMessage}`)
     } finally {
       setSendingEmail(null)
     }
@@ -113,9 +131,46 @@ export default function EmailPreviewPage() {
             <Mail className="h-6 w-6" />
             <h1 className="text-3xl font-bold">Email preview</h1>
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mb-4">
             Preview of all transactional email templates
           </p>
+
+          {/* ✅ Alerte Resend */}
+          <Alert className="mb-4 max-w-2xl">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Free Resend plan:</strong> You can only send test emails
+              to <strong>{ALLOWED_EMAIL}</strong>. To send to other addresses,
+              verify a domain at{' '}
+              <a
+                href="https://resend.com/domains"
+                target="_blank"
+                className="underline"
+              >
+                resend.com/domains
+              </a>
+            </AlertDescription>
+          </Alert>
+
+          {/* Email input */}
+          <div className="max-w-md">
+            <label className="text-sm font-medium mb-2 block">
+              Test email address:
+            </label>
+            <Input
+              type="email"
+              value={testEmail}
+              onChange={(e) => setTestEmail(e.target.value)}
+              placeholder="your.email@example.com"
+              className={testEmail !== ALLOWED_EMAIL ? 'border-orange-500' : ''}
+            />
+            {testEmail !== ALLOWED_EMAIL && (
+              <p className="text-xs text-orange-600 mt-1 flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" />
+                This email won't work with free plan
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
@@ -151,6 +206,8 @@ export default function EmailPreviewPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
           {emailTemplates.map((template) => {
             const Icon = template.icon
+            const isLoading = sendingEmail === template.type
+
             return (
               <Card key={template.type} className="h-full">
                 <CardHeader>
@@ -178,12 +235,27 @@ export default function EmailPreviewPage() {
                       </Button>
                     </Link>
 
-                    <SendTestEmailDialog
-                      templateName={template.name}
-                      templateType={template.type}
-                      onSend={handleSendTest}
-                      isLoading={sendingEmail === template.type}
-                    />
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() =>
+                        handleSendTest(template.type, template.name)
+                      }
+                      disabled={isLoading || !testEmail}
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="h-4 w-4 mr-2" />
+                          Test
+                        </>
+                      )}
+                    </Button>
                   </div>
                 </CardHeader>
               </Card>
@@ -241,85 +313,5 @@ export default function EmailPreviewPage() {
         </Card>
       </div>
     </div>
-  )
-}
-
-// Composant Dialog pour l'envoi de test
-function SendTestEmailDialog({
-  templateName,
-  templateType,
-  onSend,
-  isLoading,
-}: {
-  templateName: string
-  templateType: string
-  onSend: (email: string, type: string, name: string) => Promise<void>
-  isLoading: boolean
-}) {
-  const [email, setEmail] = useState('')
-  const [open, setOpen] = useState(false)
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!email) return
-
-    await onSend(email, templateType, templateName)
-    setOpen(false)
-    setEmail('')
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="default" size="sm" className="flex-1">
-          <Send className="h-4 w-4 mr-2" />
-          Test
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Send test email</DialogTitle>
-          <DialogDescription>
-            Send a test version of <strong>{templateName}</strong> to your email
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Input
-              type="email"
-              placeholder="your.email@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={isLoading}
-            />
-          </div>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-              className="flex-1"
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" className="flex-1" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Sending...
-                </>
-              ) : (
-                <>
-                  <Send className="h-4 w-4 mr-2" />
-                  Send
-                </>
-              )}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
   )
 }
