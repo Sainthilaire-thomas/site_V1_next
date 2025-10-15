@@ -14,7 +14,7 @@ const trackingSchema = z.object({
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> } // ✅ CHANGEMENT 1 : Promise ajouté
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Vérifier les permissions admin
