@@ -1,15 +1,18 @@
 // src/app/api/launch-notifications/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSupabase } from '@/lib/supabase-server'
+import { createClient } from '@supabase/supabase-js'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { firstName, lastName, email, phone, cartItems, cartTotal } = body
 
-    const supabase = await getServerSupabase()
+    // Utiliser service key qui bypass RLS
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_KEY!
+    )
 
-    // Enregistrer la notification dans Supabase
     const { data, error } = await supabase
       .from('launch_notifications')
       .insert({
@@ -20,7 +23,6 @@ export async function POST(request: NextRequest) {
         cart_items: cartItems,
         cart_total: cartTotal,
         status: 'pending',
-        created_at: new Date().toISOString(),
       })
       .select()
       .single()
@@ -32,9 +34,6 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       )
     }
-
-    // TODO: Envoyer un email de confirmation au client
-    // TODO: Envoyer une notification à l'admin
 
     return NextResponse.json({
       success: true,
@@ -50,15 +49,17 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET pour récupérer les notifications (admin only)
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await getServerSupabase()
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_KEY!
+    )
 
-    // Vérifier que l'utilisateur est admin
     const {
       data: { user },
     } = await supabase.auth.getUser()
+
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -73,7 +74,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Récupérer toutes les notifications
     const { data: notifications, error } = await supabase
       .from('launch_notifications')
       .select('*')
