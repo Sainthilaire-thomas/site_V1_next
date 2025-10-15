@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Archivo_Black, Archivo_Narrow } from 'next/font/google'
 import "./globals.css";
+import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 const archivoBlack = Archivo_Black({
   weight: '400',
@@ -25,7 +27,7 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
     <html lang="fr">
@@ -33,6 +35,9 @@ export default function RootLayout({
         className={`${archivoBlack.variable} ${archivoNarrow.variable} antialiased`}
       >
         {children}
+        {/* 🎯 Vercel Analytics & Speed Insights */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )

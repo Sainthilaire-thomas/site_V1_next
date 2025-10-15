@@ -65,6 +65,17 @@ export function AdminNav() {
       >
         Preclients launch
       </Link>
+      {/* 🎯 NOUVEAU: Lien Analytics */}
+      <Link
+        href="/admin/analytics"
+        className={`px-3 py-2 rounded transition-colors ${
+          pathname.startsWith('/admin/analytics')
+            ? 'bg-violet text-white'
+            : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+        }`}
+      >
+        Analytics
+      </Link>
     </nav>
   )
 }
