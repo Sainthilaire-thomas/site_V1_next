@@ -1,26 +1,19 @@
-// src/app/checkout/page.tsx - VERSION CORRIGÉE POUR MOBILE
+// src/app/checkout/page.tsx - ULTRA-SIMPLE ENGLISH VERSION
 'use client'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useCartStore } from '@/store/useCartStore'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { toast } from 'sonner'
 import HeaderMinimal from '@/components/layout/HeaderMinimal'
 import FooterMinimal from '@/components/layout/FooterMinimal'
-import { Sparkles, Mail, User, Phone, Heart } from 'lucide-react'
-import { ProductImage } from '@/components/products/ProductImage'
+import { Heart } from 'lucide-react'
 
 export default function CheckoutPage() {
-  const router = useRouter()
   const { items, totalPrice } = useCartStore()
-
   const [isLoading, setIsLoading] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [error, setError] = useState('')
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -36,18 +29,22 @@ export default function CheckoutPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Empêcher les doubles soumissions
-    if (isLoading) return
+    console.log('🔘 Form submitted!')
+
+    if (isLoading) {
+      console.log('⚠️ Already loading')
+      return
+    }
 
     setIsLoading(true)
+    setError('')
 
     try {
-      // Envoyer les données à votre API
+      console.log('📡 Sending to API...')
+
       const response = await fetch('/api/launch-notifications', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
           cartItems: items.map((item) => ({
@@ -61,15 +58,19 @@ export default function CheckoutPage() {
         }),
       })
 
+      console.log('📬 Response status:', response.status)
+
       if (!response.ok) {
-        throw new Error('Failed to submit notification request')
+        throw new Error('API error')
       }
 
+      const data = await response.json()
+      console.log('✅ Success!', data)
+
       setIsSubmitted(true)
-      toast.success('Thank you! We will notify you soon.')
     } catch (error: any) {
-      console.error('Notification error:', error)
-      toast.error('An error occurred. Please try again.')
+      console.error('❌ Error:', error)
+      setError('An error occurred. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -78,19 +79,17 @@ export default function CheckoutPage() {
   if (!isMounted) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium">
-          loading...
-        </div>
+        <div className="text-sm">loading...</div>
       </div>
     )
   }
 
-  // Page de confirmation après soumission
+  // Thank you page
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-white">
         <HeaderMinimal />
-        <main className="pt-32 pb-24 px-4 sm:px-8">
+        <main className="pt-32 pb-24 px-4">
           <div className="max-w-2xl mx-auto text-center">
             <div className="mb-8 flex justify-center">
               <div className="w-20 h-20 rounded-full bg-violet/10 flex items-center justify-center">
@@ -98,34 +97,30 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <h1 className="text-4xl sm:text-section mb-6">.thank you</h1>
+            <h1 className="text-4xl font-bold mb-6 lowercase">.thank you</h1>
 
-            <p className="text-body text-grey-medium mb-8 leading-relaxed">
+            <p className="text-base text-gray-600 mb-8">
               Your interest means everything to us.
               <br />
               We'll notify you by email as soon as payment becomes available.
             </p>
 
-            <p className="text-[13px] tracking-[0.05em] font-semibold lowercase text-black mb-12">
-              Expected launch: within few days
+            <p className="text-sm font-semibold lowercase mb-12">
+              expected launch: within few days
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/">
-                <Button
-                  variant="outline"
-                  className="w-full sm:w-auto py-3 px-8 text-[13px] tracking-[0.05em] font-semibold lowercase border-black hover:bg-black hover:text-white transition-colors"
-                >
-                  back to home
-                </Button>
-              </Link>
-            </div>
+            <Link
+              href="/"
+              className="inline-block py-3 px-8 text-sm font-semibold lowercase bg-black text-white hover:bg-gray-800 transition-colors"
+            >
+              back to home
+            </Link>
 
-            <p className="text-[11px] tracking-[0.05em] lowercase text-grey-medium mt-12">
+            <p className="text-xs text-gray-500 mt-12">
               Questions? Contact us at{' '}
               <a
                 href="mailto:contact@blancherenaudin.com"
-                className="underline hover:text-black transition-colors"
+                className="underline hover:text-black"
               >
                 contact@blancherenaudin.com
               </a>
@@ -137,20 +132,20 @@ export default function CheckoutPage() {
     )
   }
 
-  // Si le panier est vide
+  // Empty cart
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-white">
         <HeaderMinimal />
-        <main className="pt-32 pb-24 px-4 sm:px-8">
+        <main className="pt-32 pb-24 px-4">
           <div className="max-w-7xl mx-auto text-center">
-            <h1 className="text-4xl sm:text-section mb-6">.empty cart</h1>
-            <p className="text-body text-grey-medium mb-12">
+            <h1 className="text-4xl font-bold mb-6 lowercase">.empty cart</h1>
+            <p className="text-base text-gray-600 mb-12">
               Your cart is empty. Please add items before proceeding.
             </p>
             <Link
               href="/"
-              className="inline-block py-3 px-8 text-[13px] tracking-[0.05em] font-semibold lowercase bg-white text-black border border-black hover:bg-black hover:text-white transition-colors"
+              className="inline-block py-3 px-8 text-sm font-semibold lowercase border border-black hover:bg-black hover:text-white transition-colors"
             >
               view collections
             </Link>
@@ -161,224 +156,179 @@ export default function CheckoutPage() {
     )
   }
 
-  // Page principale "Coming Soon"
+  // Main page - ULTRA SIMPLE
   return (
     <div className="min-h-screen bg-white">
       <HeaderMinimal />
 
-      {/* Bandeau de lancement */}
-      <div className="bg-violet text-white py-3 px-4 sm:px-8 text-center">
-        <div className="flex items-center justify-center gap-2 flex-wrap">
-          <Sparkles className="w-4 h-4 flex-shrink-0" />
-          <span className="text-[11px] sm:text-[13px] tracking-[0.05em] font-semibold lowercase">
-            official launch coming soon — be the first to know
-          </span>
-          <Sparkles className="w-4 h-4 flex-shrink-0" />
-        </div>
+      {/* Banner */}
+      <div className="bg-violet text-white py-3 px-4 text-center">
+        <span className="text-xs font-semibold lowercase">
+          official launch coming soon — be the first to know
+        </span>
       </div>
 
-      <main className="pt-8 sm:pt-16 pb-12 sm:pb-24 px-4 sm:px-8">
-        <div className="max-w-6xl mx-auto">
-          {/* CHANGEMENT MAJEUR : Ordre inversé sur mobile */}
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-16">
-            {/* Colonne droite - Récapitulatif panier - AFFICHÉ EN PREMIER SUR MOBILE */}
-            <div className="order-1 lg:order-2">
-              <div className="border border-grey-light p-4 sm:p-8 lg:sticky lg:top-32">
-                <h2 className="text-[15px] sm:text-product mb-6 sm:mb-8">
-                  your selection
-                </h2>
+      <main className="pt-8 pb-12 px-4">
+        <div className="max-w-2xl mx-auto">
+          {/* Title */}
+          <h1 className="text-3xl font-bold mb-6 text-center lowercase">
+            .launching soon
+          </h1>
 
-                <div className="space-y-4 sm:space-y-6 mb-6 sm:mb-8 max-h-[300px] sm:max-h-[400px] overflow-y-auto">
-                  {items.map((item) => (
-                    <div key={item.id} className="flex gap-3 sm:gap-4">
-                      <div className="w-16 sm:w-20 h-20 sm:h-24 flex-shrink-0 bg-gray-100 overflow-hidden">
-                        {item.imageId && item.productId ? (
-                          <ProductImage
-                            productId={item.productId}
-                            imageId={item.imageId}
-                            alt={item.name}
-                            size="sm"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-                            No image
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[12px] sm:text-[13px] tracking-[0.05em] font-semibold lowercase mb-1 truncate">
-                          {item.name}
-                        </div>
-                        <div className="text-[10px] sm:text-[11px] tracking-[0.05em] lowercase text-grey-medium">
-                          {item.size && <span>size: {item.size}</span>}
-                          {item.size && item.color && <span> • </span>}
-                          {item.color && <span>{item.color}</span>}
-                        </div>
-                        <div className="text-[10px] sm:text-[11px] tracking-[0.05em] lowercase text-grey-medium mt-1">
-                          qty: {item.quantity}
-                        </div>
-                      </div>
-                      <div className="text-[12px] sm:text-[13px] tracking-[0.05em] font-semibold lowercase flex-shrink-0">
-                        €{(item.price * item.quantity).toFixed(2)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+          {/* Message */}
+          <div className="mb-8 text-sm text-gray-600 space-y-4">
+            <p>
+              We're in the final stages of preparing a seamless payment
+              experience for you.
+            </p>
+            <p className="font-bold text-black">
+              Payment will be available within few days.
+            </p>
+            <p>
+              Leave your details below and we'll notify you the moment we launch
+              — your items will be waiting for you.
+            </p>
+          </div>
 
-                <div className="border-t border-grey-light pt-4 sm:pt-6">
-                  <div className="flex justify-between text-[14px] sm:text-[15px] tracking-[0.02em] font-semibold text-black mb-4 sm:mb-6">
-                    <span className="lowercase">total</span>
-                    <span>€{totalPrice.toFixed(2)}</span>
-                  </div>
+          {/* Cart summary - SIMPLIFIED */}
+          <div className="border border-gray-200 p-4 mb-8">
+            <h2 className="font-bold mb-4 lowercase">your selection</h2>
 
-                  <div className="bg-violet/5 border border-violet/20 p-3 sm:p-4 rounded">
-                    <p className="text-[10px] sm:text-[11px] tracking-[0.05em] lowercase text-grey-medium text-center">
-                      This selection will be reserved for you when payment
-                      launches
-                    </p>
-                  </div>
-                </div>
+            {items.map((item) => (
+              <div key={item.id} className="flex justify-between py-2 text-sm">
+                <span className="lowercase">
+                  {item.name} x{item.quantity}
+                </span>
+                <span className="font-semibold">
+                  €{(item.price * item.quantity).toFixed(2)}
+                </span>
               </div>
+            ))}
 
-              <div className="mt-4 sm:mt-6 text-center">
-                <Link
-                  href="/"
-                  className="text-[12px] sm:text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium hover:text-black transition-colors"
-                >
-                  continue shopping
-                </Link>
-              </div>
+            <div className="border-t border-gray-200 pt-4 mt-4 flex justify-between font-bold">
+              <span className="lowercase">total</span>
+              <span>€{totalPrice.toFixed(2)}</span>
+            </div>
+          </div>
+
+          {/* ULTRA-SIMPLE FORM */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* First name */}
+            <div>
+              <label className="block text-xs font-semibold mb-2 lowercase">
+                first name *
+              </label>
+              <input
+                type="text"
+                value={formData.firstName}
+                onChange={(e) =>
+                  setFormData({ ...formData, firstName: e.target.value })
+                }
+                required
+                disabled={isLoading}
+                autoComplete="given-name"
+                className="w-full border-b-2 border-gray-300 focus:border-black outline-none py-2 px-0 text-base bg-transparent lowercase"
+                placeholder="jane"
+              />
             </div>
 
-            {/* Colonne gauche - Message et Formulaire - AFFICHÉ EN SECOND SUR MOBILE */}
-            <div className="order-2 lg:order-1 flex flex-col justify-center">
-              <h1 className="text-4xl sm:text-section mb-6 sm:mb-8">
-                .launching soon
-              </h1>
-
-              <div className="space-y-4 sm:space-y-6 text-[14px] sm:text-[15px] leading-relaxed text-grey-medium mb-8 sm:mb-12">
-                <p>
-                  We're in the final stages of preparing a seamless payment
-                  experience for you.
-                </p>
-
-                <p>
-                  <strong className="text-black">
-                    Payment will be available within few days.
-                  </strong>
-                </p>
-
-                <p>
-                  Leave your details below and we'll notify you the moment we
-                  launch — your items will be waiting for you.
-                </p>
-              </div>
-
-              {/* Formulaire de notification - OPTIMISÉ MOBILE */}
-              <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
-                {/* CHANGEMENT : Une seule colonne sur mobile */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-4">
-                  <div>
-                    <Label className="text-[12px] sm:text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium mb-2 sm:mb-3 block">
-                      first name *
-                    </Label>
-                    <div className="relative">
-                      <User className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-grey-medium pointer-events-none" />
-                      <Input
-                        value={formData.firstName}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            firstName: e.target.value,
-                          })
-                        }
-                        required
-                        className="pl-6 border-b border-grey-medium focus:border-black outline-none py-2 text-[13px] tracking-[0.05em] font-semibold lowercase transition-colors bg-transparent w-full"
-                        placeholder="jane"
-                        autoComplete="given-name"
-                        disabled={isLoading}
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label className="text-[12px] sm:text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium mb-2 sm:mb-3 block">
-                      last name *
-                    </Label>
-                    <div className="relative">
-                      <User className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-grey-medium pointer-events-none" />
-                      <Input
-                        value={formData.lastName}
-                        onChange={(e) =>
-                          setFormData({ ...formData, lastName: e.target.value })
-                        }
-                        required
-                        className="pl-6 border-b border-grey-medium focus:border-black outline-none py-2 text-[13px] tracking-[0.05em] font-semibold lowercase transition-colors bg-transparent w-full"
-                        placeholder="doe"
-                        autoComplete="family-name"
-                        disabled={isLoading}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <Label className="text-[12px] sm:text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium mb-2 sm:mb-3 block">
-                    email *
-                  </Label>
-                  <div className="relative">
-                    <Mail className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-grey-medium pointer-events-none" />
-                    <Input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) =>
-                        setFormData({ ...formData, email: e.target.value })
-                      }
-                      required
-                      className="pl-6 border-b border-grey-medium focus:border-black outline-none py-2 text-[13px] tracking-[0.05em] font-semibold lowercase transition-colors bg-transparent w-full"
-                      placeholder="jane@example.com"
-                      autoComplete="email"
-                      disabled={isLoading}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label className="text-[12px] sm:text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium mb-2 sm:mb-3 block">
-                    phone (optional)
-                  </Label>
-                  <div className="relative">
-                    <Phone className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-grey-medium pointer-events-none" />
-                    <Input
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) =>
-                        setFormData({ ...formData, phone: e.target.value })
-                      }
-                      className="pl-6 border-b border-grey-medium focus:border-black outline-none py-2 text-[13px] tracking-[0.05em] font-semibold lowercase transition-colors bg-transparent w-full"
-                      placeholder="+33 6 12 34 56 78"
-                      autoComplete="tel"
-                      disabled={isLoading}
-                    />
-                  </div>
-                </div>
-
-                {/* BOUTON OPTIMISÉ MOBILE avec touch-action */}
-                <Button
-                  type="submit"
-                  className="w-full py-4 text-[13px] tracking-[0.05em] font-semibold lowercase bg-black text-white hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
-                  disabled={isLoading}
-                  style={{ touchAction: 'manipulation' }}
-                >
-                  {isLoading ? 'submitting...' : 'notify me at launch'}
-                </Button>
-
-                <p className="text-[10px] sm:text-[11px] tracking-[0.05em] lowercase text-grey-medium text-center">
-                  We respect your privacy. No spam, just launch notifications.
-                </p>
-              </form>
+            {/* Last name */}
+            <div>
+              <label className="block text-xs font-semibold mb-2 lowercase">
+                last name *
+              </label>
+              <input
+                type="text"
+                value={formData.lastName}
+                onChange={(e) =>
+                  setFormData({ ...formData, lastName: e.target.value })
+                }
+                required
+                disabled={isLoading}
+                autoComplete="family-name"
+                className="w-full border-b-2 border-gray-300 focus:border-black outline-none py-2 px-0 text-base bg-transparent lowercase"
+                placeholder="doe"
+              />
             </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-xs font-semibold mb-2 lowercase">
+                email *
+              </label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+                required
+                disabled={isLoading}
+                autoComplete="email"
+                className="w-full border-b-2 border-gray-300 focus:border-black outline-none py-2 px-0 text-base bg-transparent lowercase"
+                placeholder="jane@example.com"
+              />
+            </div>
+
+            {/* Phone */}
+            <div>
+              <label className="block text-xs font-semibold mb-2 lowercase">
+                phone (optional)
+              </label>
+              <input
+                type="tel"
+                value={formData.phone}
+                onChange={(e) =>
+                  setFormData({ ...formData, phone: e.target.value })
+                }
+                disabled={isLoading}
+                autoComplete="tel"
+                className="w-full border-b-2 border-gray-300 focus:border-black outline-none py-2 px-0 text-base bg-transparent lowercase"
+                placeholder="+33 6 12 34 56 78"
+              />
+            </div>
+
+            {/* Error message */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-600 p-3 text-sm lowercase">
+                {error}
+              </div>
+            )}
+
+            {/* NATIVE HTML BUTTON - GUARANTEED TO WORK */}
+            <button
+              type="submit"
+              disabled={isLoading}
+              style={{
+                width: '100%',
+                padding: '16px',
+                fontSize: '16px',
+                fontWeight: 600,
+                textTransform: 'lowercase',
+                backgroundColor: isLoading ? '#666' : '#000',
+                color: '#fff',
+                border: 'none',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                touchAction: 'manipulation',
+                WebkitTapHighlightColor: 'transparent',
+              }}
+            >
+              {isLoading ? 'submitting...' : 'notify me at launch'}
+            </button>
+
+            <p className="text-xs text-gray-500 text-center lowercase">
+              we respect your privacy. no spam, just launch notifications.
+            </p>
+          </form>
+
+          {/* Back link */}
+          <div className="mt-6 text-center">
+            <Link
+              href="/"
+              className="text-sm text-gray-500 hover:text-black transition-colors lowercase"
+            >
+              continue shopping
+            </Link>
           </div>
         </div>
       </main>
