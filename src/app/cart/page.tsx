@@ -228,7 +228,7 @@ export default function CartPage() {
                 </a>
 
                 <Link
-                  href="/collections"
+                  href="/"
                   className="block text-center text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium hover:text-black transition-colors"
                 >
                   continue shopping

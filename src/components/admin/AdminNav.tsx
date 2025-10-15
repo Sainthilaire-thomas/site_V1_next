@@ -48,12 +48,22 @@ export function AdminNav() {
       <Link
         href="/admin/email-preview"
         className={`px-3 py-2 rounded transition-colors ${
-          pathname.startsWith('/admin/customers')
+          pathname.startsWith('/admin/email-preview')
             ? 'bg-violet text-white'
             : 'hover:bg-gray-100 dark:hover:bg-gray-700'
         }`}
       >
         Emails preview
+      </Link>
+      <Link
+        href="/admin/launch-notifications"
+        className={`px-3 py-2 rounded transition-colors ${
+          pathname.startsWith('/admin/launch-notifications')
+            ? 'bg-violet text-white'
+            : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+        }`}
+      >
+        Preclients launch
       </Link>
     </nav>
   )

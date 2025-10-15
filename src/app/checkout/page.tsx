@@ -8,134 +8,127 @@ import { useCartStore } from '@/store/useCartStore'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
 import { toast } from 'sonner'
 import HeaderMinimal from '@/components/layout/HeaderMinimal'
 import FooterMinimal from '@/components/layout/FooterMinimal'
-import { AlertCircle } from 'lucide-react'
-
-// Type pour l'adresse
-type AddressInput = {
-  first_name: string
-  last_name: string
-  company?: string
-  address_line_1: string
-  address_line_2?: string
-  city: string
-  postal_code: string
-  country: string
-}
-
-// Tarifs de livraison
-const SHIPPING_RATES = [
-  {
-    id: '1',
-    name: 'Standard',
-    description: 'Livraison en 5-7 jours ouvrés',
-    base_rate: 0,
-  },
-  {
-    id: '2',
-    name: 'Express',
-    description: 'Livraison en 2-3 jours ouvrés',
-    base_rate: 15,
-  },
-]
+import { Sparkles, Mail, User, Phone, Heart } from 'lucide-react'
+import { ProductImage } from '@/components/products/ProductImage'
 
 export default function CheckoutPage() {
   const router = useRouter()
-  const { items, totalPrice, clearCart } = useCartStore()
+  const { items, totalPrice } = useCartStore()
 
   const [isLoading, setIsLoading] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
-  const [selectedShipping, setSelectedShipping] = useState('1')
+  const [isSubmitted, setIsSubmitted] = useState(false)
 
-  const [billingAddress, setBillingAddress] = useState<AddressInput>({
-    first_name: '',
-    last_name: '',
-    address_line_1: '',
-    city: '',
-    postal_code: '',
-    country: 'FR',
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
   })
 
-  const [email, setEmail] = useState('')
-  const [phone, setPhone] = useState('')
-
-  // Attendre que le composant soit monté côté client
   useEffect(() => {
     setIsMounted(true)
   }, [])
-
-  const selectedRate = SHIPPING_RATES.find((r) => r.id === selectedShipping)
-  const shippingCost = selectedRate?.base_rate || 0
-  const subtotal = totalPrice
-  const taxAmount = subtotal * (0.2 / 1.2) // TVA = 16.67% du TTC
-  const total = subtotal + shippingCost
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      // Préparer les données pour Stripe
-      const checkoutData = {
-        items: items.map((item) => ({
-          product_id: item.productId,
-          variant_id: item.variantId || null,
-          name: item.name,
-          description: item.description || '',
-          price: item.price,
-          quantity: item.quantity,
-          image_url: item.image || '',
-        })),
-        email,
-        phone,
-        billingAddress,
-        shippingMethod: selectedRate?.name,
-        totalAmount: total,
-        shippingAmount: shippingCost,
-        taxAmount,
-      }
-
-      // Appeler l'API pour créer la session Stripe
-      const response = await fetch('/api/checkout', {
+      // Envoyer les données à votre API
+      const response = await fetch('/api/launch-notifications', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(checkoutData),
+        body: JSON.stringify({
+          ...formData,
+          cartItems: items.map((item) => ({
+            productId: item.productId,
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+          })),
+          cartTotal: totalPrice,
+          timestamp: new Date().toISOString(),
+        }),
       })
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(
-          error.error || 'Erreur lors de la création de la session'
-        )
+        throw new Error('Failed to submit notification request')
       }
 
-      const { url } = await response.json()
-
-      // Rediriger vers Stripe Checkout
-      if (url) {
-        window.location.href = url
-      } else {
-        throw new Error('No checkout URL returned')
-      }
+      setIsSubmitted(true)
+      toast.success('Thank you! We will notify you soon.')
     } catch (error: any) {
-      console.error('Checkout error:', error)
-      toast.error(error.message || 'Erreur lors du paiement')
+      console.error('Notification error:', error)
+      toast.error('An error occurred. Please try again.')
+    } finally {
       setIsLoading(false)
     }
   }
 
-  // Afficher un loader pendant le chargement initial
   if (!isMounted) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium">
           loading...
         </div>
+      </div>
+    )
+  }
+
+  // Page de confirmation après soumission
+  if (isSubmitted) {
+    return (
+      <div className="min-h-screen bg-white">
+        <HeaderMinimal />
+        <main className="pt-32 pb-24 px-8">
+          <div className="max-w-2xl mx-auto text-center">
+            <div className="mb-8 flex justify-center">
+              <div className="w-20 h-20 rounded-full bg-violet/10 flex items-center justify-center">
+                <Heart className="w-10 h-10 text-violet" />
+              </div>
+            </div>
+
+            <h1 className="text-section mb-6">.thank you</h1>
+
+            <p className="text-body text-grey-medium mb-8 leading-relaxed">
+              Your interest means everything to us.
+              <br />
+              We'll notify you by email as soon as payment becomes available.
+            </p>
+
+            <p className="text-[13px] tracking-[0.05em] font-semibold lowercase text-black mb-12">
+              Expected launch: within few days
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/">
+                <Button
+                  variant="outline"
+                  className="py-3 px-8 text-[13px] tracking-[0.05em] font-semibold lowercase border-black hover:bg-black hover:text-white transition-colors"
+                >
+                  back to home
+                </Button>
+              </Link>
+            </div>
+
+            <p className="text-[11px] tracking-[0.05em] lowercase text-grey-medium mt-12">
+              Questions? Contact us at{' '}
+              <a
+                href="mailto:contact@blancherenaudin.com"
+                className="underline hover:text-black transition-colors"
+              >
+                contact@blancherenaudin.com
+              </a>
+            </p>
+          </div>
+        </main>
+        <FooterMinimal />
       </div>
     )
   }
@@ -149,7 +142,7 @@ export default function CheckoutPage() {
           <div className="max-w-7xl mx-auto text-center">
             <h1 className="text-section mb-6">.empty cart</h1>
             <p className="text-body text-grey-medium mb-12">
-              Your cart is empty. Please add items before checkout.
+              Your cart is empty. Please add items before proceeding.
             </p>
             <Link
               href="/collections"
@@ -164,253 +157,209 @@ export default function CheckoutPage() {
     )
   }
 
+  // Page principale "Coming Soon"
   return (
     <div className="min-h-screen bg-white">
       <HeaderMinimal />
 
-      {/* Bandeau mode test */}
-      <div className="bg-blue-500 text-white py-2 px-8 text-center text-[13px] tracking-[0.05em] font-semibold lowercase">
-        <AlertCircle className="inline-block w-4 h-4 mr-2" />
-        stripe test mode - use card 4242 4242 4242 4242
+      {/* Bandeau de lancement */}
+      <div className="bg-violet text-white py-3 px-8 text-center">
+        <div className="flex items-center justify-center gap-2">
+          <Sparkles className="w-4 h-4" />
+          <span className="text-[13px] tracking-[0.05em] font-semibold lowercase">
+            official launch coming soon — be the first to know
+          </span>
+          <Sparkles className="w-4 h-4" />
+        </div>
       </div>
 
-      <main className="pt-32 pb-24 px-8">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-section mb-16">.checkout</h1>
+      <main className="pt-16 pb-24 px-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-16">
+            {/* Colonne gauche - Message */}
+            <div className="flex flex-col justify-center">
+              <h1 className="text-section mb-8">.launching soon</h1>
 
-          <form onSubmit={handleSubmit} className="grid lg:grid-cols-2 gap-16">
-            {/* Formulaire gauche */}
-            <div className="space-y-12">
-              {/* Contact */}
-              <section>
-                <h2 className="text-product mb-6">CONTACT</h2>
-                <div className="space-y-6">
-                  <div>
-                    <Label
-                      htmlFor="email"
-                      className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium mb-3 block"
-                    >
-                      email *
-                    </Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="border-b border-grey-medium focus:border-black outline-none py-2 text-[13px] tracking-[0.05em] font-semibold lowercase transition-colors bg-transparent w-full"
-                    />
-                  </div>
-                  <div>
-                    <Label
-                      htmlFor="phone"
-                      className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium mb-3 block"
-                    >
-                      phone
-                    </Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="border-b border-grey-medium focus:border-black outline-none py-2 text-[13px] tracking-[0.05em] font-semibold lowercase transition-colors bg-transparent w-full"
-                    />
-                  </div>
-                </div>
-              </section>
+              <div className="space-y-6 text-[15px] leading-relaxed text-grey-medium mb-12">
+                <p>
+                  We're in the final stages of preparing a seamless payment
+                  experience for you.
+                </p>
 
-              {/* Adresse de facturation */}
-              <section>
-                <h2 className="text-product mb-6">BILLING ADDRESS</h2>
-                <div className="grid grid-cols-2 gap-6">
+                <p>
+                  <strong className="text-black">
+                    Payment will be available within few days.
+                  </strong>
+                </p>
+
+                <p>
+                  Leave your details below and we'll notify you the moment we
+                  launch — your items will be waiting for you.
+                </p>
+              </div>
+
+              {/* Formulaire de notification */}
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium mb-3 block">
                       first name *
                     </Label>
-                    <Input
-                      value={billingAddress.first_name}
-                      onChange={(e) =>
-                        setBillingAddress({
-                          ...billingAddress,
-                          first_name: e.target.value,
-                        })
-                      }
-                      required
-                      className="border-b border-grey-medium focus:border-black outline-none py-2 text-[13px] tracking-[0.05em] font-semibold lowercase transition-colors bg-transparent w-full"
-                    />
+                    <div className="relative">
+                      <User className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-grey-medium" />
+                      <Input
+                        value={formData.firstName}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            firstName: e.target.value,
+                          })
+                        }
+                        required
+                        className="pl-6 border-b border-grey-medium focus:border-black outline-none py-2 text-[13px] tracking-[0.05em] font-semibold lowercase transition-colors bg-transparent w-full"
+                        placeholder="jane"
+                      />
+                    </div>
                   </div>
+
                   <div>
                     <Label className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium mb-3 block">
                       last name *
                     </Label>
-                    <Input
-                      value={billingAddress.last_name}
-                      onChange={(e) =>
-                        setBillingAddress({
-                          ...billingAddress,
-                          last_name: e.target.value,
-                        })
-                      }
-                      required
-                      className="border-b border-grey-medium focus:border-black outline-none py-2 text-[13px] tracking-[0.05em] font-semibold lowercase transition-colors bg-transparent w-full"
-                    />
-                  </div>
-                  <div className="col-span-2">
-                    <Label className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium mb-3 block">
-                      address *
-                    </Label>
-                    <Input
-                      value={billingAddress.address_line_1}
-                      onChange={(e) =>
-                        setBillingAddress({
-                          ...billingAddress,
-                          address_line_1: e.target.value,
-                        })
-                      }
-                      required
-                      className="border-b border-grey-medium focus:border-black outline-none py-2 text-[13px] tracking-[0.05em] font-semibold lowercase transition-colors bg-transparent w-full"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium mb-3 block">
-                      city *
-                    </Label>
-                    <Input
-                      value={billingAddress.city}
-                      onChange={(e) =>
-                        setBillingAddress({
-                          ...billingAddress,
-                          city: e.target.value,
-                        })
-                      }
-                      required
-                      className="border-b border-grey-medium focus:border-black outline-none py-2 text-[13px] tracking-[0.05em] font-semibold lowercase transition-colors bg-transparent w-full"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium mb-3 block">
-                      postal code *
-                    </Label>
-                    <Input
-                      value={billingAddress.postal_code}
-                      onChange={(e) =>
-                        setBillingAddress({
-                          ...billingAddress,
-                          postal_code: e.target.value,
-                        })
-                      }
-                      required
-                      className="border-b border-grey-medium focus:border-black outline-none py-2 text-[13px] tracking-[0.05em] font-semibold lowercase transition-colors bg-transparent w-full"
-                    />
-                  </div>
-                </div>
-              </section>
-
-              {/* Méthode de livraison */}
-              <section>
-                <h2 className="text-product mb-6">SHIPPING METHOD</h2>
-                <div className="space-y-4">
-                  {SHIPPING_RATES.map((rate) => (
-                    <label
-                      key={rate.id}
-                      className="flex items-center gap-4 p-4 border border-grey-light cursor-pointer hover:border-black transition-colors"
-                    >
-                      <input
-                        type="radio"
-                        name="shipping"
-                        value={rate.id}
-                        checked={selectedShipping === rate.id}
-                        onChange={(e) => setSelectedShipping(e.target.value)}
+                    <div className="relative">
+                      <User className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-grey-medium" />
+                      <Input
+                        value={formData.lastName}
+                        onChange={(e) =>
+                          setFormData({ ...formData, lastName: e.target.value })
+                        }
                         required
-                        className="w-4 h-4"
+                        className="pl-6 border-b border-grey-medium focus:border-black outline-none py-2 text-[13px] tracking-[0.05em] font-semibold lowercase transition-colors bg-transparent w-full"
+                        placeholder="doe"
                       />
-                      <div className="flex-1">
-                        <div className="text-[13px] tracking-[0.05em] font-semibold lowercase">
-                          {rate.name}
-                        </div>
-                        <div className="text-[13px] tracking-[0.05em] lowercase text-grey-medium">
-                          {rate.description}
-                        </div>
-                      </div>
-                      <div className="text-[13px] tracking-[0.05em] font-semibold lowercase">
-                        {rate.base_rate === 0 ? 'free' : `${rate.base_rate}€`}
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              </section>
-            </div>
-
-            {/* Récapitulatif droite */}
-            <div>
-              <div className="border border-grey-light p-8 sticky top-32">
-                <h2 className="text-product mb-8">ORDER SUMMARY</h2>
-
-                <div className="space-y-6 mb-8">
-                  {items.map((item) => (
-                    <div key={item.id} className="flex gap-4">
-                      <div className="w-16 h-20 bg-gray-100 flex-shrink-0" />
-                      <div className="flex-1">
-                        <div className="text-[13px] tracking-[0.05em] font-semibold lowercase mb-1">
-                          {item.name}
-                        </div>
-                        <div className="text-[13px] tracking-[0.05em] lowercase text-grey-medium">
-                          qty: {item.quantity}
-                        </div>
-                      </div>
-                      <div className="text-[13px] tracking-[0.05em] font-semibold lowercase">
-                        {(item.price * item.quantity).toFixed(2)}€
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="border-t border-grey-light pt-6 mb-6">
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium">
-                      <span>subtotal</span>
-                      <span className="text-black">{subtotal.toFixed(2)}€</span>
-                    </div>
-                    <div className="flex justify-between text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium">
-                      <span>shipping</span>
-                      <span className="text-black">
-                        {shippingCost === 0
-                          ? 'free'
-                          : `${shippingCost.toFixed(2)}€`}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium">
-                      <span>tax (20%)</span>
-                      <span className="text-black">
-                        {taxAmount.toFixed(2)}€
-                      </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="border-t border-grey-light pt-6 mb-8">
-                  <div className="flex justify-between text-[15px] tracking-[0.02em] font-semibold text-black">
-                    <span className="lowercase">total</span>
-                    <span>{total.toFixed(2)}€</span>
+                <div>
+                  <Label className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium mb-3 block">
+                    email *
+                  </Label>
+                  <div className="relative">
+                    <Mail className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-grey-medium" />
+                    <Input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
+                      required
+                      className="pl-6 border-b border-grey-medium focus:border-black outline-none py-2 text-[13px] tracking-[0.05em] font-semibold lowercase transition-colors bg-transparent w-full"
+                      placeholder="jane@example.com"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium mb-3 block">
+                    phone (optional)
+                  </Label>
+                  <div className="relative">
+                    <Phone className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-grey-medium" />
+                    <Input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) =>
+                        setFormData({ ...formData, phone: e.target.value })
+                      }
+                      className="pl-6 border-b border-grey-medium focus:border-black outline-none py-2 text-[13px] tracking-[0.05em] font-semibold lowercase transition-colors bg-transparent w-full"
+                      placeholder="+33 6 12 34 56 78"
+                    />
                   </div>
                 </div>
 
                 <Button
                   type="submit"
-                  className="w-full py-4 text-[13px] tracking-[0.05em] font-semibold lowercase bg-black text-white hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={isLoading || !selectedShipping}
+                  className="w-full py-4 text-[13px] tracking-[0.05em] font-semibold lowercase bg-black text-white hover:bg-gray-800 transition-colors disabled:opacity-50"
+                  disabled={isLoading}
                 >
-                  {isLoading
-                    ? 'redirecting to payment...'
-                    : 'proceed to payment'}
+                  {isLoading ? 'submitting...' : 'notify me at launch'}
                 </Button>
 
-                <p className="text-[11px] tracking-[0.05em] lowercase text-grey-medium text-center mt-4">
-                  secure payment powered by stripe
+                <p className="text-[11px] tracking-[0.05em] lowercase text-grey-medium text-center">
+                  We respect your privacy. No spam, just launch notifications.
                 </p>
+              </form>
+            </div>
+
+            {/* Colonne droite - Récapitulatif panier */}
+            <div>
+              <div className="border border-grey-light p-8 sticky top-32">
+                <h2 className="text-product mb-8">your selection</h2>
+
+                <div className="space-y-6 mb-8 max-h-[400px] overflow-y-auto">
+                  {items.map((item) => (
+                    <div key={item.id} className="flex gap-4">
+                      <div className="w-20 h-24 flex-shrink-0 bg-gray-100 overflow-hidden">
+                        {item.imageId && item.productId ? (
+                          <ProductImage
+                            productId={item.productId}
+                            imageId={item.imageId}
+                            alt={item.name}
+                            size="sm"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                            No image
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-[13px] tracking-[0.05em] font-semibold lowercase mb-1">
+                          {item.name}
+                        </div>
+                        <div className="text-[11px] tracking-[0.05em] lowercase text-grey-medium">
+                          {item.size && <span>size: {item.size}</span>}
+                          {item.size && item.color && <span> • </span>}
+                          {item.color && <span>{item.color}</span>}
+                        </div>
+                        <div className="text-[11px] tracking-[0.05em] lowercase text-grey-medium mt-1">
+                          qty: {item.quantity}
+                        </div>
+                      </div>
+                      <div className="text-[13px] tracking-[0.05em] font-semibold lowercase">
+                        €{(item.price * item.quantity).toFixed(2)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="border-t border-grey-light pt-6">
+                  <div className="flex justify-between text-[15px] tracking-[0.02em] font-semibold text-black mb-6">
+                    <span className="lowercase">total</span>
+                    <span>€{totalPrice.toFixed(2)}</span>
+                  </div>
+
+                  <div className="bg-violet/5 border border-violet/20 p-4 rounded">
+                    <p className="text-[11px] tracking-[0.05em] lowercase text-grey-medium text-center">
+                      This selection will be reserved for you when payment
+                      launches
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 text-center">
+                <Link
+                  href="/"
+                  className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium hover:text-black transition-colors"
+                >
+                  continue shopping
+                </Link>
               </div>
             </div>
-          </form>
+          </div>
         </div>
       </main>
 

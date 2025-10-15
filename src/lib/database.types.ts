@@ -259,6 +259,48 @@ export type Database = {
         }
         Relationships: []
       }
+      launch_notifications: {
+        Row: {
+          cart_items: Json | null
+          cart_total: number | null
+          created_at: string | null
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          notified_at: string | null
+          phone: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          cart_items?: Json | null
+          cart_total?: number | null
+          created_at?: string | null
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          notified_at?: string | null
+          phone?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          cart_items?: Json | null
+          cart_total?: number | null
+          created_at?: string | null
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          notified_at?: string | null
+          phone?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string

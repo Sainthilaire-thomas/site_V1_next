@@ -160,7 +160,7 @@ export async function sendOrderShippedEmail(
     trackingNumber: string
     carrier: string
     trackingUrl: string
-    estimatedDelivery: string
+    estimatedDelivery?: string
   }
 ) {
   const { OrderShippedEmail } = await import('./order-shipped')

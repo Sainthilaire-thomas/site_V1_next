@@ -14,7 +14,7 @@ const trackingSchema = z.object({
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // ✅ CHANGEMENT 1 : Promise ajouté
 ) {
   try {
     // Vérifier les permissions admin
@@ -28,7 +28,7 @@ export async function POST(
     }
 
     const supabase = adminCheck.supabase
-    const orderId = params.id
+    const { id: orderId } = await params // ✅ CHANGEMENT 2 : await params
     const body = await request.json()
 
     // Valider les données

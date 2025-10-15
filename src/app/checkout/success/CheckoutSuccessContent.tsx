@@ -72,7 +72,7 @@ export default function CheckoutSuccessContent() {
             <p className="text-body text-grey-medium mb-12">
               {error || 'Unable to load order details'}
             </p>
-            <Link href="/collections">
+            <Link href="/">
               <Button
                 variant="outline"
                 className="py-3 px-8 text-[13px] tracking-[0.05em] font-semibold lowercase border-black hover:bg-black hover:text-white transition-colors"
@@ -199,7 +199,7 @@ export default function CheckoutSuccessContent() {
 
           {/* Actions */}
           <div className="flex justify-center">
-            <Link href="/collections">
+            <Link href="/">
               <Button
                 variant="outline"
                 className="py-3 px-8 text-[13px] tracking-[0.05em] font-semibold lowercase border-black hover:bg-black hover:text-white transition-colors"

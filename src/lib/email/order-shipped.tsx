@@ -20,7 +20,7 @@ interface OrderShippedEmailProps {
   trackingNumber: string
   carrier: string
   trackingUrl: string
-  estimatedDelivery: string
+  estimatedDelivery?: string
 }
 
 export const OrderShippedEmail = ({
