@@ -51,7 +51,7 @@ export default function CartPage() {
               discover our collections and find the pieces that suit you.
             </p>
             <Link
-              href="/collections"
+              href="/"
               className="inline-block py-3 px-8 text-[13px] tracking-[0.05em] font-semibold lowercase bg-white text-black border border-black hover:bg-black hover:text-white transition-colors"
             >
               view collections
