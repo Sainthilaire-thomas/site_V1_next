@@ -19,12 +19,11 @@ export default function ShippingPage() {
           <section>
             <h2 className="text-product mb-3">DELIVERY TIMES</h2>
             <p className="text-body text-grey-medium">
-              All orders are processed within 2-3 business days. You will
+              All orders are processed within 3-5 business days. You will
               receive a confirmation email once your order has been shipped with
               tracking information.
             </p>
             <ul className="mt-3 space-y-2 text-body text-grey-medium">
-              <li>• France: 2-4 business days</li>
               <li>• Europe: 4-7 business days</li>
               <li>• International: 7-14 business days</li>
             </ul>
@@ -34,8 +33,7 @@ export default function ShippingPage() {
             <h2 className="text-product mb-3">SHIPPING COSTS</h2>
             <p className="text-body text-grey-medium">
               Shipping costs are calculated at checkout based on your location
-              and order weight. Free shipping is offered on all orders over €150
-              within France and €200 for Europe.
+              and order weight.
             </p>
           </section>
 

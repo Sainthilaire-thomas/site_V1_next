@@ -49,16 +49,16 @@ export default function ContactPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-24">
             {/* Colonne gauche - Informations */}
             <div className="space-y-16">
-              <div>
+              {/* <div>
                 <h2 className="text-product mb-3">ATELIER</h2>
                 <p className="text-body text-grey-medium">
                   25 boulevard de La Tour Maubourg
                   <br />
                   75007 Paris, France
                 </p>
-              </div>
+              </div> */}
 
-              <div>
+              {/* <div>
                 <h2 className="text-product mb-3">HOURS</h2>
                 <p className="text-body text-grey-medium">
                   monday - friday: 10h - 19h
@@ -67,17 +67,11 @@ export default function ContactPage() {
                   <br />
                   sunday: by appointment
                 </p>
-              </div>
+              </div> */}
 
               <div>
                 <h2 className="text-product mb-3">CONTACT</h2>
                 <p className="text-body text-grey-medium">
-                  <a
-                    href="tel:+33123456789"
-                    className="hover:text-black transition-colors"
-                  >
-                    +33 1 23 45 67 89
-                  </a>
                   <br />
                   <a
                     href="mailto:contact@blancherenaudin.com"
