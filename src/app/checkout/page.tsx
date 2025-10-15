@@ -1,4 +1,4 @@
-// src/app/checkout/page.tsx
+// src/app/checkout/page.tsx - VERSION CORRIGÉE POUR MOBILE
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -35,6 +35,10 @@ export default function CheckoutPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Empêcher les doubles soumissions
+    if (isLoading) return
+
     setIsLoading(true)
 
     try {
@@ -86,7 +90,7 @@ export default function CheckoutPage() {
     return (
       <div className="min-h-screen bg-white">
         <HeaderMinimal />
-        <main className="pt-32 pb-24 px-8">
+        <main className="pt-32 pb-24 px-4 sm:px-8">
           <div className="max-w-2xl mx-auto text-center">
             <div className="mb-8 flex justify-center">
               <div className="w-20 h-20 rounded-full bg-violet/10 flex items-center justify-center">
@@ -94,7 +98,7 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <h1 className="text-section mb-6">.thank you</h1>
+            <h1 className="text-4xl sm:text-section mb-6">.thank you</h1>
 
             <p className="text-body text-grey-medium mb-8 leading-relaxed">
               Your interest means everything to us.
@@ -110,7 +114,7 @@ export default function CheckoutPage() {
               <Link href="/">
                 <Button
                   variant="outline"
-                  className="py-3 px-8 text-[13px] tracking-[0.05em] font-semibold lowercase border-black hover:bg-black hover:text-white transition-colors"
+                  className="w-full sm:w-auto py-3 px-8 text-[13px] tracking-[0.05em] font-semibold lowercase border-black hover:bg-black hover:text-white transition-colors"
                 >
                   back to home
                 </Button>
@@ -138,9 +142,9 @@ export default function CheckoutPage() {
     return (
       <div className="min-h-screen bg-white">
         <HeaderMinimal />
-        <main className="pt-32 pb-24 px-8">
+        <main className="pt-32 pb-24 px-4 sm:px-8">
           <div className="max-w-7xl mx-auto text-center">
-            <h1 className="text-section mb-6">.empty cart</h1>
+            <h1 className="text-4xl sm:text-section mb-6">.empty cart</h1>
             <p className="text-body text-grey-medium mb-12">
               Your cart is empty. Please add items before proceeding.
             </p>
@@ -163,24 +167,97 @@ export default function CheckoutPage() {
       <HeaderMinimal />
 
       {/* Bandeau de lancement */}
-      <div className="bg-violet text-white py-3 px-8 text-center">
-        <div className="flex items-center justify-center gap-2">
-          <Sparkles className="w-4 h-4" />
-          <span className="text-[13px] tracking-[0.05em] font-semibold lowercase">
+      <div className="bg-violet text-white py-3 px-4 sm:px-8 text-center">
+        <div className="flex items-center justify-center gap-2 flex-wrap">
+          <Sparkles className="w-4 h-4 flex-shrink-0" />
+          <span className="text-[11px] sm:text-[13px] tracking-[0.05em] font-semibold lowercase">
             official launch coming soon — be the first to know
           </span>
-          <Sparkles className="w-4 h-4" />
+          <Sparkles className="w-4 h-4 flex-shrink-0" />
         </div>
       </div>
 
-      <main className="pt-16 pb-24 px-8">
+      <main className="pt-8 sm:pt-16 pb-12 sm:pb-24 px-4 sm:px-8">
         <div className="max-w-6xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-16">
-            {/* Colonne gauche - Message */}
-            <div className="flex flex-col justify-center">
-              <h1 className="text-section mb-8">.launching soon</h1>
+          {/* CHANGEMENT MAJEUR : Ordre inversé sur mobile */}
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-16">
+            {/* Colonne droite - Récapitulatif panier - AFFICHÉ EN PREMIER SUR MOBILE */}
+            <div className="order-1 lg:order-2">
+              <div className="border border-grey-light p-4 sm:p-8 lg:sticky lg:top-32">
+                <h2 className="text-[15px] sm:text-product mb-6 sm:mb-8">
+                  your selection
+                </h2>
 
-              <div className="space-y-6 text-[15px] leading-relaxed text-grey-medium mb-12">
+                <div className="space-y-4 sm:space-y-6 mb-6 sm:mb-8 max-h-[300px] sm:max-h-[400px] overflow-y-auto">
+                  {items.map((item) => (
+                    <div key={item.id} className="flex gap-3 sm:gap-4">
+                      <div className="w-16 sm:w-20 h-20 sm:h-24 flex-shrink-0 bg-gray-100 overflow-hidden">
+                        {item.imageId && item.productId ? (
+                          <ProductImage
+                            productId={item.productId}
+                            imageId={item.imageId}
+                            alt={item.name}
+                            size="sm"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                            No image
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[12px] sm:text-[13px] tracking-[0.05em] font-semibold lowercase mb-1 truncate">
+                          {item.name}
+                        </div>
+                        <div className="text-[10px] sm:text-[11px] tracking-[0.05em] lowercase text-grey-medium">
+                          {item.size && <span>size: {item.size}</span>}
+                          {item.size && item.color && <span> • </span>}
+                          {item.color && <span>{item.color}</span>}
+                        </div>
+                        <div className="text-[10px] sm:text-[11px] tracking-[0.05em] lowercase text-grey-medium mt-1">
+                          qty: {item.quantity}
+                        </div>
+                      </div>
+                      <div className="text-[12px] sm:text-[13px] tracking-[0.05em] font-semibold lowercase flex-shrink-0">
+                        €{(item.price * item.quantity).toFixed(2)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="border-t border-grey-light pt-4 sm:pt-6">
+                  <div className="flex justify-between text-[14px] sm:text-[15px] tracking-[0.02em] font-semibold text-black mb-4 sm:mb-6">
+                    <span className="lowercase">total</span>
+                    <span>€{totalPrice.toFixed(2)}</span>
+                  </div>
+
+                  <div className="bg-violet/5 border border-violet/20 p-3 sm:p-4 rounded">
+                    <p className="text-[10px] sm:text-[11px] tracking-[0.05em] lowercase text-grey-medium text-center">
+                      This selection will be reserved for you when payment
+                      launches
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 sm:mt-6 text-center">
+                <Link
+                  href="/"
+                  className="text-[12px] sm:text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium hover:text-black transition-colors"
+                >
+                  continue shopping
+                </Link>
+              </div>
+            </div>
+
+            {/* Colonne gauche - Message et Formulaire - AFFICHÉ EN SECOND SUR MOBILE */}
+            <div className="order-2 lg:order-1 flex flex-col justify-center">
+              <h1 className="text-4xl sm:text-section mb-6 sm:mb-8">
+                .launching soon
+              </h1>
+
+              <div className="space-y-4 sm:space-y-6 text-[14px] sm:text-[15px] leading-relaxed text-grey-medium mb-8 sm:mb-12">
                 <p>
                   We're in the final stages of preparing a seamless payment
                   experience for you.
@@ -198,15 +275,16 @@ export default function CheckoutPage() {
                 </p>
               </div>
 
-              {/* Formulaire de notification */}
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+              {/* Formulaire de notification - OPTIMISÉ MOBILE */}
+              <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
+                {/* CHANGEMENT : Une seule colonne sur mobile */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-4">
                   <div>
-                    <Label className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium mb-3 block">
+                    <Label className="text-[12px] sm:text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium mb-2 sm:mb-3 block">
                       first name *
                     </Label>
                     <div className="relative">
-                      <User className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-grey-medium" />
+                      <User className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-grey-medium pointer-events-none" />
                       <Input
                         value={formData.firstName}
                         onChange={(e) =>
@@ -218,16 +296,18 @@ export default function CheckoutPage() {
                         required
                         className="pl-6 border-b border-grey-medium focus:border-black outline-none py-2 text-[13px] tracking-[0.05em] font-semibold lowercase transition-colors bg-transparent w-full"
                         placeholder="jane"
+                        autoComplete="given-name"
+                        disabled={isLoading}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <Label className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium mb-3 block">
+                    <Label className="text-[12px] sm:text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium mb-2 sm:mb-3 block">
                       last name *
                     </Label>
                     <div className="relative">
-                      <User className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-grey-medium" />
+                      <User className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-grey-medium pointer-events-none" />
                       <Input
                         value={formData.lastName}
                         onChange={(e) =>
@@ -236,17 +316,19 @@ export default function CheckoutPage() {
                         required
                         className="pl-6 border-b border-grey-medium focus:border-black outline-none py-2 text-[13px] tracking-[0.05em] font-semibold lowercase transition-colors bg-transparent w-full"
                         placeholder="doe"
+                        autoComplete="family-name"
+                        disabled={isLoading}
                       />
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <Label className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium mb-3 block">
+                  <Label className="text-[12px] sm:text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium mb-2 sm:mb-3 block">
                     email *
                   </Label>
                   <div className="relative">
-                    <Mail className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-grey-medium" />
+                    <Mail className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-grey-medium pointer-events-none" />
                     <Input
                       type="email"
                       value={formData.email}
@@ -256,16 +338,18 @@ export default function CheckoutPage() {
                       required
                       className="pl-6 border-b border-grey-medium focus:border-black outline-none py-2 text-[13px] tracking-[0.05em] font-semibold lowercase transition-colors bg-transparent w-full"
                       placeholder="jane@example.com"
+                      autoComplete="email"
+                      disabled={isLoading}
                     />
                   </div>
                 </div>
 
                 <div>
-                  <Label className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium mb-3 block">
+                  <Label className="text-[12px] sm:text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium mb-2 sm:mb-3 block">
                     phone (optional)
                   </Label>
                   <div className="relative">
-                    <Phone className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-grey-medium" />
+                    <Phone className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-grey-medium pointer-events-none" />
                     <Input
                       type="tel"
                       value={formData.phone}
@@ -274,90 +358,26 @@ export default function CheckoutPage() {
                       }
                       className="pl-6 border-b border-grey-medium focus:border-black outline-none py-2 text-[13px] tracking-[0.05em] font-semibold lowercase transition-colors bg-transparent w-full"
                       placeholder="+33 6 12 34 56 78"
+                      autoComplete="tel"
+                      disabled={isLoading}
                     />
                   </div>
                 </div>
 
+                {/* BOUTON OPTIMISÉ MOBILE avec touch-action */}
                 <Button
                   type="submit"
-                  className="w-full py-4 text-[13px] tracking-[0.05em] font-semibold lowercase bg-black text-white hover:bg-gray-800 transition-colors disabled:opacity-50"
+                  className="w-full py-4 text-[13px] tracking-[0.05em] font-semibold lowercase bg-black text-white hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
                   disabled={isLoading}
+                  style={{ touchAction: 'manipulation' }}
                 >
                   {isLoading ? 'submitting...' : 'notify me at launch'}
                 </Button>
 
-                <p className="text-[11px] tracking-[0.05em] lowercase text-grey-medium text-center">
+                <p className="text-[10px] sm:text-[11px] tracking-[0.05em] lowercase text-grey-medium text-center">
                   We respect your privacy. No spam, just launch notifications.
                 </p>
               </form>
-            </div>
-
-            {/* Colonne droite - Récapitulatif panier */}
-            <div>
-              <div className="border border-grey-light p-8 sticky top-32">
-                <h2 className="text-product mb-8">your selection</h2>
-
-                <div className="space-y-6 mb-8 max-h-[400px] overflow-y-auto">
-                  {items.map((item) => (
-                    <div key={item.id} className="flex gap-4">
-                      <div className="w-20 h-24 flex-shrink-0 bg-gray-100 overflow-hidden">
-                        {item.imageId && item.productId ? (
-                          <ProductImage
-                            productId={item.productId}
-                            imageId={item.imageId}
-                            alt={item.name}
-                            size="sm"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-                            No image
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-[13px] tracking-[0.05em] font-semibold lowercase mb-1">
-                          {item.name}
-                        </div>
-                        <div className="text-[11px] tracking-[0.05em] lowercase text-grey-medium">
-                          {item.size && <span>size: {item.size}</span>}
-                          {item.size && item.color && <span> • </span>}
-                          {item.color && <span>{item.color}</span>}
-                        </div>
-                        <div className="text-[11px] tracking-[0.05em] lowercase text-grey-medium mt-1">
-                          qty: {item.quantity}
-                        </div>
-                      </div>
-                      <div className="text-[13px] tracking-[0.05em] font-semibold lowercase">
-                        €{(item.price * item.quantity).toFixed(2)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="border-t border-grey-light pt-6">
-                  <div className="flex justify-between text-[15px] tracking-[0.02em] font-semibold text-black mb-6">
-                    <span className="lowercase">total</span>
-                    <span>€{totalPrice.toFixed(2)}</span>
-                  </div>
-
-                  <div className="bg-violet/5 border border-violet/20 p-4 rounded">
-                    <p className="text-[11px] tracking-[0.05em] lowercase text-grey-medium text-center">
-                      This selection will be reserved for you when payment
-                      launches
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 text-center">
-                <Link
-                  href="/"
-                  className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium hover:text-black transition-colors"
-                >
-                  continue shopping
-                </Link>
-              </div>
             </div>
           </div>
         </div>
