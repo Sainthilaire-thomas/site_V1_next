@@ -42,21 +42,24 @@ export default function CheckoutPage() {
     try {
       console.log('📡 Sending to API...')
 
-      const response = await fetch('/api/launch-notifications', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          cartItems: items.map((item) => ({
-            productId: item.productId,
-            name: item.name,
-            quantity: item.quantity,
-            price: item.price,
-          })),
-          cartTotal: totalPrice,
-          timestamp: new Date().toISOString(),
-        }),
-      })
+      const response = await fetch(
+        `${window.location.origin}/api/launch-notifications`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...formData,
+            cartItems: items.map((item) => ({
+              productId: item.productId,
+              name: item.name,
+              quantity: item.quantity,
+              price: item.price,
+            })),
+            cartTotal: totalPrice,
+            timestamp: new Date().toISOString(),
+          }),
+        }
+      )
 
       console.log('📬 Response status:', response.status)
 
