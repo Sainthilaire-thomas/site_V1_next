@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
+import Script from 'next/script'
 import { Archivo_Black, Archivo_Narrow } from 'next/font/google'
-import "./globals.css";
+import './globals.css'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
-import { GoogleAnalytics } from '@next/third-parties/google'
 
 const archivoBlack = Archivo_Black({
   weight: '400',
@@ -37,12 +37,22 @@ export default function RootLayout({
       >
         {children}
 
-        {/* 🎯 Vercel Analytics & Speed Insights */}
         <Analytics />
         <SpeedInsights />
 
-        {/* 📊 Google Analytics */}
-        <GoogleAnalytics gaId="G-KFPKFQ45J" />
+        {/* Google Analytics - Implémentation manuelle */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-KFPKFQ45J"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-KFPKFQ45J');
+          `}
+        </Script>
       </body>
     </html>
   )
