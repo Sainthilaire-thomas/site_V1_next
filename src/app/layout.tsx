@@ -1,9 +1,11 @@
-import type { Metadata } from "next";
+// src/app/layout.tsx
+import type { Metadata } from 'next'
 import Script from 'next/script'
 import { Archivo_Black, Archivo_Narrow } from 'next/font/google'
 import './globals.css'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
+import { AnalyticsTracker } from '@/components/analytics/AnalyticsTracker'
 
 const archivoBlack = Archivo_Black({
   weight: '400',
@@ -35,24 +37,21 @@ export default function RootLayout({
       <body
         className={`${archivoBlack.variable} ${archivoNarrow.variable} antialiased`}
       >
+        {/* 📊 Tracking automatique des pages vues */}
+        <AnalyticsTracker />
+
         {children}
 
+        {/* Vercel Analytics (garde pour la perf) */}
         <Analytics />
         <SpeedInsights />
 
-        {/* Google Analytics - Implémentation manuelle */}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-KFPKFQ45J"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-KFPKFQ45J');
-          `}
-        </Script>
+        {/* 
+          ❌ RETIRER Google Analytics - remplacé par notre système custom
+          Plus besoin de Google Analytics, donc supprimez ces Scripts :
+        */}
+        {/* <Script src="https://www.googletagmanager.com/gtag/js?id=G-KFPKFQ45J" strategy="afterInteractive" /> */}
+        {/* <Script id="google-analytics" strategy="afterInteractive">...</Script> */}
       </body>
     </html>
   )

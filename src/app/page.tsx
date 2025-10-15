@@ -1,4 +1,4 @@
-// src/app/page.tsx - VERSION CROSSFADE AVEC PRÉCHARGEMENT
+// src/app/page.tsx - AVEC PRÉCHARGEMENT ANALYTICS
 'use client'
 
 import { useState, useRef, useCallback, useEffect, Suspense } from 'react'
@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import Homepage from '../components/layout/Homepage'
 import { sanityClient } from '@/lib/sanity.client'
 import { HOMEPAGE_QUERY } from '@/lib/queries'
+import { preloadAnalyticsData } from '@/lib/analytics' // ⚡ IMPORT
 
 const DURATIONS = {
   arrangeMs: 800,
@@ -84,7 +85,6 @@ const InteractiveEntry = ({
         homepageData.zoneImpact?.image,
       ].filter(Boolean)
 
-      // Créer un tableau de promesses pour charger toutes les images
       const imagePromises = images.map((imageData) => {
         return new Promise((resolve) => {
           if (!imageData) {
@@ -94,7 +94,6 @@ const InteractiveEntry = ({
 
           const img = new Image()
 
-          // Construire l'URL Sanity
           try {
             const imageUrl =
               imageData.asset?.url ||
@@ -116,6 +115,13 @@ const InteractiveEntry = ({
 
     preloadImages()
   }, [homepageData])
+
+  // ⚡ NOUVEAU : PRÉCHARGEMENT ANALYTICS
+  useEffect(() => {
+    // Lancer le préchargement dès que le composant est monté
+    preloadAnalyticsData()
+    console.log("🚀 Préchargement analytics démarré pendant l'animation")
+  }, [])
 
   const generateLetters = useCallback(() => {
     const chars = brandName.split('')
@@ -227,10 +233,9 @@ const InteractiveEntry = ({
     const totalMs =
       DURATIONS.arrangeMs + DURATIONS.staggerMs * (n - 1) + DURATIONS.holdMs
 
-    // ✅ CROSSFADE: Démarrer le fade ET la homepage EN MÊME TEMPS
+    // Crossfade
     window.setTimeout(() => {
       setIsFading(true)
-      // Délai minimal pour que le fade commence avant la homepage
       setTimeout(() => onEnter(), 50)
     }, totalMs)
   }
@@ -327,13 +332,6 @@ const InteractiveEntry = ({
         />
       )}
 
-      {/* Indicateur de préchargement (optionnel - pour debug) */}
-      {!imagesPreloaded && (
-        <div className="fixed bottom-4 right-4 text-xs text-gray-400 opacity-50">
-          Préchargement...
-        </div>
-      )}
-
       <style jsx>{`
         @keyframes letter-appear {
           0% {
@@ -369,7 +367,6 @@ function HomeContent() {
   const [isLoading, setIsLoading] = useState(true)
   const searchParams = useSearchParams()
 
-  // Fetch des données Sanity au chargement
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -399,12 +396,10 @@ function HomeContent() {
     setShowHomepage(true)
   }
 
-  // Affichage du loader pendant le fetch
   if (isLoading) {
     return <div className="w-full h-screen bg-white animate-pulse" />
   }
 
-  // Si pas de données Sanity
   if (!homepageData) {
     return (
       <div className="w-full h-screen flex items-center justify-center px-8">
@@ -425,10 +420,8 @@ function HomeContent() {
     )
   }
 
-  // ✅ CROSSFADE: Afficher les deux composants en même temps pendant la transition
   return (
     <div className="relative w-full h-screen">
-      {/* Intro - disparaît en premier */}
       {!showHomepage && (
         <div className="absolute inset-0 z-20">
           <InteractiveEntry
@@ -438,7 +431,6 @@ function HomeContent() {
         </div>
       )}
 
-      {/* Homepage - apparaît en fondu */}
       {showHomepage && (
         <div
           className="absolute inset-0 z-10"

@@ -65,6 +65,87 @@ export type Database = {
         }
         Relationships: []
       }
+      analytics_events: {
+        Row: {
+          browser: string | null
+          cart_value: number | null
+          city: string | null
+          country: string | null
+          country_code: string | null
+          created_at: string | null
+          device_type: string | null
+          event_type: string
+          id: string
+          language: string | null
+          order_id: string | null
+          os: string | null
+          page_load_time: number | null
+          page_path: string | null
+          page_title: string | null
+          product_id: string | null
+          properties: Json | null
+          referrer: string | null
+          revenue: number | null
+          screen_resolution: string | null
+          session_id: string
+          time_on_page: number | null
+          timezone: string | null
+          user_id: string | null
+        }
+        Insert: {
+          browser?: string | null
+          cart_value?: number | null
+          city?: string | null
+          country?: string | null
+          country_code?: string | null
+          created_at?: string | null
+          device_type?: string | null
+          event_type: string
+          id?: string
+          language?: string | null
+          order_id?: string | null
+          os?: string | null
+          page_load_time?: number | null
+          page_path?: string | null
+          page_title?: string | null
+          product_id?: string | null
+          properties?: Json | null
+          referrer?: string | null
+          revenue?: number | null
+          screen_resolution?: string | null
+          session_id: string
+          time_on_page?: number | null
+          timezone?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          browser?: string | null
+          cart_value?: number | null
+          city?: string | null
+          country?: string | null
+          country_code?: string | null
+          created_at?: string | null
+          device_type?: string | null
+          event_type?: string
+          id?: string
+          language?: string | null
+          order_id?: string | null
+          os?: string | null
+          page_load_time?: number | null
+          page_path?: string | null
+          page_title?: string | null
+          product_id?: string | null
+          properties?: Json | null
+          referrer?: string | null
+          revenue?: number | null
+          screen_resolution?: string | null
+          session_id?: string
+          time_on_page?: number | null
+          timezone?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
@@ -971,6 +1052,22 @@ export type Database = {
       generate_order_number: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_daily_stats: {
+        Args: { since_date: string }
+        Returns: {
+          date: string
+          pageviews: number
+          visitors: number
+        }[]
+      }
+      get_top_pages: {
+        Args: { since_date: string }
+        Returns: {
+          path: string
+          title: string
+          views: number
+        }[]
       }
       is_admin: {
         Args: Record<PropertyKey, never>

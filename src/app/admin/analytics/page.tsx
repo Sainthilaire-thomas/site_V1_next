@@ -11,6 +11,15 @@ import {
 } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from 'recharts'
+import {
   BarChart3,
   ShoppingCart,
   Users,
@@ -21,46 +30,39 @@ import {
   Smartphone,
   ExternalLink,
   AlertCircle,
+  Clock,
+  Tablet,
 } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface AnalyticsData {
   visitors: number
   pageViews: number
   bounceRate: number
-  topPages: Array<{ path: string; views: number }>
+  avgTimeOnSite: number
+  topPages: Array<{ path: string; title: string; views: number }>
   referrers: Array<{ source: string; visitors: number }>
   countries: Array<{ country: string; visitors: number }>
   devices: Array<{ device: string; visitors: number }>
+  dailyStats: Array<{ date: string; visitors: number; pageviews: number }>
+  ecommerce: {
+    addToCart: number
+    purchases: number
+    revenue: number
+    conversionRate: string
+  }
 }
 
 export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [period, setPeriod] = useState('7d')
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null)
-  const [ecommerceData, setEcommerceData] = useState({
-    orders: 0,
-    revenue: 0,
-    averageOrder: 0,
-    customers: 0,
-  })
+  const [data, setData] = useState<AnalyticsData | null>(null)
 
-  // Charger les données Vercel Analytics
   useEffect(() => {
     fetchAnalytics()
   }, [period])
-
-  // Charger les données e-commerce (simulées pour l'instant)
-  useEffect(() => {
-    // TODO: Remplacer par de vraies données depuis Supabase
-    setEcommerceData({
-      orders: 38,
-      revenue: 4250.0,
-      averageOrder: 111.84,
-      customers: 156,
-    })
-  }, [])
 
   const fetchAnalytics = async () => {
     try {
@@ -68,28 +70,34 @@ export default function AnalyticsPage() {
       setError(null)
 
       const response = await fetch(
-        `/api/admin/analytics/vercel?period=${period}`
+        `/api/admin/analytics/custom?period=${period}`
       )
       const result = await response.json()
 
       if (!response.ok) {
-        throw new Error(
-          result.message || 'Erreur lors du chargement des analytics'
-        )
+        throw new Error(result.message || 'Erreur lors du chargement')
       }
 
-      // Afficher un avertissement si données mockées
-      if (result.mock) {
-        console.warn('⚠️ Using mock data:', result.message)
-      }
-
-      setAnalyticsData(result.data)
+      setData(result.data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
       console.error('Analytics error:', err)
     } finally {
       setLoading(false)
     }
+  }
+
+  // Format temps (secondes → minutes:secondes)
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
+
+  // Format date pour le graphique
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr)
+    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
   }
 
   return (
@@ -99,7 +107,7 @@ export default function AnalyticsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
           <p className="text-gray-500 mt-2">
-            Vue d'ensemble des performances de votre boutique
+            📊 Statistiques temps réel depuis votre base Supabase
           </p>
         </div>
 
@@ -108,6 +116,7 @@ export default function AnalyticsPage() {
           value={period}
           onChange={(e) => setPeriod(e.target.value)}
           className="px-4 py-2 border rounded-lg bg-white dark:bg-gray-800"
+          disabled={loading}
         >
           <option value="7d">7 derniers jours</option>
           <option value="30d">30 derniers jours</option>
@@ -119,14 +128,7 @@ export default function AnalyticsPage() {
       {error && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            {error}
-            <br />
-            <span className="text-xs mt-2 block">
-              Vérifiez que les variables VERCEL_API_TOKEN, VERCEL_TEAM_ID et
-              VERCEL_PROJECT_ID sont configurées dans .env.local
-            </span>
-          </AlertDescription>
+          <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
@@ -139,16 +141,12 @@ export default function AnalyticsPage() {
             <Users className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {loading ? '...' : analyticsData?.visitors || 0}
-            </div>
-            <p className="text-xs text-gray-500 mt-1">
-              {period === '7d'
-                ? '7 derniers jours'
-                : period === '30d'
-                  ? '30 derniers jours'
-                  : '90 derniers jours'}
-            </p>
+            {loading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <div className="text-2xl font-bold">{data?.visitors || 0}</div>
+            )}
+            <p className="text-xs text-gray-500 mt-1">Sessions uniques</p>
           </CardContent>
         </Card>
 
@@ -159,160 +157,166 @@ export default function AnalyticsPage() {
             <BarChart3 className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {loading ? '...' : analyticsData?.pageViews || 0}
-            </div>
+            {loading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <div className="text-2xl font-bold">{data?.pageViews || 0}</div>
+            )}
             <p className="text-xs text-gray-500 mt-1">
-              Taux de rebond : {analyticsData?.bounceRate || 0}%
+              Taux de rebond : {data?.bounceRate || 0}%
             </p>
           </CardContent>
         </Card>
 
-        {/* Commandes */}
+        {/* Temps moyen */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Commandes</CardTitle>
+            <CardTitle className="text-sm font-medium">Temps moyen</CardTitle>
+            <Clock className="h-4 w-4 text-gray-500" />
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <div className="text-2xl font-bold">
+                {formatTime(data?.avgTimeOnSite || 0)}
+              </div>
+            )}
+            <p className="text-xs text-gray-500 mt-1">Par session</p>
+          </CardContent>
+        </Card>
+
+        {/* Conversion */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Conversion</CardTitle>
             <ShoppingCart className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{ecommerceData.orders}</div>
+            {loading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <div className="text-2xl font-bold">
+                {data?.ecommerce.conversionRate || '0.00'}%
+              </div>
+            )}
             <p className="text-xs text-gray-500 mt-1">
-              {ecommerceData.revenue.toFixed(2)} € de revenu
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Panier moyen */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Panier moyen</CardTitle>
-            <DollarSign className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {ecommerceData.averageOrder.toFixed(2)} €
-            </div>
-            <p className="text-xs text-gray-500 mt-1">
-              {ecommerceData.customers} clients
+              {data?.ecommerce.purchases || 0} achats
             </p>
           </CardContent>
         </Card>
       </div>
 
+      {/* Graphique principal */}
+      <Card>
+        <CardHeader>
+          <CardTitle>📈 Évolution du trafic</CardTitle>
+          <CardDescription>
+            Visiteurs et pages vues sur la période
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <Skeleton className="h-[300px] w-full" />
+          ) : data?.dailyStats && data.dailyStats.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={data.dailyStats}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={formatDate}
+                  stroke="#6b7280"
+                />
+                <YAxis stroke="#6b7280" />
+                <Tooltip
+                  labelFormatter={formatDate}
+                  contentStyle={{
+                    backgroundColor: '#fff',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '6px',
+                  }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="visitors"
+                  stroke="#6366f1"
+                  strokeWidth={2}
+                  name="Visiteurs"
+                  dot={{ fill: '#6366f1', r: 4 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="pageviews"
+                  stroke="#8b5cf6"
+                  strokeWidth={2}
+                  name="Pages vues"
+                  dot={{ fill: '#8b5cf6', r: 4 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[300px] flex items-center justify-center text-gray-500">
+              Pas encore de données
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Tabs détaillés */}
-      <Tabs defaultValue="overview" className="space-y-4">
+      <Tabs defaultValue="pages" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="overview">
-            <TrendingUp className="h-4 w-4 mr-2" />
-            Vue d'ensemble
-          </TabsTrigger>
           <TabsTrigger value="pages">
             <BarChart3 className="h-4 w-4 mr-2" />
             Pages populaires
           </TabsTrigger>
           <TabsTrigger value="traffic">
             <Globe className="h-4 w-4 mr-2" />
-            Sources de trafic
+            Sources
+          </TabsTrigger>
+          <TabsTrigger value="devices">
+            <Monitor className="h-4 w-4 mr-2" />
+            Appareils
+          </TabsTrigger>
+          <TabsTrigger value="ecommerce">
+            <ShoppingCart className="h-4 w-4 mr-2" />
+            E-commerce
           </TabsTrigger>
         </TabsList>
-
-        {/* Vue d'ensemble */}
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid gap-6 md:grid-cols-2">
-            {/* Top pays */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">🌍 Visiteurs par pays</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <p className="text-sm text-gray-500">Chargement...</p>
-                ) : analyticsData?.countries &&
-                  analyticsData.countries.length > 0 ? (
-                  <div className="space-y-2">
-                    {analyticsData.countries.slice(0, 5).map((country, i) => (
-                      <div
-                        key={i}
-                        className="flex items-center justify-between p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800"
-                      >
-                        <span className="text-sm">{country.country}</span>
-                        <span className="text-sm font-medium">
-                          {country.visitors}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-500">Pas encore de données</p>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Appareils */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">📱 Appareils utilisés</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <p className="text-sm text-gray-500">Chargement...</p>
-                ) : analyticsData?.devices &&
-                  analyticsData.devices.length > 0 ? (
-                  <div className="space-y-2">
-                    {analyticsData.devices.map((device, i) => (
-                      <div
-                        key={i}
-                        className="flex items-center justify-between p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800"
-                      >
-                        <div className="flex items-center gap-2">
-                          {device.device === 'mobile' ? (
-                            <Smartphone className="h-4 w-4" />
-                          ) : (
-                            <Monitor className="h-4 w-4" />
-                          )}
-                          <span className="text-sm capitalize">
-                            {device.device}
-                          </span>
-                        </div>
-                        <span className="text-sm font-medium">
-                          {device.visitors}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-500">Pas encore de données</p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
 
         {/* Pages populaires */}
         <TabsContent value="pages">
           <Card>
             <CardHeader>
               <CardTitle>📄 Pages les plus visitées</CardTitle>
-              <CardDescription>
-                Les contenus qui attirent le plus de visiteurs
-              </CardDescription>
             </CardHeader>
             <CardContent>
               {loading ? (
-                <p className="text-sm text-gray-500">Chargement...</p>
-              ) : analyticsData?.topPages &&
-                analyticsData.topPages.length > 0 ? (
                 <div className="space-y-2">
-                  {analyticsData.topPages.slice(0, 10).map((page, i) => (
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-12 w-full" />
+                  ))}
+                </div>
+              ) : data?.topPages && data.topPages.length > 0 ? (
+                <div className="space-y-2">
+                  {data.topPages.map((page, i) => (
                     <div
                       key={i}
                       className="flex items-center justify-between p-3 rounded hover:bg-gray-50 dark:hover:bg-gray-800 border"
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
                         <span className="text-sm font-medium text-gray-400">
                           #{i + 1}
                         </span>
-                        <code className="text-sm">{page.path}</code>
+                        <div className="flex-1 min-w-0">
+                          <code className="text-sm block truncate">
+                            {page.path}
+                          </code>
+                          {page.title && (
+                            <p className="text-xs text-gray-500 truncate">
+                              {page.title}
+                            </p>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center gap-4">
                         <span className="text-sm font-medium">
@@ -331,7 +335,9 @@ export default function AnalyticsPage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-500">Pas encore de données</p>
+                <p className="text-center py-8 text-gray-500">
+                  Pas encore de données
+                </p>
               )}
             </CardContent>
           </Card>
@@ -339,42 +345,203 @@ export default function AnalyticsPage() {
 
         {/* Sources de trafic */}
         <TabsContent value="traffic">
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Referrers */}
+            <Card>
+              <CardHeader>
+                <CardTitle>🔗 Sources de trafic</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="space-y-2">
+                    {[1, 2, 3].map((i) => (
+                      <Skeleton key={i} className="h-10 w-full" />
+                    ))}
+                  </div>
+                ) : data?.referrers && data.referrers.length > 0 ? (
+                  <div className="space-y-2">
+                    {data.referrers.map((ref, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800"
+                      >
+                        <span className="text-sm truncate">{ref.source}</span>
+                        <span className="text-sm font-medium">
+                          {ref.visitors}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center py-8 text-gray-500 text-sm">
+                    Pas encore de sources externes
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Pays */}
+            <Card>
+              <CardHeader>
+                <CardTitle>🌍 Visiteurs par pays</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="space-y-2">
+                    {[1, 2, 3].map((i) => (
+                      <Skeleton key={i} className="h-10 w-full" />
+                    ))}
+                  </div>
+                ) : data?.countries && data.countries.length > 0 ? (
+                  <div className="space-y-2">
+                    {data.countries.map((country, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800"
+                      >
+                        <span className="text-sm">{country.country}</span>
+                        <span className="text-sm font-medium">
+                          {country.visitors}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center py-8 text-gray-500 text-sm">
+                    Données de géolocalisation non disponibles
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Appareils */}
+        <TabsContent value="devices">
           <Card>
             <CardHeader>
-              <CardTitle>🔗 Sources de trafic</CardTitle>
-              <CardDescription>D'où viennent vos visiteurs</CardDescription>
+              <CardTitle>📱 Appareils utilisés</CardTitle>
             </CardHeader>
             <CardContent>
               {loading ? (
-                <p className="text-sm text-gray-500">Chargement...</p>
-              ) : analyticsData?.referrers &&
-                analyticsData.referrers.length > 0 ? (
                 <div className="space-y-2">
-                  {analyticsData.referrers.slice(0, 10).map((referrer, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between p-3 rounded hover:bg-gray-50 dark:hover:bg-gray-800 border"
-                    >
-                      <span className="text-sm">{referrer.source}</span>
-                      <span className="text-sm font-medium">
-                        {referrer.visitors} visiteurs
-                      </span>
-                    </div>
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
                   ))}
                 </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Globe className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-sm text-gray-500 mb-2">
-                    Pas encore de sources de trafic
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    Les données apparaîtront après les premières visites
-                  </p>
+              ) : data?.devices && data.devices.length > 0 ? (
+                <div className="grid gap-4 md:grid-cols-3">
+                  {data.devices.map((device, i) => {
+                    const Icon =
+                      device.device === 'mobile'
+                        ? Smartphone
+                        : device.device === 'tablet'
+                          ? Tablet
+                          : Monitor
+
+                    const total = data.devices.reduce(
+                      (sum, d) => sum + d.visitors,
+                      0
+                    )
+                    const percentage = (
+                      (device.visitors / total) *
+                      100
+                    ).toFixed(1)
+
+                    return (
+                      <Card key={i}>
+                        <CardContent className="pt-6">
+                          <div className="flex items-center gap-3">
+                            <Icon className="h-8 w-8 text-violet" />
+                            <div>
+                              <p className="text-sm font-medium capitalize">
+                                {device.device}
+                              </p>
+                              <p className="text-2xl font-bold">
+                                {device.visitors}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {percentage}% du trafic
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
                 </div>
+              ) : (
+                <p className="text-center py-8 text-gray-500">
+                  Pas encore de données
+                </p>
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* E-commerce */}
+        <TabsContent value="ecommerce">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Ajouts au panier</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <Skeleton className="h-8 w-16" />
+                ) : (
+                  <div className="text-2xl font-bold">
+                    {data?.ecommerce.addToCart || 0}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Achats</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <Skeleton className="h-8 w-16" />
+                ) : (
+                  <div className="text-2xl font-bold">
+                    {data?.ecommerce.purchases || 0}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Revenu</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <Skeleton className="h-8 w-20" />
+                ) : (
+                  <div className="text-2xl font-bold">
+                    {data?.ecommerce.revenue.toFixed(2) || '0.00'} €
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Taux de conversion</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <Skeleton className="h-8 w-16" />
+                ) : (
+                  <div className="text-2xl font-bold">
+                    {data?.ecommerce.conversionRate || '0.00'}%
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
