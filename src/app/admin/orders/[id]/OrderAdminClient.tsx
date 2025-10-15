@@ -9,6 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { toast } from 'sonner'
 import type { Database } from '@/lib/database.types'
+import { Mail, Send, Loader2 } from 'lucide-react'
+
+import { SendTrackingModal } from '@/components/admin/SendTrackingModal'
 
 type Order = Database['public']['Tables']['orders']['Row']
 type OrderItem = Database['public']['Tables']['order_items']['Row']
@@ -42,6 +45,8 @@ export default function OrderAdminClient({
   const router = useRouter()
   const [order, setOrder] = useState(initialOrder)
   const [isUpdating, setIsUpdating] = useState(false)
+  const [isTrackingModalOpen, setIsTrackingModalOpen] = useState(false)
+  const [isSendingConfirmation, setIsSendingConfirmation] = useState(false)
 
   const shippingAddr =
     order.shipping_address as unknown as ShippingAddress | null
@@ -98,6 +103,35 @@ export default function OrderAdminClient({
       toast.error('Erreur')
     } finally {
       setIsUpdating(false)
+    }
+  }
+
+  const handleResendConfirmation = async () => {
+    setIsSendingConfirmation(true)
+    try {
+      const res = await fetch(
+        `/api/admin/orders/${order.id}/resend-confirmation`,
+        {
+          method: 'POST',
+        }
+      )
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || "Erreur lors de l'envoi")
+      }
+
+      toast.success('Email de confirmation renvoyé !')
+    } catch (error) {
+      console.error('Error:', error)
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Erreur lors de l'envoi de l'email"
+      )
+    } finally {
+      setIsSendingConfirmation(false)
     }
   }
 
@@ -258,10 +292,11 @@ export default function OrderAdminClient({
               <CardTitle>Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
+              {/* Statut */}
               <div>
                 <label className="text-sm font-medium">Statut</label>
                 <select
-                  className="w-full mt-1 p-2 border rounded"
+                  className="w-full mt-1 p-2 border rounded bg-background text-foreground dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                   value={order.status || ''}
                   onChange={(e) => handleStatusChange(e.target.value)}
                   disabled={isUpdating}
@@ -275,24 +310,64 @@ export default function OrderAdminClient({
                 </select>
               </div>
 
-              {order.tracking_number ? (
-                <div>
-                  <label className="text-sm font-medium">Suivi</label>
-                  <p className="mt-1 text-sm font-mono">
-                    {order.tracking_number}
-                  </p>
-                </div>
-              ) : (
+              <Separator />
+
+              {/* Emails */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Emails</label>
+
                 <Button
-                  onClick={handleAddTracking}
-                  disabled={isUpdating}
+                  onClick={handleResendConfirmation}
+                  disabled={isSendingConfirmation}
+                  variant="outline"
                   className="w-full"
+                  size="sm"
                 >
-                  Ajouter un numéro de suivi
+                  {isSendingConfirmation ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Envoi...
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="mr-2 h-4 w-4" />
+                      Renvoyer confirmation
+                    </>
+                  )}
                 </Button>
-              )}
+
+                {order.tracking_number ? (
+                  <div className="p-3 bg-muted rounded-md">
+                    <p className="text-xs text-muted-foreground mb-1">
+                      Suivi envoyé
+                    </p>
+                    <p className="text-sm font-mono">{order.tracking_number}</p>
+                  </div>
+                ) : (
+                  <Button
+                    onClick={() => setIsTrackingModalOpen(true)}
+                    disabled={isUpdating}
+                    className="w-full"
+                    size="sm"
+                  >
+                    <Send className="mr-2 h-4 w-4" />
+                    Marquer comme expédiée
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
+
+          {/* Modal de tracking */}
+          <SendTrackingModal
+            orderId={order.id}
+            orderNumber={order.order_number}
+            isOpen={isTrackingModalOpen}
+            onClose={() => setIsTrackingModalOpen(false)}
+            onSuccess={() => {
+              router.refresh()
+            }}
+          />
         </div>
       </div>
     </div>

@@ -2,6 +2,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { sendOrderConfirmationHook } from '@/lib/email/send-order-confirmation-hook'
+
+// ✅ Helper sécurisé pour envoyer l'email sans faire échouer le webhook
+async function sendConfirmationEmailSafe(orderId: string) {
+  try {
+    console.log('📧 Attempting to send confirmation email...')
+    const result = await sendOrderConfirmationHook(orderId)
+
+    if (result.success) {
+      console.log('✅ Confirmation email sent successfully')
+    } else {
+      console.error('⚠️ Email sending failed (non-critical):', result.error)
+    }
+  } catch (error) {
+    console.error('⚠️ Email sending error (non-critical):', error)
+    // Ne pas faire échouer le webhook si l'email échoue
+  }
+}
 
 export const runtime = 'nodejs'
 
@@ -111,6 +129,8 @@ async function handleCheckoutSessionCompleted(session: any) {
     if (existingItems && existingItems.length > 0) {
       console.log('⚠️ Order items already exist, just updating order')
       await updateOrderWithSessionData(order.id, fullSession, paymentIntentId)
+      // ✅ NOUVEAU : Envoyer l'email de confirmation
+      await sendConfirmationEmailSafe(order.id)
       return
     }
 
@@ -118,6 +138,8 @@ async function handleCheckoutSessionCompleted(session: any) {
 
     // ÉTAPE 4 : Créer les items
     await createOrderItemsFromSession(order.id, fullSession, paymentIntentId)
+    // ✅ NOUVEAU : Envoyer l'email de confirmation après création des items
+    await sendConfirmationEmailSafe(order.id)
   } catch (error) {
     console.error('❌ Exception in handleCheckoutSessionCompleted:')
     console.error(error)
