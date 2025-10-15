@@ -1,6 +1,7 @@
 // src/app/layout.tsx
 import type { Metadata } from 'next'
 import Script from 'next/script'
+import { Suspense } from 'react' // ← Ajoutez cet import
 import { Archivo_Black, Archivo_Narrow } from 'next/font/google'
 import './globals.css'
 import { Analytics } from '@vercel/analytics/react'
@@ -37,21 +38,16 @@ export default function RootLayout({
       <body
         className={`${archivoBlack.variable} ${archivoNarrow.variable} antialiased`}
       >
-        {/* 📊 Tracking automatique des pages vues */}
-        <AnalyticsTracker />
+        {/* 📊 Tracking automatique des pages vues - WRAPPED IN SUSPENSE */}
+        <Suspense fallback={null}>
+          <AnalyticsTracker />
+        </Suspense>
 
         {children}
 
         {/* Vercel Analytics (garde pour la perf) */}
         <Analytics />
         <SpeedInsights />
-
-        {/* 
-          ❌ RETIRER Google Analytics - remplacé par notre système custom
-          Plus besoin de Google Analytics, donc supprimez ces Scripts :
-        */}
-        {/* <Script src="https://www.googletagmanager.com/gtag/js?id=G-KFPKFQ45J" strategy="afterInteractive" /> */}
-        {/* <Script id="google-analytics" strategy="afterInteractive">...</Script> */}
       </body>
     </html>
   )
