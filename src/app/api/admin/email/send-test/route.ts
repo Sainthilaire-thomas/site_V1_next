@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
     if (resend) {
       console.log('📨 Envoi avec Resend...')
       const { data, error } = await resend.emails.send({
-        from: 'Blanche Renaudin <onboarding@resend.dev>',
+        from: 'Blanche Renaudin <contact@blancherenaudin.com>',
         to: email,
         subject: subject,
         html: html,

@@ -2,6 +2,7 @@
 import { Resend } from 'resend'
 import { render } from '@react-email/render'
 import type { ReactElement } from 'react'
+import { EMAIL_CONFIG, type EmailType } from './config'
 
 // Mode développement : autoriser les tests sans clé API
 const isDevelopment = process.env.NODE_ENV === 'development'
@@ -10,7 +11,11 @@ const hasResendKey = !!process.env.RESEND_API_KEY
 // Logs au démarrage du module
 console.log('🔍 RESEND_API_KEY présente:', hasResendKey)
 if (hasResendKey) {
-  console.log('🔍 RESEND_API_KEY (premiers caractères):', process.env.RESEND_API_KEY?.substring(0, 10))
+  console.log(
+    '🔍 RESEND_API_KEY (premiers caractères):',
+    process.env.RESEND_API_KEY?.substring(0, 10)
+  )
+  console.log('📧 Expéditeur configuré:', EMAIL_CONFIG.fromAddress)
 }
 
 if (!hasResendKey && !isDevelopment) {
@@ -18,22 +23,13 @@ if (!hasResendKey && !isDevelopment) {
 }
 
 const resend = hasResendKey ? new Resend(process.env.RESEND_API_KEY) : null
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'
-const FROM_NAME = 'Blanche Renaudin'
-
-export type EmailType =
-  | 'order-confirmation'
-  | 'order-shipped'
-  | 'order-delivered'
-  | 'order-cancelled'
-  | 'password-reset'
-  | 'welcome'
 
 interface SendEmailOptions {
   to: string | string[]
   subject: string
   react: ReactElement
   type?: EmailType
+  from?: string // ✅ Permet de surcharger l'expéditeur
   replyTo?: string
   cc?: string | string[]
   bcc?: string | string[]
@@ -48,6 +44,7 @@ export async function sendEmail({
   subject,
   react,
   type,
+  from,
   replyTo,
   cc,
   bcc,
@@ -56,9 +53,14 @@ export async function sendEmail({
   try {
     const html = await render(react)
 
+    // ✅ Utiliser l'expéditeur configuré ou celui passé en paramètre
+    const fromAddress = from || EMAIL_CONFIG.fromAddress
+    const replyToAddress = replyTo || EMAIL_CONFIG.replyTo
+
     // Mode test : simulation sans Resend
     if (!resend) {
       console.log('📧 [TEST MODE] Email simulé:')
+      console.log('   From:', fromAddress)
       console.log('   To:', to)
       console.log('   Subject:', subject)
       console.log('   Type:', type)
@@ -68,19 +70,26 @@ export async function sendEmail({
 
       return {
         id: 'test-' + Date.now(),
-        from: `${FROM_NAME} <${FROM_EMAIL}>`,
+        from: fromAddress,
         to: Array.isArray(to) ? to : [to],
         created_at: new Date().toISOString(),
       }
     }
 
     // Envoi réel avec Resend
+    console.log('📤 Envoi email:', {
+      from: fromAddress,
+      to: Array.isArray(to) ? to : [to],
+      subject,
+      type,
+    })
+
     const { data, error } = await resend.emails.send({
-      from: `${FROM_NAME} <${FROM_EMAIL}>`,
+      from: fromAddress,
       to: Array.isArray(to) ? to : [to],
       subject,
       html,
-      replyTo,
+      replyTo: replyToAddress,
       cc: cc ? (Array.isArray(cc) ? cc : [cc]) : undefined,
       bcc: bcc ? (Array.isArray(bcc) ? bcc : [bcc]) : undefined,
       attachments,
@@ -92,7 +101,12 @@ export async function sendEmail({
       throw new Error(`Échec envoi email: ${error.message}`)
     }
 
-    console.log('✅ Email envoyé:', data?.id)
+    console.log('✅ Email envoyé avec succès:', {
+      id: data?.id,
+      from: fromAddress,
+      to,
+      type,
+    })
     return data
   } catch (error) {
     console.error('❌ Erreur critique envoi email:', error)
@@ -100,6 +114,9 @@ export async function sendEmail({
   }
 }
 
+/**
+ * Envoyer un email de confirmation de commande
+ */
 export async function sendOrderConfirmationEmail(
   email: string,
   orderData: {
@@ -126,12 +143,15 @@ export async function sendOrderConfirmationEmail(
   const { OrderConfirmationEmail } = await import('./order-confirmation')
   return sendEmail({
     to: email,
-    subject: `Order confirmation #${orderData.orderNumber}`,
+    subject: `Confirmation de commande #${orderData.orderNumber}`,
     react: OrderConfirmationEmail(orderData),
     type: 'order-confirmation',
   })
 }
 
+/**
+ * Envoyer un email de commande expédiée
+ */
 export async function sendOrderShippedEmail(
   email: string,
   orderData: {
@@ -140,18 +160,21 @@ export async function sendOrderShippedEmail(
     trackingNumber: string
     carrier: string
     trackingUrl: string
-    estimatedDelivery: string // ✅ Retiré le "?"
+    estimatedDelivery: string
   }
 ) {
   const { OrderShippedEmail } = await import('./order-shipped')
   return sendEmail({
     to: email,
-    subject: `Your order #${orderData.orderNumber} has been shipped`,
+    subject: `Votre commande #${orderData.orderNumber} a été expédiée`,
     react: OrderShippedEmail(orderData),
     type: 'order-shipped',
   })
 }
 
+/**
+ * Envoyer un email de commande livrée
+ */
 export async function sendOrderDeliveredEmail(
   email: string,
   orderData: {
@@ -163,12 +186,15 @@ export async function sendOrderDeliveredEmail(
   const { OrderDeliveredEmail } = await import('./order-delivered')
   return sendEmail({
     to: email,
-    subject: `Your order #${orderData.orderNumber} has been delivered`,
+    subject: `Votre commande #${orderData.orderNumber} a été livrée`,
     react: OrderDeliveredEmail(orderData),
     type: 'order-delivered',
   })
 }
 
+/**
+ * Envoyer un email de réinitialisation de mot de passe
+ */
 export async function sendPasswordResetEmail(
   email: string,
   data: {
@@ -179,12 +205,15 @@ export async function sendPasswordResetEmail(
   const { PasswordResetEmail } = await import('./password-reset')
   return sendEmail({
     to: email,
-    subject: 'Reset your password',
+    subject: 'Réinitialisation de votre mot de passe',
     react: PasswordResetEmail(data),
     type: 'password-reset',
   })
 }
 
+/**
+ * Envoyer un email de bienvenue
+ */
 export async function sendWelcomeEmail(
   email: string,
   data: {
@@ -194,14 +223,17 @@ export async function sendWelcomeEmail(
   const { WelcomeEmail } = await import('./welcome')
   return sendEmail({
     to: email,
-    subject: 'Welcome to Blanche Renaudin',
+    subject: 'Bienvenue chez Blanche Renaudin',
     react: WelcomeEmail(data),
     type: 'welcome',
   })
 }
 
+/**
+ * Formater un prix en centimes en euros
+ */
 export function formatPrice(cents: number): string {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
     currency: 'EUR',
   }).format(cents / 100)
