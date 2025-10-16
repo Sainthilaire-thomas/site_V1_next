@@ -1,49 +1,70 @@
-/* src/app/globals.css - VERSION CORRIGÉE */
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  /* === COULEURS JACQUEMUS === */
-  --white: hsl(0 0% 100%);
-  --black: hsl(0 0% 0%);
-  --grey-light: hsl(0 0% 95%);
-  --grey-medium: hsl(0 0% 60%);
-  --grey-dark: hsl(0 0% 30%);
+@layer base {
+  :root {
+    /* === COULEURS JACQUEMUS === */
+    --white: hsl(0 0% 100%);
+    --black: hsl(0 0% 0%);
+    --grey-light: hsl(0 0% 95%);
+    --grey-medium: hsl(0 0% 60%);
+    --grey-dark: hsl(0 0% 30%);
 
-  /* Accent brand .blancherenaudin */
-  --violet: hsl(271 74% 37%);
-  --violet-soft: hsl(271 74% 45%);
-  --violet-subtle: hsl(271 30% 92%);
+    /* Accent brand .blancherenaudin */
+    --violet: hsl(271 74% 37%);
+    --violet-soft: hsl(271 74% 45%);
+    --violet-subtle: hsl(271 30% 92%);
 
-  /* Variables système */
-  --background: hsl(0 0% 100%);
-  --foreground: hsl(0 0% 0%);
-  --border: hsl(0 0% 95%);
-  --muted: hsl(0 0% 98%);
-  --muted-foreground: hsl(0 0% 60%);
-  --ring: hsl(271 74% 37%);
-  --radius: 0;
-}
+    /* Variables système */
+    --background: hsl(0 0% 100%);
+    --foreground: hsl(0 0% 0%);
+    --border: hsl(0 0% 95%);
+    --muted: hsl(0 0% 98%);
+    --muted-foreground: hsl(0 0% 60%);
+    --ring: hsl(271 74% 37%);
+    --radius: 0;
+  }
 
-* {
-  box-sizing: border-box;
-}
+  .dark {
+    --background: hsl(0 0% 10%);
+    --foreground: hsl(0 0% 100%);
+    --border: hsl(0 0% 30%);
+    --muted: hsl(0 0% 20%);
+    --muted-foreground: hsl(0 0% 80%);
+    --ring: hsl(271 74% 60%);
+  }
 
-body, h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd {
-  margin: 0;
-}
+  * {
+    box-sizing: border-box;
+    @apply border-border;
+  }
 
-body {
-  background: var(--white);
-  color: var(--black);
-  font-family: var(--font-archivo-narrow);
-  font-weight: 400;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  body, h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd {
+    margin: 0;
+  }
+
+  html, body {
+    @apply bg-background text-foreground;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+
+  body {
+    font-family: var(--font-archivo-narrow);
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 0 !important;
+  }
 }
 
 /* === TYPOGRAPHIE JACQUEMUS === */
-
-/* Hero titles - 80-120px */
 .text-hero {
   font-family: var(--font-archivo-black);
   font-size: clamp(4rem, 10vw, 7.5rem);
@@ -52,7 +73,6 @@ body {
   font-weight: 400;
 }
 
-/* Section titles - 40-60px */
 .text-section {
   font-family: var(--font-archivo-black);
   font-size: clamp(2.5rem, 5vw, 3.75rem);
@@ -61,7 +81,6 @@ body {
   font-weight: 400;
 }
 
-/* Product titles - 14-16px */
 .text-product {
   font-family: var(--font-archivo-narrow);
   font-size: clamp(0.875rem, 1.5vw, 1rem);
@@ -70,7 +89,6 @@ body {
   text-transform: uppercase;
 }
 
-/* Body text - 14-16px */
 .text-body {
   font-family: var(--font-archivo-narrow);
   font-size: clamp(0.875rem, 1.5vw, 1rem);
@@ -79,15 +97,9 @@ body {
 }
 
 /* === BOUTONS JACQUEMUS === */
-
-/* Bouton primaire */
 .btn-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem 2.5rem;
-  background: var(--black);
-  color: var(--white);
+  @apply inline-flex items-center justify-center px-10 py-4;
+  @apply bg-black text-white;
   font-family: var(--font-archivo-narrow);
   font-size: 0.875rem;
   font-weight: 600;
@@ -95,32 +107,16 @@ body {
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
-  text-decoration: none;
 }
 
 .btn-primary:hover {
-  background: var(--grey-medium);
+  @apply bg-gray-600;
   transform: translateY(-2px);
 }
 
-.btn-primary:active {
-  transform: translateY(0);
-}
-
-.btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* Bouton primaire inversé (pour fonds sombres) */
 .btn-primary-inverse {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem 2.5rem;
-  background: var(--white);
-  color: var(--black);
+  @apply inline-flex items-center justify-center px-10 py-4;
+  @apply bg-white text-black;
   font-family: var(--font-archivo-narrow);
   font-size: 0.875rem;
   font-weight: 600;
@@ -128,66 +124,35 @@ body {
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
-  text-decoration: none;
 }
 
-.btn-primary-inverse:hover {
-  background: var(--grey-light);
-}
-
-/* Bouton secondaire (outline) */
 .btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem 2.5rem;
-  background: transparent;
-  color: var(--black);
+  @apply inline-flex items-center justify-center px-10 py-4;
+  @apply bg-transparent text-black border border-black;
   font-family: var(--font-archivo-narrow);
   font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.1em;
-  border: 1px solid var(--black);
   cursor: pointer;
   transition: all 0.3s ease;
-  text-decoration: none;
 }
 
 .btn-secondary:hover {
-  background: var(--black);
-  color: var(--white);
+  @apply bg-black text-white;
 }
 
-/* Bouton texte */
 .btn-text {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0;
-  background: transparent;
-  color: var(--black);
+  @apply inline-flex items-center gap-2 p-0;
+  @apply bg-transparent text-black border-b border-black;
   font-family: var(--font-archivo-narrow);
   font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.1em;
-  border: none;
-  border-bottom: 1px solid var(--black);
   cursor: pointer;
   transition: all 0.3s ease;
-  text-decoration: none;
 }
 
-.btn-text:hover {
-  color: var(--grey-medium);
-  border-color: var(--grey-medium);
-}
-
-/* === ESPACEMENTS === */
-.section-spacing {
-  padding: clamp(4rem, 10vw, 10rem) clamp(1rem, 5vw, 2rem);
-}
-
-/* === ANIMATIONS D'ENTRÉE (à conserver) === */
+/* === ANIMATIONS === */
 .floating-letter {
   position: absolute;
   left: 50%;
@@ -209,56 +174,6 @@ body {
   }
 }
 
-/* === UTILITAIRES === */
-
-/* Smooth scroll */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Sélection de texte */
-::selection {
-  background: var(--violet-subtle);
-  color: var(--black);
-}
-
-/* Images responsive */
-@layer base {
-  img {
-    max-width: 100%;
-    height: auto;
-    display: block;
-  }
-}
-
-/* Focus visible pour accessibilité - SAUF pour les inputs/textarea */
-*:focus-visible:not(input):not(textarea):not(select) {
-  outline: 2px solid var(--violet);
-  outline-offset: 2px;
-}
-
-/* Supprime complètement l'outline pour les inputs */
-input:focus,
-input:focus-visible,
-textarea:focus,
-textarea:focus-visible,
-select:focus,
-select:focus-visible {
-  outline: none;
-  box-shadow: none;
-}
-
-@layer base {
-  /* Neutralise tout arrondi injecté par un parent/typography */
-  .prose img,
-  img,
-  picture,
-  video,
-  canvas {
-    border-radius: 0 !important;
-  }
-}
-
 @keyframes slide-in {
   from {
     transform: translateX(100%);
@@ -274,14 +189,39 @@ select:focus-visible {
   animation: slide-in 0.3s ease-out;
 }
 
-/* === CLASSES UTILITAIRES POUR LES FONTS === */
+/* === UTILITAIRES === */
+html {
+  scroll-behavior: smooth;
+}
 
-/* Classe pour forcer Archivo Black (titres) */
+::selection {
+  background: var(--violet-subtle);
+  color: var(--black);
+}
+
+*:focus-visible:not(input):not(textarea):not(select) {
+  outline: 2px solid var(--violet);
+  outline-offset: 2px;
+}
+
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+select:focus,
+select:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
 .font-title {
   font-family: var(--font-archivo-black);
 }
 
-/* Classe pour forcer Archivo Narrow (textes) */
 .font-text {
   font-family: var(--font-archivo-narrow);
+}
+
+.section-spacing {
+  padding: clamp(4rem, 10vw, 10rem) clamp(1rem, 5vw, 2rem);
 }
