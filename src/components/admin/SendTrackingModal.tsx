@@ -162,28 +162,35 @@ export function SendTrackingModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      {/* ✅ DialogContent avec dark mode */}
+      <DialogContent className="sm:max-w-[500px] dark:bg-gray-900 dark:border-gray-700">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 dark:text-gray-100">
             <Truck className="h-5 w-5" />
             Envoyer les informations de suivi
           </DialogTitle>
-          <DialogDescription>Commande #{orderNumber}</DialogDescription>
+          <DialogDescription className="dark:text-gray-400">
+            Commande #{orderNumber}
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Transporteur */}
           <div className="space-y-2">
-            <Label htmlFor="carrier">
+            <Label htmlFor="carrier" className="dark:text-gray-200">
               Transporteur <span className="text-red-500">*</span>
             </Label>
             <Select value={carrier} onValueChange={setCarrier}>
-              <SelectTrigger>
+              <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
                 <SelectValue placeholder="Sélectionner un transporteur" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[100] dark:bg-gray-800 dark:border-gray-600">
                 {CARRIERS.map((c) => (
-                  <SelectItem key={c.value} value={c.value}>
+                  <SelectItem
+                    key={c.value}
+                    value={c.value}
+                    className="dark:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700"
+                  >
                     {c.label}
                   </SelectItem>
                 ))}
@@ -193,7 +200,7 @@ export function SendTrackingModal({
 
           {/* Numéro de suivi */}
           <div className="space-y-2">
-            <Label htmlFor="trackingNumber">
+            <Label htmlFor="trackingNumber" className="dark:text-gray-200">
               Numéro de suivi <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -202,13 +209,14 @@ export function SendTrackingModal({
               onChange={(e) => setTrackingNumber(e.target.value)}
               placeholder="Ex: 3SBRCP00012345"
               disabled={isLoading}
+              className="dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-500"
             />
           </div>
 
           {/* URL personnalisée (si "Autre" sélectionné) */}
           {carrier === 'custom' && (
             <div className="space-y-2">
-              <Label htmlFor="customUrl">
+              <Label htmlFor="customUrl" className="dark:text-gray-200">
                 URL de suivi <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -218,23 +226,69 @@ export function SendTrackingModal({
                 onChange={(e) => setCustomTrackingUrl(e.target.value)}
                 placeholder="https://exemple.com/tracking/..."
                 disabled={isLoading}
+                className="dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-500"
               />
             </div>
           )}
 
-          {/* URL générée automatiquement */}
-          {carrier && carrier !== 'custom' && trackingNumber && (
-            <div className="rounded-md bg-gray-50 p-3 text-sm">
-              <p className="font-medium mb-1">URL de suivi générée :</p>
-              <p className="text-gray-600 break-all">{getTrackingUrl()}</p>
+          {/* ✅ APERÇU URL - VERSION AMÉLIORÉE */}
+          {carrier && (
+            <div className="rounded-lg border-2 border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-950/30 p-4">
+              <div className="flex items-start gap-2">
+                <div className="flex-shrink-0 mt-0.5">
+                  <svg
+                    className="w-5 h-5 text-blue-600 dark:text-blue-400"
+                    fill="none"
+                    strokeWidth="2"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"
+                    />
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-blue-900 dark:text-blue-200 mb-1">
+                    {trackingNumber
+                      ? 'Aperçu du lien de suivi :'
+                      : 'Lien de suivi (en attente du numéro)'}
+                  </p>
+                  {trackingNumber && getTrackingUrl() ? (
+                    <>
+                      <a
+                        href={getTrackingUrl()}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-700 dark:text-blue-300 hover:underline break-all font-mono"
+                      >
+                        {getTrackingUrl()}
+                      </a>
+                      <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+                        💡 Cliquez pour tester le lien avant d'envoyer
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-sm text-blue-700 dark:text-blue-300 italic">
+                      {carrier === 'custom'
+                        ? "Saisissez l'URL complète ci-dessus"
+                        : "Saisissez un numéro de suivi pour voir l'URL"}
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
           {/* Date de livraison estimée (optionnel) */}
           <div className="space-y-2">
-            <Label htmlFor="estimatedDelivery">
+            <Label htmlFor="estimatedDelivery" className="dark:text-gray-200">
               Livraison estimée{' '}
-              <span className="text-gray-500">(optionnel)</span>
+              <span className="text-gray-500 dark:text-gray-400">
+                (optionnel)
+              </span>
             </Label>
             <Input
               id="estimatedDelivery"
@@ -242,8 +296,9 @@ export function SendTrackingModal({
               onChange={(e) => setEstimatedDelivery(e.target.value)}
               placeholder="Ex: mercredi 16 octobre"
               disabled={isLoading}
+              className="dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-500"
             />
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               Format libre, ex: "dans 2-3 jours", "vendredi matin", etc.
             </p>
           </div>
@@ -254,10 +309,15 @@ export function SendTrackingModal({
               variant="outline"
               onClick={handleClose}
               disabled={isLoading}
+              className="dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700"
             >
               Annuler
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="dark:bg-violet dark:hover:bg-violet/90"
+            >
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Envoyer l'email
             </Button>

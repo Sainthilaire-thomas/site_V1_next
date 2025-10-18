@@ -512,12 +512,14 @@ export type Database = {
           admin_notes: string | null
           billing_address: Json | null
           cancelled_at: string | null
+          carrier: string | null
           created_at: string
           customer_email: string | null
           customer_name: string | null
           customer_phone: string | null
           delivered_at: string | null
           discount_amount: number | null
+          estimated_delivery: string | null
           fulfillment_status: string | null
           id: string
           notes: string | null
@@ -543,12 +545,14 @@ export type Database = {
           admin_notes?: string | null
           billing_address?: Json | null
           cancelled_at?: string | null
+          carrier?: string | null
           created_at?: string
           customer_email?: string | null
           customer_name?: string | null
           customer_phone?: string | null
           delivered_at?: string | null
           discount_amount?: number | null
+          estimated_delivery?: string | null
           fulfillment_status?: string | null
           id?: string
           notes?: string | null
@@ -574,12 +578,14 @@ export type Database = {
           admin_notes?: string | null
           billing_address?: Json | null
           cancelled_at?: string | null
+          carrier?: string | null
           created_at?: string
           customer_email?: string | null
           customer_name?: string | null
           customer_phone?: string | null
           delivered_at?: string | null
           discount_amount?: number | null
+          estimated_delivery?: string | null
           fulfillment_status?: string | null
           id?: string
           notes?: string | null
