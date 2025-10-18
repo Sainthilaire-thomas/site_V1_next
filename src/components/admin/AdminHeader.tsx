@@ -24,7 +24,7 @@ export function AdminHeader() {
           <div className="flex items-center gap-3">
             <ThemeToggle />
             <Link
-              href="/"
+              href="/?skip-intro=true"
               className="text-sm hover:text-violet transition-colors hidden sm:block"
               target="_blank"
             >

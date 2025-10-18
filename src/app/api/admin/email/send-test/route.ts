@@ -1,151 +1,190 @@
 // src/app/api/admin/email/send-test/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { render } from '@react-email/render'
-import { Resend } from 'resend'
-import { OrderConfirmationEmail } from '@/lib/email/order-confirmation'
-import { OrderShippedEmail } from '@/lib/email/order-shipped'
-import { OrderDeliveredEmail } from '@/lib/email/order-delivered'
-import { WelcomeEmail } from '@/lib/email/welcome'
-import { PasswordResetEmail } from '@/lib/email/password-reset'
-
-const resend = process.env.RESEND_API_KEY
-  ? new Resend(process.env.RESEND_API_KEY)
-  : null
+import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { supabaseAdmin } from '@/lib/supabase-admin'
+import {
+  sendOrderConfirmationEmail,
+  sendOrderShippedEmail,
+  sendOrderDeliveredEmail,
+  sendWelcomeEmail,
+  sendPasswordResetEmail,
+} from '@/lib/email/send'
 
 export async function POST(request: NextRequest) {
-  console.log('🚀 API Route appelée')
-
   try {
-    const body = await request.json()
-    console.log('📦 Body reçu:', body)
-
-    const { email, type } = body
-
-    if (!email || !type) {
-      console.log('❌ Email ou type manquant')
+    // Vérifier que l'utilisateur est admin
+    const adminCheck = await requireAdmin()
+    if (!adminCheck.ok) {
       return NextResponse.json(
-        { error: 'Email and type are required' },
+        { error: adminCheck.message || 'Non autorisé' },
+        { status: adminCheck.status }
+      )
+    }
+
+    const { email, type } = await request.json()
+
+    if (!email) {
+      return NextResponse.json(
+        { error: 'Email address is required' },
         { status: 400 }
       )
     }
 
-    console.log("📧 Génération de l'email pour:", email, 'type:', type)
-
-    let emailComponent
-    let subject
+    console.log(`📧 Sending test email: ${type} to ${email}`)
 
     switch (type) {
-      case 'order-confirmation':
-        emailComponent = OrderConfirmationEmail({
-          orderNumber: 'BR-2025-TEST',
-          customerName: 'Test User',
-          items: [
-            {
-              name: 'Black long dress',
-              quantity: 1,
-              price: 29500,
-              imageUrl:
-                'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400',
+      case 'order-confirmation': {
+        // Récupérer la dernière commande réelle
+        const { data: order } = await supabaseAdmin
+          .from('orders')
+          .select(
+            'id, order_number, customer_name, total_amount, shipping_amount, shipping_address, user_id'
+          )
+          .eq('payment_status', 'paid')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single()
+
+        if (!order) {
+          // Fallback sur des données de test si pas de commande
+          await sendOrderConfirmationEmail(email, {
+            orderNumber: 'BR-TEST-001',
+            customerName: 'Client',
+            items: [
+              {
+                name: '.white glade skirt - S',
+                quantity: 1,
+                price: 165,
+              },
+            ],
+            subtotal: 165,
+            shipping: 0,
+            total: 165,
+            shippingAddress: {
+              line1: '123 rue de la Mode',
+              city: 'Paris',
+              postalCode: '75001',
+              country: 'France',
             },
-          ],
-          subtotal: 29500,
-          shipping: 0,
-          total: 29500,
+          })
+          break
+        }
+
+        // Récupérer les items
+        const { data: items } = await supabaseAdmin
+          .from('order_items')
+          .select(
+            'product_name, variant_name, variant_value, quantity, unit_price, product_id'
+          )
+          .eq('order_id', order.id)
+
+        // Récupérer les images
+        const productIds =
+          items
+            ?.map((i) => i.product_id)
+            .filter((id): id is string => id !== null) || []
+
+        const { data: images } = await supabaseAdmin
+          .from('product_images')
+          .select('id, product_id')
+          .in('product_id', productIds)
+          .eq('is_primary', true)
+
+        const imageMap = new Map(images?.map((img) => [img.product_id, img.id]))
+
+        const formattedItems =
+          items?.map((item) => ({
+            name: `${item.product_name}${item.variant_name ? ` - ${item.variant_name}: ${item.variant_value}` : ''}`,
+            quantity: item.quantity,
+            price: item.unit_price,
+            imageUrl:
+              item.product_id && imageMap.has(item.product_id)
+                ? `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/admin/product-images/${imageMap.get(item.product_id)}/signed-url?variant=sm&format=jpeg`
+                : undefined,
+          })) || []
+
+        const subtotal =
+          items?.reduce(
+            (sum, item) => sum + item.unit_price * item.quantity,
+            0
+          ) || 0
+        const shippingAddr = order.shipping_address as any
+
+        await sendOrderConfirmationEmail(email, {
+          orderNumber: order.order_number,
+          customerName: order.customer_name?.split(' ')[0] || 'Client',
+          items: formattedItems,
+          subtotal,
+          shipping: order.shipping_amount || 0,
+          total: order.total_amount,
           shippingAddress: {
-            line1: '123 Fashion Street',
-            city: 'Paris',
-            postalCode: '75001',
-            country: 'France',
+            line1: shippingAddr?.address_line_1 || '123 rue de la Mode',
+            line2: shippingAddr?.address_line_2,
+            city: shippingAddr?.city || 'Paris',
+            postalCode: shippingAddr?.postal_code || '75001',
+            country: shippingAddr?.country || 'France',
           },
         })
-        subject = '[TEST] Order Confirmation'
         break
+      }
 
-      case 'order-shipped':
-        emailComponent = OrderShippedEmail({
-          orderNumber: 'BR-2025-TEST',
-          customerName: 'Test User',
-          trackingNumber: '3SBRCP00012345',
+      case 'order-shipped': {
+        await sendOrderShippedEmail(email, {
+          orderNumber: 'BR-2025-000042',
+          customerName: 'Marie',
+          trackingNumber: 'FR123456789',
           carrier: 'Colissimo',
-          trackingUrl: 'https://www.laposte.fr/suivre',
-          estimatedDelivery: 'Wednesday, October 16',
+          trackingUrl:
+            'https://www.laposte.fr/outils/suivre-vos-envois?code=FR123456789',
+          estimatedDelivery: 'Friday, October 18, 2025',
         })
-        subject = '[TEST] Order Shipped'
         break
+      }
 
-      case 'order-delivered':
-        emailComponent = OrderDeliveredEmail({
-          orderNumber: 'BR-2025-TEST',
-          customerName: 'Test User',
-          deliveredAt: 'Wednesday, October 16 at 2:32 PM',
+      case 'order-delivered': {
+        await sendOrderDeliveredEmail(email, {
+          orderNumber: 'BR-2025-000042',
+          customerName: 'Marie',
+          deliveredAt: 'Wednesday, October 16, 2025 at 2:30 PM',
         })
-        subject = '[TEST] Order Delivered'
         break
+      }
 
-      case 'welcome':
-        emailComponent = WelcomeEmail({
-          firstName: 'Test',
+      case 'welcome': {
+        await sendWelcomeEmail(email, {
+          firstName: 'Marie',
         })
-        subject = '[TEST] Welcome'
         break
+      }
 
-      case 'password-reset':
-        emailComponent = PasswordResetEmail({
-          resetUrl: 'http://localhost:3000/auth/reset-password?token=test',
+      case 'password-reset': {
+        await sendPasswordResetEmail(email, {
+          resetUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/reset-password?token=test123`,
           expiresIn: '1 hour',
         })
-        subject = '[TEST] Password Reset'
         break
+      }
 
       default:
         return NextResponse.json(
-          { error: 'Invalid email type' },
+          { error: 'Unknown email type' },
           { status: 400 }
         )
     }
 
-    console.log('🎨 Rendu du composant email...')
-    const html = await render(emailComponent)
-    console.log('✅ HTML généré, longueur:', html.length)
+    console.log(`✅ Test email sent: ${type}`)
 
-    if (resend) {
-      console.log('📨 Envoi avec Resend...')
-      const { data, error } = await resend.emails.send({
-        from: 'Blanche Renaudin <contact@blancherenaudin.com>',
-        to: email,
-        subject: subject,
-        html: html,
-      })
-
-      if (error) {
-        console.error('❌ Erreur Resend:', error)
-        throw error
-      }
-
-      console.log('✅ Email envoyé! ID:', data?.id)
-
-      return NextResponse.json({
-        success: true,
-        message: `Email sent to ${email}`,
-        emailId: data?.id,
-      })
-    } else {
-      console.log('⚠️ Mode simulation (pas de RESEND_API_KEY)')
-
-      return NextResponse.json({
-        success: true,
-        message: `[SIMULATION] Email would be sent to ${email}`,
-        emailId: 'test-' + Date.now(),
-        note: 'Configure RESEND_API_KEY to send real emails',
-      })
-    }
+    return NextResponse.json({
+      success: true,
+      message: `Test email sent to ${email}`,
+    })
   } catch (error) {
-    console.error('💥 Erreur complète:', error)
+    console.error('❌ Error sending test email:', error)
+
     return NextResponse.json(
       {
         error: 'Failed to send test email',
-        details: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     )

@@ -30,7 +30,7 @@ export default function ProductGridClient({
         <p className="text-gray-500 text-lg mb-8">
           Aucun produit dans cette collection pour le moment.
         </p>
-        <Link href="/products">
+        <Link href="/">
           <Button className="bg-violet-600 hover:bg-violet-700">
             Voir tous les produits
           </Button>

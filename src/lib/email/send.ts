@@ -232,9 +232,9 @@ export async function sendWelcomeEmail(
 /**
  * Formater un prix en centimes en euros
  */
-export function formatPrice(cents: number): string {
+export function formatPrice(euros: number): string {
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
     currency: 'EUR',
-  }).format(cents / 100)
+  }).format(euros) // Pas de division
 }

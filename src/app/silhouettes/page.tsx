@@ -58,7 +58,7 @@ export default async function SilhouettesPage() {
                     Voir les collections
                   </Link>
                   <Link
-                    href="/products"
+                    href="/"
                     className="text-[13px] tracking-[0.05em] font-semibold lowercase text-black/70 hover:text-black"
                   >
                     Tous les produits →

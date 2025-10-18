@@ -147,7 +147,7 @@ export default function CheckoutPage() {
               Your cart is empty. Please add items before proceeding.
             </p>
             <Link
-              href="/"
+              href="/products"
               className="inline-block py-3 px-8 text-sm font-semibold lowercase border border-black hover:bg-black hover:text-white transition-colors"
             >
               view collections

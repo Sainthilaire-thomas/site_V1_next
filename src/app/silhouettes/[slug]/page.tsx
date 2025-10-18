@@ -100,7 +100,7 @@ export default async function SilhouetteDetailPage({
       <div className="bg-white py-8">
         <div className="max-w-[1920px] mx-auto px-8 text-center">
           <Link
-            href="/products"
+            href="/"
             className="text-[13px] tracking-[0.05em] font-semibold lowercase text-black/70 hover:text-black"
           >
             Tous les produits →

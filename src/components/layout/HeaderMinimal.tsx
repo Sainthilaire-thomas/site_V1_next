@@ -6,7 +6,89 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useCartStore } from '@/store/useCartStore'
 import { ShoppingBag, Menu, X, Search, User } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, memo } from 'react'
+
+// Composant NavLink mémorisé pour éviter les re-renders inutiles
+const NavLink = memo(
+  ({
+    href,
+    label,
+    isActive,
+    nowrap,
+  }: {
+    href: string
+    label: string
+    isActive: boolean
+    nowrap?: boolean
+  }) => {
+    const [isHovered, setIsHovered] = useState(false)
+
+    return (
+      <Link
+        href={href}
+        className={[
+          'text-[13px] tracking-[0.05em] font-semibold lowercase transition-all duration-200',
+          nowrap ? 'whitespace-nowrap' : '',
+          isActive
+            ? 'text-black/40'
+            : isHovered
+              ? 'font-bold'
+              : 'text-black/70 hover:font-bold',
+        ].join(' ')}
+        style={
+          isHovered && !isActive ? { color: 'hsl(271 74% 37%)' } : undefined
+        }
+        onMouseEnter={() => !isActive && setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {label}
+      </Link>
+    )
+  }
+)
+
+NavLink.displayName = 'NavLink'
+
+// Composant MobileNavLink mémorisé
+const MobileNavLink = memo(
+  ({
+    href,
+    label,
+    isActive,
+    onClick,
+  }: {
+    href: string
+    label: string
+    isActive: boolean
+    onClick: () => void
+  }) => {
+    const [isHovered, setIsHovered] = useState(false)
+
+    return (
+      <Link
+        href={href}
+        onClick={onClick}
+        className={[
+          'block py-2.5 text-[15px] transition-all duration-200',
+          isActive
+            ? 'text-black/40 font-normal'
+            : isHovered
+              ? 'font-bold'
+              : 'text-black font-normal hover:font-bold',
+        ].join(' ')}
+        style={
+          isHovered && !isActive ? { color: 'hsl(271 74% 37%)' } : undefined
+        }
+        onMouseEnter={() => !isActive && setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {label}
+      </Link>
+    )
+  }
+)
+
+MobileNavLink.displayName = 'MobileNavLink'
 
 export default function HeaderMinimal() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -14,20 +96,28 @@ export default function HeaderMinimal() {
   const { totalItems } = useCartStore()
   const pathname = usePathname()
 
-  useEffect(() => {
-    const onScroll = () => setIsScrolled(window.scrollY > 4)
-    window.addEventListener('scroll', onScroll)
-    return () => window.removeEventListener('scroll', onScroll)
+  // Optimisation du scroll listener avec useCallback
+  const handleScroll = useCallback(() => {
+    setIsScrolled(window.scrollY > 4)
   }, [])
 
   useEffect(() => {
-    document.body.style.overflow = isMenuOpen ? 'hidden' : ''
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [handleScroll])
+
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
     return () => {
       document.body.style.overflow = ''
     }
   }, [isMenuOpen])
 
-  // ✅ Navigation based on your Supabase categories
+  // Navigation items
   const nav = [
     { label: '.tops', href: '/products/hauts' },
     { label: '.bottoms', href: '/products/bas' },
@@ -38,17 +128,21 @@ export default function HeaderMinimal() {
     { label: '.contact', href: '/contact' },
   ]
 
-  // Determine if an item is active:
-  // - exact match
-  // - or sub-path (e.g. /products/vestes?...) or /products/vestes/...
-  const isActive = (href: string) => {
-    if (!pathname) return false
-    return (
-      pathname === href ||
-      pathname.startsWith(href + '/') ||
-      pathname.startsWith(href + '?')
-    )
-  }
+  // Fonction pour déterminer si un lien est actif
+  const isActive = useCallback(
+    (href: string) => {
+      if (!pathname) return false
+      return (
+        pathname === href ||
+        pathname.startsWith(href + '/') ||
+        pathname.startsWith(href + '?')
+      )
+    },
+    [pathname]
+  )
+
+  const closeMenu = useCallback(() => setIsMenuOpen(false), [])
+  const openMenu = useCallback(() => setIsMenuOpen(true), [])
 
   return (
     <>
@@ -68,46 +162,27 @@ export default function HeaderMinimal() {
               aria-label="Home .blancherenaudin"
               className="shrink-0"
             >
-              {/* Utilisation d'une balise img native pour meilleure compatibilité Safari */}
-              <img
+              {/* Solution 1: Image avec Next.js Image (recommandé) */}
+              <Image
                 src="/blancherenaudin-ajuste.svg"
                 alt=".blancherenaudin"
                 width={150}
                 height={40}
+                priority
                 className="h-[calc(100%-16px)] w-auto max-h-[92px]"
-                style={{ display: 'block' }}
               />
             </Link>
 
             <nav className="hidden lg:flex items-center gap-8">
-              {nav.map((item) => {
-                const active = isActive(item.href)
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={[
-                      'text-[13px] tracking-[0.05em] font-semibold lowercase transition-all duration-200',
-                      item.nowrap ? 'whitespace-nowrap' : '',
-                      active
-                        ? 'text-black/40'
-                        : 'text-black/70 hover:font-bold',
-                    ].join(' ')}
-                    onMouseEnter={(e) => {
-                      if (!active) {
-                        e.currentTarget.style.color = 'hsl(271 74% 37%)'
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!active) {
-                        e.currentTarget.style.color = ''
-                      }
-                    }}
-                  >
-                    {item.label}
-                  </Link>
-                )
-              })}
+              {nav.map((item) => (
+                <NavLink
+                  key={item.href}
+                  href={item.href}
+                  label={item.label}
+                  isActive={isActive(item.href)}
+                  nowrap={item.nowrap}
+                />
+              ))}
             </nav>
           </div>
 
@@ -145,7 +220,7 @@ export default function HeaderMinimal() {
               )}
             </Link>
             <button
-              onClick={() => setIsMenuOpen(true)}
+              onClick={openMenu}
               className="lg:hidden text-black hover:opacity-60 transition-opacity"
               aria-label="Open menu"
             >
@@ -161,7 +236,7 @@ export default function HeaderMinimal() {
       {isMenuOpen && (
         <div
           className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm lg:hidden"
-          onClick={() => setIsMenuOpen(false)}
+          onClick={closeMenu}
           aria-hidden="true"
         />
       )}
@@ -174,7 +249,7 @@ export default function HeaderMinimal() {
           isMenuOpen ? 'translate-x-0' : 'translate-x-full',
         ].join(' ')}
       >
-        <div className="flex items-center justify-between px-12 py-6 ">
+        <div className="flex items-center justify-between px-12 py-6">
           <span
             className="text-sm font-bold tracking-[0.15em]"
             style={{ color: 'hsl(271 74% 37%)' }}
@@ -182,7 +257,7 @@ export default function HeaderMinimal() {
             .blancherenaudin
           </span>
           <button
-            onClick={() => setIsMenuOpen(false)}
+            onClick={closeMenu}
             className="text-black hover:opacity-60 transition-opacity"
             aria-label="Close menu"
           >
@@ -191,34 +266,15 @@ export default function HeaderMinimal() {
         </div>
 
         <nav className="px-8 pb-8 space-y-1">
-          {nav.map((item) => {
-            const active = isActive(item.href)
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setIsMenuOpen(false)}
-                className={[
-                  'block py-2.5 text-[15px] transition-all duration-200',
-                  active
-                    ? 'text-black/40 font-normal'
-                    : 'text-black font-normal hover:font-bold',
-                ].join(' ')}
-                onMouseEnter={(e) => {
-                  if (!active) {
-                    e.currentTarget.style.color = 'hsl(271 74% 37%)'
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!active) {
-                    e.currentTarget.style.color = ''
-                  }
-                }}
-              >
-                {item.label}
-              </Link>
-            )
-          })}
+          {nav.map((item) => (
+            <MobileNavLink
+              key={item.href}
+              href={item.href}
+              label={item.label}
+              isActive={isActive(item.href)}
+              onClick={closeMenu}
+            />
+          ))}
         </nav>
 
         <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-black/10">
@@ -226,7 +282,7 @@ export default function HeaderMinimal() {
             <div className="flex items-center gap-8">
               <Link
                 href="/account"
-                onClick={() => setIsMenuOpen(false)}
+                onClick={closeMenu}
                 className="flex items-center gap-2 text-sm text-black hover:opacity-60 transition-opacity"
               >
                 <User className="w-4 h-4" strokeWidth={1.5} />

@@ -8,7 +8,7 @@ export default function ShippingPage() {
     <div className="min-h-screen py-24 px-8">
       <div className="max-w-4xl mx-auto">
         <Link
-          href="/"
+          href="/?skip-intro=true"
           className="inline-block text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium hover:text-black transition-colors mb-8"
         >
           ← back to home

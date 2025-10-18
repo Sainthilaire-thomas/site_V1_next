@@ -35,7 +35,7 @@ export default function Header() {
               Collections
             </Link>
             <Link
-              href="/products"
+              href="/"
               className="text-gray-700 hover:text-violet-600 transition-colors"
             >
               Produits
@@ -97,8 +97,8 @@ export default function Header() {
         {/* Menu Mobile */}
         <div
           className={cn(
-            "md:hidden overflow-hidden transition-all duration-300 ease-in-out",
-            isMenuOpen ? "max-h-48 opacity-100" : "max-h-0 opacity-0"
+            'md:hidden overflow-hidden transition-all duration-300 ease-in-out',
+            isMenuOpen ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0'
           )}
         >
           <div className="py-4 space-y-4 border-t border-gray-200">
@@ -110,7 +110,7 @@ export default function Header() {
               Collections
             </Link>
             <Link
-              href="/products"
+              href="/"
               onClick={toggleMenu}
               className="block text-gray-700 hover:text-violet-600 transition-colors"
             >
@@ -134,5 +134,5 @@ export default function Header() {
         </div>
       </div>
     </header>
-  );
+  )
 }

@@ -1069,6 +1069,28 @@ export type Database = {
           views: number
         }[]
       }
+      insert_order_with_addresses: {
+        Args: {
+          p_billing_address: Json
+          p_customer_email: string
+          p_customer_name: string
+          p_customer_phone: string
+          p_discount_amount: number
+          p_order_number: string
+          p_shipping_address: Json
+          p_shipping_amount: number
+          p_shipping_method: string
+          p_stripe_session_id: string
+          p_tax_amount: number
+          p_total_amount: number
+        }
+        Returns: {
+          billing_address: Json
+          id: string
+          order_number: string
+          shipping_address: Json
+        }[]
+      }
       is_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean

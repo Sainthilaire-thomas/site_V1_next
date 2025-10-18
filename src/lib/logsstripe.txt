@@ -1,0 +1,296 @@
+PS C:\Users\thoma\OneDrive\SONEAR 2025\site_v1_next> npm run dev
+
+> site_v1_next@0.1.0 dev
+> next dev --turbopack
+
+   ▲ Next.js 15.5.3 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.155.200:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 2.2s
+ ○ Compiling / ...
+ ✓ Compiled / in 5.7s
+(node:14204) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET / 200 in 7534ms
+ ○ Compiling /products/[category] ...
+ ✓ Compiled /products/[category] in 1060ms
+(node:10980) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET /products/bas 200 in 2922ms
+ ○ Compiling /manifest.json ...
+ ✓ Compiled /manifest.json in 921ms
+ GET /manifest.json 200 in 1423ms
+ ○ Compiling /product/[id] ...
+(node:5160) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET /api/admin/product-images/3ffb49b5-8720-4539-871c-42c20e1c4919/signed-url?variant=md&format=avif&mode=json 200 in 3374ms
+ GET /api/admin/product-images/edf1d67f-ff56-43d6-aeb1-46c60bee5405/signed-url?variant=md&format=avif&mode=json 200 in 3422ms
+ GET /api/admin/product-images/edf1d67f-ff56-43d6-aeb1-46c60bee5405/signed-url?variant=md&format=avif&mode=json 200 in 3482ms
+ GET /api/admin/product-images/3ffb49b5-8720-4539-871c-42c20e1c4919/signed-url?variant=md&format=avif&mode=json 200 in 3497ms
+ ✓ Compiled /product/[id] in 1137ms
+(node:20736) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET /product/b2a4608d-b52c-4165-b88e-3307330569fd 200 in 2552ms
+ GET /api/admin/product-images/1caed607-10ca-43b3-8c07-654c6e9ff9a1/signed-url?variant=xl&format=avif&mode=json 200 in 1439ms
+ GET /api/admin/product-images/edf1d67f-ff56-43d6-aeb1-46c60bee5405/signed-url?variant=xl&format=avif&mode=json 200 in 1485ms
+ GET /api/admin/product-images/a7511909-0247-479a-bf0e-1ee67ac9ffc2/signed-url?variant=xl&format=avif&mode=json 200 in 1513ms
+ GET /api/admin/product-images/a7511909-0247-479a-bf0e-1ee67ac9ffc2/signed-url?variant=xl&format=avif&mode=json 200 in 1530ms
+ GET /api/admin/product-images/edf1d67f-ff56-43d6-aeb1-46c60bee5405/signed-url?variant=xl&format=avif&mode=json 200 in 1571ms
+ GET /api/admin/product-images/1caed607-10ca-43b3-8c07-654c6e9ff9a1/signed-url?variant=xl&format=avif&mode=json 200 in 1553ms
+ GET /manifest.json 200 in 648ms
+(node:19824) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ ○ Compiling /checkout-test ...
+ ✓ Compiled /checkout-test in 1593ms
+ GET /checkout-test 200 in 2187ms
+ ○ Compiling /api/checkout ...
+ ✓ Compiled /api/checkout in 683ms
+📦 Will insert addresses {
+  billingAddress: {
+    first_name: 'SoNear',
+    last_name: 'Renaudin',
+    address_line_1: '25 bd de latour maubourg',
+    city: 'PARIS 7',
+    postal_code: '75007',
+    country: 'FR'
+  },
+  shippingAddress: {
+    first_name: 'Thomas',
+    last_name: 'Sophie',
+    address_line_1: '25 bd de latour maubourg',
+    city: 'PARIS 7',
+    postal_code: '75007',
+    country: 'FR',
+    address_line_2: '25 bd latour maubourg'
+  }
+}
+📋 Creating order with addresses...
+🔍 Addresses after JSON stringify/parse: {
+  shipping: {
+    first_name: 'Thomas',
+    last_name: 'Sophie',
+    address_line_1: '25 bd de latour maubourg',
+    city: 'PARIS 7',
+    postal_code: '75007',
+    country: 'FR',
+    address_line_2: '25 bd latour maubourg'
+  },
+  billing: {
+    first_name: 'SoNear',
+    last_name: 'Renaudin',
+    address_line_1: '25 bd de latour maubourg',
+    city: 'PARIS 7',
+    postal_code: '75007',
+    country: 'FR'
+  }
+}
+✅ Order created BEFORE Stripe: 8958eeb7-014c-47a6-8345-9f4fb906e7a2
+🔍 Order addresses from DB: {
+  shipping: {
+    city: 'PARIS 7',
+    country: 'FR',
+    last_name: 'Sophie',
+    first_name: 'Thomas',
+    postal_code: '75007',
+    address_line_1: '25 bd de latour maubourg',
+    address_line_2: '25 bd latour maubourg'
+  },
+  billing: {
+    city: 'PARIS 7',
+    country: 'FR',
+    last_name: 'Renaudin',
+    first_name: 'SoNear',
+    postal_code: '75007',
+    address_line_1: '25 bd de latour maubourg'
+  }
+}
+🔍 RE-READ from DB (verification): {
+  shipping: {
+    city: 'PARIS 7',
+    country: 'FR',
+    last_name: 'Sophie',
+    first_name: 'Thomas',
+    postal_code: '75007',
+    address_line_1: '25 bd de latour maubourg',
+    address_line_2: '25 bd latour maubourg'
+  },
+  billing: {
+    city: 'PARIS 7',
+    country: 'FR',
+    last_name: 'Renaudin',
+    first_name: 'SoNear',
+    postal_code: '75007',
+    address_line_1: '25 bd de latour maubourg'
+  }
+}
+✅ Stripe session created: cs_test_a1khJ6PAfRgbyy8dwHKy5kjpthcVvOfmsJEJuMpmPPMsogBg9LECowSc7P
+✅ Order linked to Stripe session
+🔍 FINAL CHECK (after Stripe session link): {
+  id: '8958eeb7-014c-47a6-8345-9f4fb906e7a2',
+  stripe_session_id: 'cs_test_a1khJ6PAfRgbyy8dwHKy5kjpthcVvOfmsJEJuMpmPPMsogBg9LECowSc7P',
+  shipping_address: {
+    city: 'PARIS 7',
+    country: 'FR',
+    last_name: 'Sophie',
+    first_name: 'Thomas',
+    postal_code: '75007',
+    address_line_1: '25 bd de latour maubourg',
+    address_line_2: '25 bd latour maubourg'
+  },
+  billing_address: {
+    city: 'PARIS 7',
+    country: 'FR',
+    last_name: 'Renaudin',
+    first_name: 'SoNear',
+    postal_code: '75007',
+    address_line_1: '25 bd de latour maubourg'
+  }
+}
+ POST /api/checkout 200 in 2246ms
+ ○ Compiling /api/webhooks/stripe ...
+ ✓ Compiled /api/webhooks/stripe in 1285ms
+🔍 RESEND_API_KEY présente: true
+🔍 RESEND_API_KEY (premiers caractères): re_WuWQyW3
+📧 Expéditeur configuré: Blanche Renaudin <contact@blancherenaudin.com> 
+
+🔔 Webhook received: payment_intent.succeeded
+
+💳 Payment intent succeeded: pi_3SIyVeB4PqZwqkUz0JwtYA9P
+📋 Finding session...
+
+🔔 Webhook received: checkout.session.completed
+
+🎉 Checkout session completed: cs_test_a1khJ6PAfRgbyy8dwHKy5kjpthcVvOfmsJEJuMpmPPMsogBg9LECowSc7P
+📋 Step 1: Fetching full session details...
+
+🔔 Webhook received: charge.succeeded
+ℹ️ Unhandled event type: charge.succeeded
+
+🔔 Webhook received: payment_intent.created
+ℹ️ Unhandled event type: payment_intent.created
+ POST /api/webhooks/stripe 200 in 2350ms
+ POST /api/webhooks/stripe 200 in 2171ms
+✅ Session found: cs_test_a1khJ6PAfRgbyy8dwHKy5kjpthcVvOfmsJEJuMpmPPMsogBg9LECowSc7P
+📋 Fetching full session...
+✅ Payment Intent found: pi_3SIyVeB4PqZwqkUz0JwtYA9P
+📋 Step 2: Finding order...
+🔍 RAW ORDER FROM DB (checkout.session.completed): {
+  id: '8958eeb7-014c-47a6-8345-9f4fb906e7a2',
+  order_number: 'BR-2025-577817',
+  created_at: '2025-10-16T21:14:47.267794+00:00',
+  shipping_address_raw: null,
+  shipping_address_type: 'object',
+  shipping_address_is_null: true,
+  billing_address_raw: {
+    city: 'PARIS 7',
+    country: 'FR',
+    last_name: 'Renaudin',
+    first_name: 'SoNear',
+    postal_code: '75007',
+    address_line_1: '25 bd de latour maubourg'
+  }
+}
+✅ Order found: BR-2025-577817
+📍 Shipping address after parsing: null
+📍 Billing address after parsing: {
+  city: 'PARIS 7',
+  country: 'FR',
+  last_name: 'Renaudin',
+  first_name: 'SoNear',
+  postal_code: '75007',
+  address_line_1: '25 bd de latour maubourg'
+}
+📋 Step 3: Checking for existing items...
+⚠️ Items already exist, skipping creation
+📦 Decrementing stock...
+📦 Starting stock decrement for order: 8958eeb7-014c-47a6-8345-9f4fb906e7a2
+📋 Finding order...
+🔍 RAW ORDER FROM DB (payment_intent.succeeded): {
+  id: '8958eeb7-014c-47a6-8345-9f4fb906e7a2',
+  order_number: 'BR-2025-577817',
+  created_at: '2025-10-16T21:14:47.267794+00:00',
+  shipping_address_raw: null,
+  shipping_address_type: 'object',
+  shipping_address_is_null: true,
+  billing_address_raw: {
+    city: 'PARIS 7',
+    country: 'FR',
+    last_name: 'Renaudin',
+    first_name: 'SoNear',
+    postal_code: '75007',
+    address_line_1: '25 bd de latour maubourg'
+  }
+}
+✅ Order found: BR-2025-577817
+📍 Shipping address after parsing: null
+📍 Billing address after parsing: {
+  city: 'PARIS 7',
+  country: 'FR',
+  last_name: 'Renaudin',
+  first_name: 'SoNear',
+  postal_code: '75007',
+  address_line_1: '25 bd de latour maubourg'
+}
+📋 Checking for items...
+📋 Found 1 items to process
+✅ Items exist, checkout.session.completed handled this
+⏭️ Skipping payment_intent.succeeded (avoiding duplicates)
+ POST /api/webhooks/stripe 200 in 2890ms
+📦 Product b2a4608d-b52c-4165-b88e-3307330569fd: 7 → 6 (Δ -1)
+✅ Stock decremented for: .white glade skirt - L (qty: 1)
+📊 Stock decrement summary: 1/1 items processed
+✅ Stock decremented: 1 items
+📧 Attempting to send confirmation email...
+📧 Fetching order details for ID: 8958eeb7-014c-47a6-8345-9f4fb906e7a2  
+✅ Order found: BR-2025-577817
+============================================================
+📦 DEBUG SHIPPING ADDRESS
+============================================================
+📦 Raw shipping_address from DB: null
+📦 Type of shipping_address: object
+📦 Is null? true
+📦 Is undefined? false
+📦 Has address_line_1? null
+============================================================
+✅ Found 1 items
+🔍 PARSING SHIPPING ADDRESS
+🔍 shippingAddress?.address_line_1: undefined
+🔍 shippingAddress?.city: undefined
+🔍 shippingAddress?.postal_code: undefined
+🔍 shippingAddress?.country: undefined
+✅ Formatted address for email: {
+  "line1": "",
+  "city": "",
+  "postalCode": "",
+  "country": ""
+}
+📤 Envoi email: {
+  from: 'Blanche Renaudin <contact@blancherenaudin.com>',
+  to: [ 'sonearthomas@gmail.com' ],
+  subject: 'Confirmation de commande #BR-2025-577817',
+  type: 'order-confirmation'
+}
+
+🔔 Webhook received: charge.updated
+ℹ️ Unhandled event type: charge.updated
+ POST /api/webhooks/stripe 200 in 1025ms
+✅ Email envoyé avec succès: {
+  id: '3fa58c7c-94cd-4a29-beaa-99575437fd97',
+  from: 'Blanche Renaudin <contact@blancherenaudin.com>',
+  to: 'sonearthomas@gmail.com',
+  type: 'order-confirmation'
+}
+✅ Email de confirmation envoyé pour la commande BR-2025-577817
+✅ Confirmation email sent successfully
+fmsJEJuMpmPPMsogBg9LECowSc7P 200 in 1570ms
+ ○ Compiling /api/orders/by-session/[sessionId] ...
+ ✓ Compiled /api/orders/by-session/[sessionId] in 641ms
+fmsJEJuMpmPPMsogBg9LECowSc7P 200 in 1570ms
+ ○ Compiling /api/orders/by-session/[sessionId] ...
+ ✓ Compiled /api/orders/by-session/[sessionId] in 641ms
+(node:7496) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET /api/orders/by-session/cs_test_a1khJ6PAfRgbyy8dwHKy5kjpthcVvOfmsJEJuMpmPPMsogBg9LECowSc7P 200 in 2581ms

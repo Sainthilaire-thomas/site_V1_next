@@ -1,0 +1,300 @@
+PS C:\Users\thoma\OneDrive\SONEAR 2025\site_v1_next> npm run dev
+
+> site_v1_next@0.1.0 dev
+> next dev --turbopack
+
+   ▲ Next.js 15.5.3 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://10.13.94.184:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 3.7s
+ ○ Compiling / ...
+ ✓ Compiled / in 12.6s
+(node:8168) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET / 200 in 15233ms
+ ○ Compiling /products/[category] ...
+ ✓ Compiled /products/[category] in 2s
+(node:4808) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET /products/bas 200 in 4812ms
+ ○ Compiling /api/admin/product-images/[imageId]/signed-url ...
+ ✓ Compiled /api/admin/product-images/[imageId]/signed-url in 1480ms
+(node:18216) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET /api/admin/product-images/3ffb49b5-8720-4539-871c-42c20e1c4919/signed-url?variant=md&format=avif&mode=json 200 in 4868ms       
+ GET /api/admin/product-images/3ffb49b5-8720-4539-871c-42c20e1c4919/signed-url?variant=md&format=avif&mode=json 200 in 4925ms       
+ GET /api/admin/product-images/edf1d67f-ff56-43d6-aeb1-46c60bee5405/signed-url?variant=md&format=avif&mode=json 200 in 4940ms       
+ GET /api/admin/product-images/edf1d67f-ff56-43d6-aeb1-46c60bee5405/signed-url?variant=md&format=avif&mode=json 200 in 4936ms       
+ ○ Compiling /manifest.json ...
+ ✓ Compiled /manifest.json in 795ms
+ GET /manifest.json 200 in 1545ms
+ ○ Compiling /product/[id] ...
+ ✓ Compiled /product/[id] in 1757ms
+(node:16900) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET /product/b2a4608d-b52c-4165-b88e-3307330569fd 200 in 3873ms
+ GET /api/admin/product-images/edf1d67f-ff56-43d6-aeb1-46c60bee5405/signed-url?variant=xl&format=avif&mode=json 200 in 2291ms       
+ GET /api/admin/product-images/a7511909-0247-479a-bf0e-1ee67ac9ffc2/signed-url?variant=xl&format=avif&mode=json 200 in 2410ms       
+ GET /api/admin/product-images/1caed607-10ca-43b3-8c07-654c6e9ff9a1/signed-url?variant=xl&format=avif&mode=json 200 in 2360ms       
+ GET /api/admin/product-images/a7511909-0247-479a-bf0e-1ee67ac9ffc2/signed-url?variant=xl&format=avif&mode=json 200 in 2486ms       
+ GET /api/admin/product-images/1caed607-10ca-43b3-8c07-654c6e9ff9a1/signed-url?variant=xl&format=avif&mode=json 200 in 2500ms       
+ GET /api/admin/product-images/edf1d67f-ff56-43d6-aeb1-46c60bee5405/signed-url?variant=xl&format=avif&mode=json 200 in 2511ms       
+ GET /manifest.json 200 in 889ms
+(node:16624) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ ○ Compiling /checkout-test ...
+ ✓ Compiled /checkout-test in 1481ms
+ GET /checkout-test 200 in 2325ms
+ ○ Compiling /api/checkout/create-session ...
+ ✓ Compiled /api/checkout/create-session in 1497ms
+
+
+
+═══════════════════════════════════════════════════════════
+🚀 CHECKOUT SESSION CREATION START
+═══════════════════════════════════════════════════════════       
+
+📦 Step 1: Request received
+   └─ Items count: 1
+   └─ Customer email: thomas.renaudin@sonear.com
+
+🔍 Step 2: Validation
+   ✅ Cart has items
+   ✅ Address is complete
+
+💰 Step 3: Amount calculation
+   └─ Total: 165.00 €
+
+📝 Step 4: Creating order in Supabase
+   ┌─ Shipping address to insert:
+   │  Type: object
+   │  Value: {
+  "first_name": "Thomas",
+  "last_name": "Renaudin",
+  "email": "thomas.renaudin@sonear.com",
+  "phone": "+33611854966",
+  "address_line1": "sonear",
+  "address_line2": "25 bd latour maubourg 2",
+  "city": "PARIS 7",
+  "postal_code": "75007",
+  "country": "FR"
+}
+   └─ [Preparing INSERT...]
+   ┌─ Insert data prepared
+   └─ Keys: order_number, customer_email, customer_name, customer_phone, shipping_address, billing_address, total_amount, shipping_amount, tax_amount, discount_amount, shipping_method, status, payment_status, fulfillment_status, notes, admin_notes, stripe_session_id, payment_intent_id, user_id
+
+   ✅ Order created (returned from INSERT):
+   ├─ ID: 969a4941-11ac-458d-9494-454c38e6e818
+   ├─ Number: ORD-20251017-013
+   ├─ Email: thomas.renaudin@sonear.com
+   ├─ Total: 165
+   ├─ shipping_address type: object
+   ├─ shipping_address is null? false
+   └─ shipping_address value: {
+  "city": "PARIS 7",
+  "email": "thomas.renaudin@sonear.com",
+  "phone": "+33611854966",
+  "country": "FR",
+  "last_name": "Renaudin",
+  "first_name": "Thomas",
+  "postal_code": "75007",
+  "address_line1": "sonear",
+  "address_line2": "25 bd latour maubourg 2"
+}
+
+🔍 Step 5: IMMEDIATE RE-READ from database
+   └─ [Executing SELECT immediately after INSERT...]
+   ✅ Verification SELECT successful:
+   ├─ Order number: ORD-20251017-013
+   ├─ Created at: 2025-10-17T12:00:59.354587+00:00
+   ├─ Updated at: 2025-10-17T12:00:59.354587+00:00
+   ├─ shipping_address type: object
+   ├─ shipping_address is null? false
+   └─ shipping_address value: {
+  "city": "PARIS 7",
+  "email": "thomas.renaudin@sonear.com",
+  "phone": "+33611854966",
+  "country": "FR",
+  "last_name": "Renaudin",
+  "first_name": "Thomas",
+  "postal_code": "75007",
+  "address_line1": "sonear",
+  "address_line2": "25 bd latour maubourg 2"
+}
+   ✅ shipping_address is preserved immediately after INSERT      
+
+💳 Step 6: Creating Stripe session
+   ✅ Session created: cs_test_a1OIIpFoSnhGedwoLPLj6kv13Va6aaPOlXRkdrFWKC0Eep03T4X11rA91M
+
+🔗 Step 7: Linking session to order
+   ✅ Session linked
+
+🔍 Step 8: FINAL VERIFICATION before redirect
+   ├─ stripe_session_id: cs_test_a1OIIpFoSnhGedwoLPLj6kv13Va6aaPOlXRkdrFWKC0Eep03T4X11rA91M
+   ├─ shipping_address is null? false
+   └─ shipping_address: {
+  "city": "PARIS 7",
+  "email": "thomas.renaudin@sonear.com",
+  "phone": "+33611854966",
+  "country": "FR",
+  "last_name": "Renaudin",
+  "first_name": "Thomas",
+  "postal_code": "75007",
+  "address_line1": "sonear",
+  "address_line2": "25 bd latour maubourg 2"
+}
+
+═══════════════════════════════════════════════════════════       
+✅ SUCCESS - Redirecting to Stripe
+═══════════════════════════════════════════════════════════       
+
+
+ POST /api/checkout/create-session 200 in 3974ms
+ ○ Compiling /api/webhooks/stripe ...
+ ✓ Compiled /api/webhooks/stripe in 2.6s
+🔍 RESEND_API_KEY présente: true
+🔍 RESEND_API_KEY (premiers caractères): re_WuWQyW3
+📧 Expéditeur configuré: Blanche Renaudin <contact@blancherenaudin.com>
+
+🔔 Webhook: payment_intent.succeeded
+
+🔔 Webhook: checkout.session.completed
+
+═══════════════════════════════════════════════════════════       
+🎉 CHECKOUT SESSION COMPLETED
+═══════════════════════════════════════════════════════════       
+Session ID: cs_test_a1OIIpFoSnhGedwoLPLj6kv13Va6aaPOlXRkdrFWKC0Eep03T4X11rA91M
+
+📋 Step 1: Fetching full session from Stripe...
+
+🔔 Webhook: payment_intent.created
+ℹ️ Unhandled: payment_intent.created
+
+🔔 Webhook: charge.succeeded
+ℹ️ Unhandled: charge.succeeded
+ POST /api/webhooks/stripe 200 in 4096ms
+ POST /api/webhooks/stripe 200 in 4313ms
+
+🔔 Webhook: charge.updated
+ℹ️ Unhandled: charge.updated
+ POST /api/webhooks/stripe 200 in 2054ms
+   ✅ Full session retrieved
+   ✅ Payment Intent ID: pi_3SJCLJB4PqZwqkUz02KxrN86
+
+📋 Step 2: Reading order from Supabase...
+   └─ Looking for stripe_session_id: cs_test_a1OIIpFoSnhGedwoLPLj6kv13Va6aaPOlXRkdrFWKC0Eep03T4X11rA91M
+
+   ✅ Order found in database:
+   ├─ Order ID: 969a4941-11ac-458d-9494-454c38e6e818
+   ├─ Order number: ORD-20251017-013
+   ├─ Created at: 2025-10-17T12:00:59.354587+00:00
+   ├─ Updated at: 2025-10-17T12:01:13.719479+00:00
+   ├─ shipping_address type: object
+   ├─ shipping_address is null? true
+   ├─ shipping_address value:
+null
+   ├─ billing_address type: object
+   ├─ billing_address is null? false
+   └─ billing_address value:
+{
+      "city": "PARIS 7",
+      "email": "thomas.renaudin@sonear.com",
+      "phone": "+33611854966",
+      "country": "FR",
+      "last_name": "Renaudin",
+      "first_name": "Thomas",
+      "postal_code": "75007",
+      "address_line1": "sonear",
+      "address_line2": "25 bd latour maubourg 2"
+}
+
+   🚨 🚨 🚨 CRITICAL ALERT 🚨 🚨 🚨
+   🚨 shipping_address is NULL when webhook reads it!
+   🚨 It was set to NULL BEFORE this webhook executed
+   🚨 Check: triggers, RLS policies, or other code
+   🚨 🚨 🚨 🚨 🚨 🚨 🚨 🚨 🚨 🚨 🚨 🚨
+
+
+📋 Step 3: Checking for existing order items...
+   ⚠️ Order items already exist
+   └─ Will update payment status ONLY (no address modification)
+
+📋 Step 4: Updating payment status...
+   └─ [Executing UPDATE with ONLY payment fields...]
+   ✅ UPDATE successful
+   ├─ shipping_address after UPDATE: null
+   └─ billing_address after UPDATE: {
+  "city": "PARIS 7",
+  "email": "thomas.renaudin@sonear.com",
+  "phone": "+33611854966",
+  "country": "FR",
+  "last_name": "Renaudin",
+  "first_name": "Thomas",
+  "postal_code": "75007",
+  "address_line1": "sonear",
+  "address_line2": "25 bd latour maubourg 2"
+}
+
+   🚨 shipping_address is STILL NULL after UPDATE
+   🚨 But we did NOT modify it in the UPDATE!
+   🚨 This confirms: it was ALREADY NULL before UPDATE
+
+📦 Starting stock decrement for order: 969a4941-11ac-458d-9494-454c38e6e818
+ POST /api/webhooks/stripe 200 in 5213ms
+📋 Found 1 items to process
+📦 Product b2a4608d-b52c-4165-b88e-3307330569fd: 28 → 27 (Δ -1)
+✅ Stock decremented for: .white glade skirt - S (qty: 1)
+📊 Stock decrement summary: 1/1 items processed
+📧 Fetching order details for ID: 969a4941-11ac-458d-9494-454c38e6e818
+✅ Order found: ORD-20251017-013
+============================================================
+📦 DEBUG SHIPPING ADDRESS
+============================================================      
+📦 Raw shipping_address from DB: null
+📦 Type of shipping_address: object
+📦 Is null? true
+📦 Is undefined? false
+📦 Has address_line_1? null
+============================================================
+✅ Found 1 items
+🔍 PARSING SHIPPING ADDRESS
+🔍 shippingAddress?.address_line_1: undefined
+🔍 shippingAddress?.city: undefined
+🔍 shippingAddress?.postal_code: undefined
+🔍 shippingAddress?.country: undefined
+✅ Formatted address for email: {
+  "line1": "",
+  "city": "",
+  "postalCode": "",
+  "country": ""
+}
+📤 Envoi email: {
+  from: 'Blanche Renaudin <contact@blancherenaudin.com>',
+  to: [ 'thomas.renaudin@sonear.com' ],
+  subject: 'Confirmation de commande #ORD-20251017-013',
+  type: 'order-confirmation'
+}
+ ○ Compiling /checkout/success ...
+✅ Email envoyé avec succès: {
+  id: '7262d8b0-2ac3-416f-bc4e-000e3cad232d',
+  from: 'Blanche Renaudin <contact@blancherenaudin.com>',
+  to: 'thomas.renaudin@sonear.com',
+  type: 'order-confirmation'
+}
+✅ Email de confirmation envoyé pour la commande ORD-20251017-013
+✅ Email sent
+═══════════════════════════════════════════════════════════       
+✅ WEBHOOK COMPLETED (items already existed)
+═══════════════════════════════════════════════════════════       
+
+ POST /api/webhooks/stripe 200 in 6465ms
+ ✓ Compiled /checkout/success in 1716ms
+ GET /checkout/success?session_id=cs_test_a1OIIpFoSnhGedwoLPLj6kv13Va6aaPOlXRkdrFWKC0Eep03T4X11rA91M 200 in 2545ms
+ ○ Compiling /api/orders/by-session/[sessionId] ...
+ ✓ Compiled /api/orders/by-session/[sessionId] in 860ms
+(node:18676) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET /api/orders/by-session/cs_test_a1OIIpFoSnhGedwoLPLj6kv13Va6aaPOlXRkdrFWKC0Eep03T4X11rA91M 200 in 3647ms

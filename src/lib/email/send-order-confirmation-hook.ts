@@ -1,5 +1,5 @@
 // src/lib/email/send-order-confirmation-hook.ts
-import { getServerSupabase } from '@/lib/supabase-server'
+import { supabaseAdmin } from '@/lib/supabase-admin'
 import { sendOrderConfirmationEmail } from './send'
 
 // Type partiel pour les images
@@ -16,7 +16,10 @@ type ProductImagePartial = {
  */
 export async function sendOrderConfirmationHook(orderId: string) {
   try {
-    const supabase = await getServerSupabase()
+    console.log('📧 Fetching order details for ID:', orderId)
+
+    // ✅ Utiliser supabaseAdmin (service role) pour bypasser RLS dans les webhooks
+    const supabase = supabaseAdmin
 
     // Récupérer les détails de la commande
     const { data: order, error: orderError } = await supabase
@@ -30,6 +33,7 @@ export async function sendOrderConfirmationHook(orderId: string) {
         total_amount,
         shipping_amount,
         shipping_address,
+        billing_address,
         user_id
       `
       )
@@ -37,9 +41,30 @@ export async function sendOrderConfirmationHook(orderId: string) {
       .single()
 
     if (orderError || !order) {
-      console.error('Erreur récupération commande:', orderError)
+      console.error('❌ Erreur récupération commande:', orderError)
       throw new Error('Commande introuvable')
     }
+
+    console.log('✅ Order found:', order.order_number)
+
+    // ✅✅✅ LOGS CRITIQUES POUR LE DEBUG
+    console.log('='.repeat(60))
+    console.log('📦 DEBUG SHIPPING ADDRESS')
+    console.log('='.repeat(60))
+    console.log(
+      '📦 Raw shipping_address from DB:',
+      JSON.stringify(order.shipping_address, null, 2)
+    )
+    console.log('📦 Type of shipping_address:', typeof order.shipping_address)
+    console.log('📦 Is null?', order.shipping_address === null)
+    console.log('📦 Is undefined?', order.shipping_address === undefined)
+    console.log(
+      '📦 Has address_line_1?',
+      order.shipping_address &&
+        typeof order.shipping_address === 'object' &&
+        'address_line_1' in (order.shipping_address as object)
+    )
+    console.log('='.repeat(60))
 
     // Récupérer les items de la commande
     const { data: orderItems, error: itemsError } = await supabase
@@ -60,9 +85,11 @@ export async function sendOrderConfirmationHook(orderId: string) {
       .eq('order_id', orderId)
 
     if (itemsError || !orderItems) {
-      console.error('Erreur récupération items:', itemsError)
+      console.error('❌ Erreur récupération items:', itemsError)
       throw new Error('Items de commande introuvables')
     }
+
+    console.log(`✅ Found ${orderItems.length} items`)
 
     // Récupérer les images des produits
     const productIds = orderItems
@@ -133,13 +160,34 @@ export async function sendOrderConfirmationHook(orderId: string) {
 
     // ✅ Formater l'adresse au bon format
     const shippingAddress = order.shipping_address as any
+
+    console.log('🔍 PARSING SHIPPING ADDRESS')
+    console.log(
+      '🔍 shippingAddress?.address_line_1:',
+      shippingAddress?.address_line_1
+    )
+    console.log('🔍 shippingAddress?.city:', shippingAddress?.city)
+    console.log(
+      '🔍 shippingAddress?.postal_code:',
+      shippingAddress?.postal_code
+    )
+    console.log('🔍 shippingAddress?.country:', shippingAddress?.country)
+
     const formattedAddress = {
-      line1: shippingAddress?.address_line_1 || '',
-      line2: shippingAddress?.address_line_2,
+      line1: shippingAddress?.address_line1 || '', // ✅ Sans underscore au milieu
+      line2: shippingAddress?.address_line2 || '', // ✅ Sans underscore au milieu
       city: shippingAddress?.city || '',
-      postalCode: shippingAddress?.postal_code || '',
+      postalCode: shippingAddress?.postal_code || '', // ✅ Garde l'underscore
       country: shippingAddress?.country || '',
+      firstName: shippingAddress?.first_name || '',
+      lastName: shippingAddress?.last_name || '',
+      phone: shippingAddress?.phone || '',
     }
+
+    console.log(
+      '✅ Formatted address for email:',
+      JSON.stringify(formattedAddress, null, 2)
+    )
 
     // ✅ Envoyer l'email avec EXACTEMENT les champs attendus
     await sendOrderConfirmationEmail(order.customer_email, {
@@ -149,7 +197,7 @@ export async function sendOrderConfirmationHook(orderId: string) {
       subtotal: subtotal,
       shipping: order.shipping_amount || 0,
       total: order.total_amount,
-      shippingAddress: formattedAddress, // ✅ Format correct
+      shippingAddress: formattedAddress,
     })
 
     console.log(
@@ -157,7 +205,7 @@ export async function sendOrderConfirmationHook(orderId: string) {
     )
     return { success: true }
   } catch (error) {
-    console.error('Erreur envoi email confirmation:', error)
+    console.error('❌ Erreur envoi email confirmation:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Erreur inconnue',

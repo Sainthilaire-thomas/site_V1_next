@@ -3,165 +3,192 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
+interface CheckoutItem {
+  product_id: string
+  variant_id?: string | null
+  name: string
+  price: number
+  quantity: number
+  image?: string
+  size?: string
+  color?: string
+}
+
+interface CheckoutRequestBody {
+  items: CheckoutItem[]
+  email: string
+  shippingAddress: {
+    first_name: string
+    last_name: string
+    address_line_1: string
+    address_line_2?: string
+    city: string
+    postal_code: string
+    country: string
+  }
+  billingAddress: {
+    first_name: string
+    last_name: string
+    address_line_1: string
+    address_line_2?: string
+    city: string
+    postal_code: string
+    country: string
+  }
+  useShippingForBilling?: boolean
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json()
-    const {
-      items,
-      email,
-      phone,
-      billingAddress,
-      shippingMethod,
-      totalAmount,
-      shippingAmount,
-      taxAmount,
-    } = body
+    const body: CheckoutRequestBody = await req.json()
+    const { items, email, shippingAddress, billingAddress } = body
 
-    // Validation des données
-    if (!items || !Array.isArray(items) || items.length === 0) {
+    console.log('📦 Checkout request received')
+
+    if (!items?.length || !email || !shippingAddress || !billingAddress) {
       return NextResponse.json(
-        { error: 'Cart items are required' },
+        { error: 'Missing required fields' },
         { status: 400 }
       )
     }
 
-    if (!email) {
-      return NextResponse.json({ error: 'Email is required' }, { status: 400 })
-    }
+    // ÉTAPE 1 : Créer la commande AVEC les adresses
+    const orderNumber = `BR-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000000)).padStart(6, '0')}`
 
-    // Générer le numéro de commande AVANT de créer la session
-    const { data: orderNumber, error: orderNumberError } =
-      await supabaseAdmin.rpc('generate_order_number')
-
-    if (orderNumberError) {
-      console.error('Error generating order number:', orderNumberError)
-      throw new Error('Failed to generate order number')
-    }
-
-    console.log('🔍 Order number generated:', orderNumber)
-
-    console.log(
-      '🛒 Items bruts reçus du frontend:',
-      JSON.stringify(items, null, 2)
+    const totalAmount = items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
     )
-    console.log(
-      '🔍 Premier item - clés disponibles:',
-      items[0] ? Object.keys(items[0]) : 'aucun item'
-    )
-    console.log('🔍 Premier item - productId:', items[0]?.productId)
-    console.log('🔍 Premier item - product_id:', items[0]?.product_id)
 
-    // Créer les line items pour Stripe
-    const lineItems = items.map((item: any) => {
-      let productName = item.name || 'Product'
-      if (item.size) productName += ` - ${item.size}`
-      if (item.color) productName += ` - ${item.color}`
+    console.log('📋 Creating order with addresses...')
 
-      return {
-        price_data: {
-          currency: 'eur',
-          product_data: {
-            name: productName,
-            description: item.description || undefined,
-            images: item.image_url ? [item.image_url] : [],
-          },
-          unit_amount: Math.round(item.price * 100),
-        },
-        quantity: item.quantity,
-      }
-    })
+    // Nettoyer les objets pour PostgreSQL JSONB
+    const shippingAddressJson = JSON.parse(JSON.stringify(shippingAddress))
+    const billingAddressJson = JSON.parse(JSON.stringify(billingAddress))
 
-    // Ajouter les frais de livraison si > 0
-    if (shippingAmount > 0) {
-      lineItems.push({
-        price_data: {
-          currency: 'eur',
-          product_data: {
-            name: 'Shipping',
-            description: shippingMethod || 'Standard shipping',
-            images: [],
-          },
-          unit_amount: Math.round(shippingAmount * 100),
-        },
-        quantity: 1,
+    const { data: order, error: orderError } = await supabaseAdmin
+      .from('orders')
+      .insert({
+        order_number: orderNumber,
+        customer_email: email,
+        customer_name: `${shippingAddress.first_name} ${shippingAddress.last_name}`,
+        total_amount: totalAmount,
+        payment_status: 'pending',
+        status: 'pending',
+        shipping_address: shippingAddressJson,
+        billing_address: billingAddressJson,
       })
+      .select('id, order_number, shipping_address, billing_address')
+      .single()
+
+    if (orderError) {
+      console.error('❌ Order creation error:', orderError)
+      return NextResponse.json(
+        { error: 'Failed to create order', details: orderError.message },
+        { status: 500 }
+      )
     }
 
-    // Créer la session Stripe Checkout
+    console.log('✅ Order created:', order.order_number)
+
+    // ÉTAPE 2 : Créer la session Stripe
+    const lineItems = items.map((item) => ({
+      price_data: {
+        currency: 'eur',
+        product_data: {
+          name: item.name,
+          images: item.image ? [item.image] : undefined,
+        },
+        unit_amount: Math.round(item.price * 100),
+      },
+      quantity: item.quantity,
+    }))
+
+    console.log('💳 Creating Stripe session...')
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
       success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout`,
+      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/cart`,
       customer_email: email,
+      // ⚠️ Ne PAS collecter shipping_address via Stripe (on la gère nous-même)
+      billing_address_collection: 'auto',
       metadata: {
-        order_number: orderNumber as string, // ✅ Ajouter le order_number dans les métadonnées
-        phone: phone || '',
-        billing_address: JSON.stringify(billingAddress),
-        shipping_method: shippingMethod || 'Standard',
+        order_id: order.id,
+        order_number: orderNumber,
         items: JSON.stringify(
-          items.map((item: any) => ({
+          items.map((item) => ({
             product_id: item.product_id,
-            variant_id: item.variant_id || null,
+            variant_id: item.variant_id,
             name: item.name,
-            size: item.size || null,
-            color: item.color || null,
             price: item.price,
             quantity: item.quantity,
-            image: item.image_url || null,
+            size: item.size,
+            color: item.color,
+            image: item.image,
           }))
         ),
       },
-      shipping_address_collection: {
-        allowed_countries: ['FR', 'BE', 'LU', 'CH', 'DE', 'IT', 'ES', 'PT'],
-      },
     })
 
-    console.log('🔍 Session created:', session.id)
-    console.log('🔍 Payment intent at creation:', session.payment_intent) // Sera null
+    console.log('✅ Stripe session created:', session.id)
 
-    // ✅ Créer la commande avec session.id comme référence temporaire
-    const { data: order, error: orderError } = await supabaseAdmin
+    // ÉTAPE 3 : Lier la session Stripe ET préserver les adresses
+    console.log('🔗 Linking Stripe session and preserving addresses...')
+
+    const { error: updateError } = await supabaseAdmin
       .from('orders')
-      .insert({
-        order_number: orderNumber as string,
-        customer_email: email,
-        customer_name: `${billingAddress.first_name} ${billingAddress.last_name}`,
-        customer_phone: phone || null,
-        status: 'pending',
-        payment_status: 'pending',
-        payment_intent_id: null, // ✅ Sera rempli par le webhook
-        stripe_session_id: session.id, // ✅ IMPORTANT : Ajouter cette colonne
-        total_amount: totalAmount,
-        shipping_amount: shippingAmount,
-        tax_amount: taxAmount,
-        discount_amount: 0,
-        billing_address: billingAddress,
-        shipping_address: billingAddress,
-        shipping_method: shippingMethod,
-        fulfillment_status: 'unfulfilled',
+      .update({
+        stripe_session_id: session.id,
+        // 🚨 CRITICAL FIX : Forcer explicitement les adresses
+        // Car Supabase met les colonnes JSONB à null si non spécifiées lors d'un UPDATE
+        shipping_address: shippingAddressJson,
+        billing_address: billingAddressJson,
       })
-      .select()
-      .single()
+      .eq('id', order.id)
 
-    if (orderError) {
-      console.error('❌ Error creating order:', orderError)
-      throw new Error('Failed to create order')
-    } else {
-      console.log('✅ Order created:', order.order_number)
-      console.log('✅ Session ID saved:', order.stripe_session_id)
+    if (updateError) {
+      console.error('❌ Update error:', updateError)
+      return NextResponse.json(
+        {
+          error: 'Failed to link Stripe session',
+          details: updateError.message,
+        },
+        { status: 500 }
+      )
+    }
+
+    console.log('✅ Order linked to Stripe session (addresses preserved)')
+
+    // ÉTAPE 4 : Vérification finale (optionnelle, pour debug)
+    if (process.env.NODE_ENV === 'development') {
+      const { data: finalCheck } = await supabaseAdmin
+        .from('orders')
+        .select('id, stripe_session_id, shipping_address, billing_address')
+        .eq('id', order.id)
+        .single()
+
+      console.log('🔍 FINAL CHECK:', {
+        id: finalCheck?.id,
+        stripe_session_id: finalCheck?.stripe_session_id,
+        has_shipping_address: !!finalCheck?.shipping_address,
+        has_billing_address: !!finalCheck?.billing_address,
+      })
     }
 
     return NextResponse.json({
       sessionId: session.id,
       url: session.url,
-      orderNumber: orderNumber,
     })
-  } catch (error: any) {
-    console.error('Checkout error:', error)
+  } catch (error) {
+    console.error('❌ Checkout error:', error)
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      {
+        error: 'Checkout failed',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     )
   }
