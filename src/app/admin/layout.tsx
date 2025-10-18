@@ -9,6 +9,7 @@ import { Breadcrumb } from '@/components/admin/Breadcrumb'
 import { QuickActions } from '@/components/admin/QuickActions'
 import { AdminNav } from '@/components/admin/AdminNav'
 import { ThemeToggle } from '@/components/admin/ThemeToggle'
+import { LogoutButton } from '@/components/admin/LogoutButton' // ✅ NOUVEAU
 import Link from 'next/link'
 
 export default async function AdminLayout({
@@ -30,7 +31,6 @@ export default async function AdminLayout({
     data: { user },
   } = await supabase.auth.getUser()
 
-  // ✅ MODIFIER : Redirection vers /admin/login au lieu de /auth/login
   if (!user) redirect('/admin/login')
 
   const { data: profile } = await supabase
@@ -39,12 +39,10 @@ export default async function AdminLayout({
     .eq('id', user.id)
     .single()
 
-  // ✅ AMÉLIORER : Meilleur message d'erreur si non-admin
   if (profile?.role !== 'admin') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-950 px-4">
         <div className="max-w-md text-center space-y-6 p-8 bg-white dark:bg-slate-900 rounded-lg shadow-lg border border-gray-200 dark:border-slate-800">
-          {/* Icône */}
           <div className="flex justify-center">
             <div className="w-20 h-20 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
               <svg
@@ -63,7 +61,6 @@ export default async function AdminLayout({
             </div>
           </div>
 
-          {/* Message */}
           <div className="space-y-2">
             <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
               Accès refusé
@@ -73,7 +70,6 @@ export default async function AdminLayout({
             </p>
           </div>
 
-          {/* Informations utilisateur */}
           <div className="p-3 bg-gray-50 dark:bg-slate-800 rounded border border-gray-200 dark:border-slate-700 text-sm">
             <div className="text-gray-600 dark:text-gray-400">
               Connecté en tant que :
@@ -87,7 +83,6 @@ export default async function AdminLayout({
             </div>
           </div>
 
-          {/* Actions */}
           <div className="flex flex-col gap-2 pt-2">
             <Link
               href="/account"
@@ -108,10 +103,8 @@ export default async function AdminLayout({
     )
   }
 
-  // ✅ Layout admin normal si l'utilisateur est bien admin
   return (
     <ToastProvider>
-      {/* Container principal avec dark mode */}
       <div className="min-h-screen bg-white dark:bg-slate-950 text-black dark:text-white">
         {/* Header */}
         <header className="border-b border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 sticky top-0 z-10">
@@ -135,6 +128,8 @@ export default async function AdminLayout({
                 >
                   Voir le site →
                 </Link>
+                {/* ✅ NOUVEAU : Bouton de déconnexion */}
+                <LogoutButton />
               </div>
             </div>
           </div>

@@ -1,158 +1,198 @@
+// src/app/auth/login/page.tsx
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { supabaseBrowser } from '@/lib/supabase-browser'
+import Link from 'next/link'
 
 export default function LoginPage() {
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin')
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
 
-  async function onSubmit(e: React.FormEvent) {
+  const redirectTo = searchParams.get('redirect') || '/account'
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-
-    // ✅ Empêcher les double-clics
-    if (isLoading) return
-
     setError(null)
     setIsLoading(true)
 
     try {
-      if (mode === 'signup') {
-        // === INSCRIPTION ===
-        const { error } = await supabaseBrowser.auth.signUp({
-          email,
-          password,
-        })
+      if (isLogin) {
+        // Connexion
+        const { error: signInError } =
+          await supabaseBrowser.auth.signInWithPassword({
+            email,
+            password,
+          })
 
-        if (error) {
-          setError(error.message)
+        if (signInError) {
+          setError(signInError.message)
+          setIsLoading(false)
           return
         }
 
-        // Créer le profil
-        await fetch('/api/auth/ensure-profile', { method: 'POST' }).catch(
-          () => {}
-        )
-
-        // ✅ Redirection client après inscription
-        router.push('/account')
+        router.push(redirectTo)
         router.refresh()
-        return
-      }
+      } else {
+        // Inscription
+        if (password !== confirmPassword) {
+          setError('Les mots de passe ne correspondent pas')
+          setIsLoading(false)
+          return
+        }
 
-      // === CONNEXION ===
-      const { error: signInError } =
-        await supabaseBrowser.auth.signInWithPassword({
+        const { error: signUpError } = await supabaseBrowser.auth.signUp({
           email,
           password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+          },
         })
 
-      if (signInError) {
-        setError(signInError.message)
-        return
-      }
+        if (signUpError) {
+          setError(signUpError.message)
+          setIsLoading(false)
+          return
+        }
 
-      // Créer le profil si absent
-      await fetch('/api/auth/ensure-profile', { method: 'POST' }).catch(
-        () => {}
-      )
+        // Créer le profil après l'inscription
+        await fetch('/api/auth/ensure-profile', { method: 'POST' })
 
-      // ✅ Vérifier le rôle avant redirection
-      const { data: profile } = await supabaseBrowser
-        .from('profiles')
-        .select('role')
-        .single()
-
-      // ✅ Redirection intelligente selon le rôle
-      if (profile?.role === 'admin') {
-        router.push('/admin/products')
-      } else {
         router.push('/account')
+        router.refresh()
       }
-
-      router.refresh()
     } catch (err: any) {
       setError(err?.message || 'Une erreur est survenue')
-    } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-950 px-4">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white dark:bg-slate-900 rounded-lg shadow-lg border border-gray-200 dark:border-slate-800">
-        {/* Header */}
+    <div className="min-h-screen flex items-center justify-center bg-white px-4">
+      <div className="max-w-md w-full space-y-8">
+        {/* Logo */}
         <div className="text-center">
-          <h1 className="text-3xl font-light tracking-tight text-black dark:text-white">
+          <h1 className="text-[32px] font-light tracking-tight text-black">
             .blancherenaudin
           </h1>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            {mode === 'signin' ? 'Connexion à votre compte' : 'Créer un compte'}
+          <p className="text-[13px] text-grey-medium mt-2">
+            Connexion à votre compte
           </p>
         </div>
 
-        {/* Formulaire */}
-        <form onSubmit={onSubmit} className="space-y-6">
+        {/* Tabs */}
+        <div className="flex border-b border-grey-light">
+          <button
+            onClick={() => {
+              setIsLogin(true)
+              setError(null)
+            }}
+            className={`flex-1 py-3 text-[13px] tracking-[0.05em] lowercase transition-colors ${
+              isLogin
+                ? 'border-b-2 border-black text-black font-semibold'
+                : 'text-grey-medium hover:text-black'
+            }`}
+          >
+            Se connecter
+          </button>
+          <button
+            onClick={() => {
+              setIsLogin(false)
+              setError(null)
+            }}
+            className={`flex-1 py-3 text-[13px] tracking-[0.05em] lowercase transition-colors ${
+              !isLogin
+                ? 'border-b-2 border-black text-black font-semibold'
+                : 'text-grey-medium hover:text-black'
+            }`}
+          >
+            S'inscrire
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100"
+              className="block text-[11px] tracking-[0.1em] uppercase text-grey-medium mb-2"
             >
               Email
             </label>
             <input
               id="email"
               type="email"
-              placeholder="votre@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
-              className="w-full border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-3 focus:ring-2 focus:ring-violet focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full px-4 py-3 border border-grey-light bg-white text-black text-[15px] focus:border-black focus:outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               required
+              autoComplete="email"
             />
           </div>
 
           <div>
             <label
               htmlFor="password"
-              className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100"
+              className="block text-[11px] tracking-[0.1em] uppercase text-grey-medium mb-2"
             >
               Mot de passe
             </label>
             <input
               id="password"
               type="password"
-              placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={isLoading}
-              className="w-full border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-3 focus:ring-2 focus:ring-violet focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full px-4 py-3 border border-grey-light bg-white text-black text-[15px] focus:border-black focus:outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               required
+              autoComplete={isLogin ? 'current-password' : 'new-password'}
             />
           </div>
 
-          {/* ✅ Affichage des erreurs */}
-          {error && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 px-4 py-3 rounded-lg text-sm">
-              ❌ {error}
+          {!isLogin && (
+            <div>
+              <label
+                htmlFor="confirmPassword"
+                className="block text-[11px] tracking-[0.1em] uppercase text-grey-medium mb-2"
+              >
+                Confirmer le mot de passe
+              </label>
+              <input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                disabled={isLoading}
+                className="w-full px-4 py-3 border border-grey-light bg-white text-black text-[15px] focus:border-black focus:outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                required
+                autoComplete="new-password"
+              />
             </div>
           )}
 
-          {/* ✅ Bouton avec état de chargement */}
+          {error && (
+            <div className="p-4 bg-red-50 border border-red-200 text-red-800 text-[13px]">
+              {error}
+            </div>
+          )}
+
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-violet text-white py-3 rounded-lg hover:bg-violet/90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-4 bg-violet text-white text-[13px] tracking-[0.05em] font-semibold lowercase hover:bg-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
-              <>
+              <span className="flex items-center justify-center gap-2">
                 <svg
-                  className="animate-spin h-5 w-5"
+                  className="animate-spin h-4 w-4"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -171,41 +211,18 @@ export default function LoginPage() {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                <span>
-                  {mode === 'signin' ? 'Connexion...' : 'Inscription...'}
-                </span>
-              </>
+                {isLogin ? 'Connexion...' : 'Inscription...'}
+              </span>
+            ) : isLogin ? (
+              'Se connecter'
             ) : (
-              <span>{mode === 'signin' ? 'Se connecter' : "S'inscrire"}</span>
+              "S'inscrire"
             )}
           </button>
         </form>
 
-        {/* Toggle mode */}
-        <div className="text-center">
-          <button
-            type="button"
-            onClick={() =>
-              setMode((m) => (m === 'signin' ? 'signup' : 'signin'))
-            }
-            disabled={isLoading}
-            className="text-sm text-gray-600 dark:text-gray-400 hover:text-violet transition-colors disabled:opacity-50"
-          >
-            {mode === 'signin'
-              ? "Pas encore de compte ? S'inscrire"
-              : 'Déjà un compte ? Se connecter'}
-          </button>
-        </div>
-
-        {/* Lien admin */}
-        <div className="text-center pt-4 border-t border-gray-200 dark:border-slate-700">
-          <a
-            href="/admin/login"
-            className="text-xs text-gray-500 dark:text-gray-500 hover:text-violet transition-colors"
-          >
-            Accès administrateur →
-          </a>
-        </div>
+        {/* ✅ LIEN ADMIN RETIRÉ */}
+        {/* Plus de lien vers /admin/login pour des raisons de sécurité */}
       </div>
     </div>
   )
