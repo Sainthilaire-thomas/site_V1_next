@@ -28,8 +28,8 @@ interface OrderWithRelations extends Order {
 interface ShippingAddress {
   first_name: string
   last_name: string
-  address_line_1: string
-  address_line_2?: string
+  address_line1: string
+  address_line2?: string
   city: string
   postal_code: string
   country: string
@@ -247,9 +247,9 @@ export default function OrderAdminClient({
                   <p>
                     {shippingAddr.first_name} {shippingAddr.last_name}
                   </p>
-                  <p className="text-sm">{shippingAddr.address_line_1}</p>
-                  {shippingAddr.address_line_2 && (
-                    <p className="text-sm">{shippingAddr.address_line_2}</p>
+                  <p className="text-sm">{shippingAddr.address_line1}</p>
+                  {shippingAddr.address_line2 && (
+                    <p className="text-sm">{shippingAddr.address_line2}</p>
                   )}
                   <p className="text-sm">
                     {shippingAddr.postal_code} {shippingAddr.city}

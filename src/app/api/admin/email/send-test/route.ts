@@ -118,8 +118,8 @@ export async function POST(request: NextRequest) {
           shipping: order.shipping_amount || 0,
           total: order.total_amount,
           shippingAddress: {
-            line1: shippingAddr?.address_line_1 || '123 rue de la Mode',
-            line2: shippingAddr?.address_line_2,
+            line1: shippingAddr?.address_line1 || '123 rue de la Mode',
+            line2: shippingAddr?.address_line2,
             city: shippingAddr?.city || 'Paris',
             postalCode: shippingAddr?.postal_code || '75001',
             country: shippingAddr?.country || 'France',

@@ -40,8 +40,8 @@ type Address = {
   type: string | null
   first_name: string | null
   last_name: string | null
-  address_line_1: string | null
-  address_line_2: string | null
+  address_line1: string | null
+  address_line2: string | null
   city: string | null
   postal_code: string | null
   country: string | null

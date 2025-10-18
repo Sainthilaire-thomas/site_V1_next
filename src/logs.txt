@@ -257,7 +257,7 @@ null
 📦 Type of shipping_address: object
 📦 Is null? true
 📦 Is undefined? false
-📦 Has address_line_1? null
+📦 Has address_line1? null
 ============================================================
 ✅ Found 1 items
 🔍 PARSING SHIPPING ADDRESS

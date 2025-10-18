@@ -123,8 +123,8 @@ export async function GET() {
     // 7. Formater l'adresse
     const shippingAddress = order.shipping_address as any
     const formattedAddress = {
-      line1: shippingAddress?.address_line_1 || '123 rue de la Mode',
-      line2: shippingAddress?.address_line_2,
+      line1: shippingAddress?.address_line1 || '123 rue de la Mode',
+      line2: shippingAddress?.address_line2,
       city: shippingAddress?.city || 'Paris',
       postalCode: shippingAddress?.postal_code || '75001',
       country: shippingAddress?.country || 'France',

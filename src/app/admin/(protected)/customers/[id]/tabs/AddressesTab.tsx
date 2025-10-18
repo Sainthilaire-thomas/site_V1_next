@@ -3,10 +3,10 @@
 type Address = {
   id: string
   type: string | null
-  first_name: string | null  // ✅ Permettre null
-  last_name: string | null   // ✅ Permettre null
-  address_line_1: string | null
-  address_line_2: string | null
+  first_name: string | null // ✅ Permettre null
+  last_name: string | null // ✅ Permettre null
+  address_line1: string | null
+  address_line2: string | null
   city: string | null
   postal_code: string | null
   country: string | null
@@ -38,7 +38,9 @@ export function AddressesTab({ addresses }: Props) {
               <span className="text-2xl">
                 {address.type === 'shipping' ? '📦' : '🏠'}
               </span>
-              <span className="font-medium capitalize">{address.type || 'Adresse'}</span>
+              <span className="font-medium capitalize">
+                {address.type || 'Adresse'}
+              </span>
             </div>
             {address.is_default && (
               <span className="px-2 py-0.5 bg-violet/10 text-violet text-xs rounded">
@@ -52,11 +54,11 @@ export function AddressesTab({ addresses }: Props) {
               {address.first_name || ''} {address.last_name || ''}
             </div>
             <div className="text-gray-600 dark:text-gray-400">
-              {address.address_line_1 || 'Adresse non renseignée'}
+              {address.address_line1 || 'Adresse non renseignée'}
             </div>
-            {address.address_line_2 && (
+            {address.address_line2 && (
               <div className="text-gray-600 dark:text-gray-400">
-                {address.address_line_2}
+                {address.address_line2}
               </div>
             )}
             <div className="text-gray-600 dark:text-gray-400">

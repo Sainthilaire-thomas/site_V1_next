@@ -16,8 +16,8 @@ export type Database = {
     Tables: {
       addresses: {
         Row: {
-          address_line_1: string | null
-          address_line_2: string | null
+          address_line1: string | null
+          address_line2: string | null
           city: string | null
           company: string | null
           country: string | null
@@ -32,8 +32,8 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
-          address_line_1?: string | null
-          address_line_2?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
           city?: string | null
           company?: string | null
           country?: string | null
@@ -48,8 +48,8 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
-          address_line_1?: string | null
-          address_line_2?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
           city?: string | null
           company?: string | null
           country?: string | null
@@ -603,6 +603,48 @@ export type Database = {
         }
         Relationships: []
       }
+      orders_audit: {
+        Row: {
+          changed_at: string | null
+          changed_by: string | null
+          id: string
+          new_billing_address: Json | null
+          new_shipping_address: Json | null
+          old_billing_address: Json | null
+          old_shipping_address: Json | null
+          operation: string | null
+          order_id: string
+          order_number: string | null
+          trigger_name: string | null
+        }
+        Insert: {
+          changed_at?: string | null
+          changed_by?: string | null
+          id?: string
+          new_billing_address?: Json | null
+          new_shipping_address?: Json | null
+          old_billing_address?: Json | null
+          old_shipping_address?: Json | null
+          operation?: string | null
+          order_id: string
+          order_number?: string | null
+          trigger_name?: string | null
+        }
+        Update: {
+          changed_at?: string | null
+          changed_by?: string | null
+          id?: string
+          new_billing_address?: Json | null
+          new_shipping_address?: Json | null
+          old_billing_address?: Json | null
+          old_shipping_address?: Json | null
+          operation?: string | null
+          order_id?: string
+          order_number?: string | null
+          trigger_name?: string | null
+        }
+        Relationships: []
+      }
       product_images: {
         Row: {
           alt: string | null
@@ -1084,12 +1126,7 @@ export type Database = {
           p_tax_amount: number
           p_total_amount: number
         }
-        Returns: {
-          billing_address: Json
-          id: string
-          order_number: string
-          shipping_address: Json
-        }[]
+        Returns: Json
       }
       is_admin: {
         Args: Record<PropertyKey, never>

@@ -20,8 +20,8 @@ interface CheckoutRequestBody {
   shippingAddress: {
     first_name: string
     last_name: string
-    address_line_1: string
-    address_line_2?: string
+    address_line1: string
+    address_line2?: string
     city: string
     postal_code: string
     country: string
@@ -29,8 +29,8 @@ interface CheckoutRequestBody {
   billingAddress: {
     first_name: string
     last_name: string
-    address_line_1: string
-    address_line_2?: string
+    address_line1: string
+    address_line2?: string
     city: string
     postal_code: string
     country: string

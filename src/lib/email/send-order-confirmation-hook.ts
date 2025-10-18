@@ -59,10 +59,10 @@ export async function sendOrderConfirmationHook(orderId: string) {
     console.log('📦 Is null?', order.shipping_address === null)
     console.log('📦 Is undefined?', order.shipping_address === undefined)
     console.log(
-      '📦 Has address_line_1?',
+      '📦 Has address_line1?',
       order.shipping_address &&
         typeof order.shipping_address === 'object' &&
-        'address_line_1' in (order.shipping_address as object)
+        'address_line1' in (order.shipping_address as object)
     )
     console.log('='.repeat(60))
 
@@ -163,8 +163,8 @@ export async function sendOrderConfirmationHook(orderId: string) {
 
     console.log('🔍 PARSING SHIPPING ADDRESS')
     console.log(
-      '🔍 shippingAddress?.address_line_1:',
-      shippingAddress?.address_line_1
+      '🔍 shippingAddress?.address_line1:',
+      shippingAddress?.address_line1
     )
     console.log('🔍 shippingAddress?.city:', shippingAddress?.city)
     console.log(
