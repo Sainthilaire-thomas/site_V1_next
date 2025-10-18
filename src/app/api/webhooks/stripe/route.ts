@@ -17,14 +17,41 @@ function parseAddress(address: any): any {
   return address
 }
 
+const emailSentForOrders = new Set<string>()
+
 async function sendConfirmationEmailSafe(orderId: string) {
+  const uniqueId = `${Date.now()}-${Math.random()}`
+  console.log(`🎯 EMAIL ATTEMPT ${uniqueId} FOR ORDER ${orderId}`)
+
+  // ✅ VÉRIFICATION ANTI-DOUBLON
+  if (emailSentForOrders.has(orderId)) {
+    console.log(
+      `⚠️ Email DÉJÀ envoyé pour ${orderId}, SKIP (attempt ${uniqueId})`
+    )
+    return
+  }
+
   try {
     const result = await sendOrderConfirmationHook(orderId)
     if (result.success) {
-      console.log('✅ Email sent')
+      console.log(`✅ Email sent ${uniqueId}`)
+
+      // ✅ MARQUER COMME ENVOYÉ
+      emailSentForOrders.add(orderId)
+
+      // ✅ AUTO-CLEANUP après 5 minutes (éviter memory leak)
+      setTimeout(
+        () => {
+          emailSentForOrders.delete(orderId)
+          console.log(`🧹 Cleaned up ${orderId} from email cache`)
+        },
+        5 * 60 * 1000
+      )
+    } else {
+      console.error(`⚠️ Email error ${uniqueId}:`, result.error)
     }
   } catch (error) {
-    console.error('⚠️ Email error:', error)
+    console.error(`⚠️ Email exception ${uniqueId}:`, error)
   }
 }
 
@@ -33,12 +60,6 @@ export const runtime = 'nodejs'
 export async function POST(req: NextRequest) {
   const body = await req.text()
   const signature = req.headers.get('stripe-signature')
-
-  const now = new Date().toISOString()
-  console.log('')
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-  console.log(`📥 WEBHOOK RECEIVED AT ${now}`)
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 
   if (!signature) {
     return NextResponse.json({ error: 'Missing signature' }, { status: 400 })
@@ -75,6 +96,10 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ received: true })
 }
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// CHECKOUT.SESSION.COMPLETED (APPROCHE HYBRIDE INTELLIGENTE)
+// Rôle : Créer items + confirmer paiement SI payment_intent existe
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 async function handleCheckoutSessionCompleted(session: any) {
   console.log('\n═══════════════════════════════════════════════════════════')
   console.log('🎉 CHECKOUT SESSION COMPLETED')
@@ -82,159 +107,95 @@ async function handleCheckoutSessionCompleted(session: any) {
   console.log('Session ID:', session.id)
 
   try {
-    console.log('\n📋 Step 1: Fetching full session from Stripe...')
+    console.log('\n📋 Step 1: Fetching full session...')
     const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
       expand: ['line_items', 'customer_details', 'payment_intent'],
     })
-    console.log('   ✅ Full session retrieved')
 
     const paymentIntentId =
       typeof fullSession.payment_intent === 'string'
         ? fullSession.payment_intent
         : fullSession.payment_intent?.id || null
 
+    // ✅ APPROCHE HYBRIDE : Vérifier si payment_intent existe
     if (!paymentIntentId) {
-      console.log('   ⏳ No payment intent yet, exiting')
+      console.log('   ⏳ No payment intent yet')
+      console.log('   ℹ️  Will wait for payment_intent.succeeded to process')
       return
     }
-    console.log('   ✅ Payment Intent ID:', paymentIntentId)
 
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // LECTURE DE LA COMMANDE DEPUIS SUPABASE
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    console.log('\n📋 Step 2: Reading order from Supabase...')
-    console.log('   └─ Looking for stripe_session_id:', session.id)
+    console.log('   ✅ Payment Intent found:', paymentIntentId)
+    console.log('   ✅ This means payment is being processed by Stripe')
 
+    console.log('\n📋 Step 2: Finding order...')
     const { data: orderRaw, error: orderError } = await supabaseAdmin
       .from('orders')
       .select(
-        'id, order_number, shipping_address, billing_address, created_at, updated_at'
+        'id, order_number, shipping_address, billing_address, payment_status'
       )
       .eq('stripe_session_id', session.id)
       .single()
 
-    if (orderError) {
-      console.error('   ❌ Error finding order:', orderError)
+    if (orderError || !orderRaw) {
+      console.error('   ❌ Order not found:', orderError)
       return
     }
 
-    if (!orderRaw) {
-      console.error('   ❌ No order found')
-      return
-    }
+    console.log('   ✅ Order found:', orderRaw.order_number)
+    console.log('   ℹ️  Current payment status:', orderRaw.payment_status)
 
-    console.log('\n   ✅ Order found in database:')
-    console.log('   ├─ Order ID:', orderRaw.id)
-    console.log('   ├─ Order number:', orderRaw.order_number)
-    console.log('   ├─ Created at:', orderRaw.created_at)
-    console.log('   ├─ Updated at:', orderRaw.updated_at)
-    console.log(
-      '   ├─ shipping_address type:',
-      typeof orderRaw.shipping_address
-    )
-    console.log(
-      '   ├─ shipping_address is null?',
-      orderRaw.shipping_address === null
-    )
-    console.log('   ├─ shipping_address value:')
-    console.log(JSON.stringify(orderRaw.shipping_address, null, 6))
-    console.log('   ├─ billing_address type:', typeof orderRaw.billing_address)
-    console.log(
-      '   ├─ billing_address is null?',
-      orderRaw.billing_address === null
-    )
-    console.log('   └─ billing_address value:')
-    console.log(JSON.stringify(orderRaw.billing_address, null, 6))
-
-    if (!orderRaw.shipping_address) {
-      console.error('\n   🚨 🚨 🚨 CRITICAL ALERT 🚨 🚨 🚨')
-      console.error('   🚨 shipping_address is NULL when webhook reads it!')
-      console.error('   🚨 It was set to NULL BEFORE this webhook executed')
-      console.error('   🚨 Check: triggers, RLS policies, or other code')
-      console.error('   🚨 🚨 🚨 🚨 🚨 🚨 🚨 🚨 🚨 🚨 🚨 🚨\n')
-    }
-
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // VÉRIFIER SI LES ITEMS EXISTENT DÉJÀ
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    console.log('\n📋 Step 3: Checking for existing order items...')
-
-    const { data: existingItems, error: itemsCheckError } = await supabaseAdmin
+    console.log('\n📋 Step 3: Checking for existing items...')
+    const { data: existingItems } = await supabaseAdmin
       .from('order_items')
       .select('id')
       .eq('order_id', orderRaw.id)
       .limit(1)
 
-    if (itemsCheckError) {
-      console.error('   ❌ Error checking items:', itemsCheckError)
-    }
-
     if (existingItems && existingItems.length > 0) {
-      console.log('   ⚠️ Order items already exist')
-      console.log(
-        '   └─ Will update payment status ONLY (no address modification)'
-      )
+      console.log('   ⚠️ Items already exist')
 
-      console.log('\n📋 Step 4: Updating payment status...')
-      console.log('   └─ [Executing UPDATE with ONLY payment fields...]')
+      // ✅ FIX : Si items existent ET payment_status est 'paid'
+      // Alors on doit envoyer l'email + décrémenter stock
+      if (orderRaw.payment_status === 'paid') {
+        console.log(
+          '   ✅ Order already paid, sending email + decrementing stock'
+        )
 
-      const { data: updatedOrders, error: updateError } = await supabaseAdmin
-        .from('orders')
-        .update({
-          payment_status: 'paid',
-          status: 'processing',
-          paid_at: new Date().toISOString(),
-          payment_intent_id: paymentIntentId,
-        })
-        .eq('id', orderRaw.id)
-        .select('shipping_address, billing_address')
+        await decrementStockForOrder(orderRaw.id)
+        await sendConfirmationEmailSafe(orderRaw.id)
 
-      if (updateError) {
-        console.error('   ❌ UPDATE error:', updateError)
+        console.log(
+          '═══════════════════════════════════════════════════════════'
+        )
+        console.log('✅ SESSION COMPLETED (email sent)')
+        console.log(
+          '═══════════════════════════════════════════════════════════\n'
+        )
       } else {
-        console.log('   ✅ UPDATE successful')
         console.log(
-          '   ├─ shipping_address after UPDATE:',
-          JSON.stringify(updatedOrders?.[0]?.shipping_address, null, 2)
+          '   ℹ️  payment_intent.succeeded will handle final confirmation'
         )
-        console.log(
-          '   └─ billing_address after UPDATE:',
-          JSON.stringify(updatedOrders?.[0]?.billing_address, null, 2)
-        )
-
-        if (!updatedOrders?.[0]?.shipping_address) {
-          console.error('\n   🚨 shipping_address is STILL NULL after UPDATE')
-          console.error('   🚨 But we did NOT modify it in the UPDATE!')
-          console.error(
-            '   🚨 This confirms: it was ALREADY NULL before UPDATE\n'
-          )
-        }
       }
-
-      await decrementStockForOrder(orderRaw.id)
-      await sendConfirmationEmailSafe(orderRaw.id)
-
-      console.log('═══════════════════════════════════════════════════════════')
-      console.log('✅ WEBHOOK COMPLETED (items already existed)')
-      console.log(
-        '═══════════════════════════════════════════════════════════\n'
-      )
       return
     }
 
-    console.log('   ✅ No existing items, will create them')
-    await createOrderItemsFromSession(orderRaw.id, fullSession, paymentIntentId)
-    await decrementStockForOrder(orderRaw.id)
-    await sendConfirmationEmailSafe(orderRaw.id)
+    console.log('   ✅ No items found, creating them now...')
+
+    // ✅ APPROCHE HYBRIDE : Tout faire ICI si payment_intent existe
+    await createOrderItemsAndConfirm(orderRaw.id, fullSession, paymentIntentId)
 
     console.log('═══════════════════════════════════════════════════════════')
-    console.log('✅ WEBHOOK COMPLETED (items created)')
+    console.log('✅ SESSION COMPLETED (full processing done)')
     console.log('═══════════════════════════════════════════════════════════\n')
   } catch (error) {
     console.error('❌ Error:', error)
   }
 }
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// PAYMENT_INTENT.SUCCEEDED (BACKUP + SÉCURITÉ)
+// Rôle : Confirmer le paiement si checkout.session.completed l'a raté
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 async function handlePaymentIntentSucceeded(paymentIntent: any) {
   console.log('\n═══════════════════════════════════════════════════════════')
   console.log('💳 PAYMENT INTENT SUCCEEDED')
@@ -249,7 +210,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: any) {
     })
 
     if (sessions.data.length === 0) {
-      console.log('   ⚠️ No session found, updating order directly')
+      console.log('   ⚠️ No session found, updating directly')
       await supabaseAdmin
         .from('orders')
         .update({
@@ -258,92 +219,86 @@ async function handlePaymentIntentSucceeded(paymentIntent: any) {
           paid_at: new Date().toISOString(),
         })
         .eq('payment_intent_id', paymentIntent.id)
-      console.log('   ✅ Order updated')
-      console.log('═══════════════════════════════════════════════════════════')
-      console.log('✅ PAYMENT INTENT SUCCEEDED COMPLETED (no session)')
-      console.log(
-        '═══════════════════════════════════════════════════════════\n'
-      )
       return
     }
 
     const sessionId = sessions.data[0].id
     console.log('   ✅ Session found:', sessionId)
 
-    console.log('\n📋 Step 2: Fetching full session...')
-    const fullSession = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ['line_items'],
-    })
-    console.log('   ✅ Full session retrieved')
-
-    console.log('\n📋 Step 3: Finding order...')
-    const { data: orderRaw, error: orderError } = await supabaseAdmin
+    console.log('\n📋 Step 2: Finding order...')
+    const { data: order, error: orderError } = await supabaseAdmin
       .from('orders')
-      .select('id, order_number, shipping_address, billing_address')
+      .select('id, order_number, payment_status')
       .eq('stripe_session_id', sessionId)
       .single()
 
-    if (orderError || !orderRaw) {
-      console.error('   ❌ Error finding order:', orderError)
+    if (orderError || !order) {
+      console.error('   ❌ Order not found:', orderError)
+      return
+    }
+
+    console.log('   ✅ Order found:', order.order_number)
+    console.log('   ℹ️  Current payment status:', order.payment_status)
+
+    // ✅ Si déjà traité par checkout.session.completed
+    if (order.payment_status === 'paid') {
+      console.log('   ✅ Order already marked as paid')
+      console.log('   ℹ️  checkout.session.completed handled everything')
       console.log('═══════════════════════════════════════════════════════════')
-      console.log('❌ PAYMENT INTENT SUCCEEDED FAILED (order not found)')
+      console.log('✅ PAYMENT SUCCEEDED (already processed)')
       console.log(
         '═══════════════════════════════════════════════════════════\n'
       )
       return
     }
 
-    console.log('   ✅ Order found:', orderRaw.order_number)
-    console.log(
-      '   ├─ shipping_address is null?',
-      orderRaw.shipping_address === null
-    )
-    console.log(
-      '   └─ billing_address is null?',
-      orderRaw.billing_address === null
-    )
+    // ⚠️ Sinon, traiter maintenant (backup scenario)
+    console.log('   ⚠️  Order still pending, processing now as backup')
 
-    console.log('\n📋 Step 4: Checking for existing items...')
+    console.log('\n📋 Step 3: Checking for existing items...')
     const { data: existingItems } = await supabaseAdmin
       .from('order_items')
       .select('id')
-      .eq('order_id', orderRaw.id)
+      .eq('order_id', order.id)
       .limit(1)
 
     if (existingItems && existingItems.length > 0) {
-      console.log('   ⚠️ Order items already exist')
-      console.log('   └─ Skipping payment_intent.succeeded processing')
-      console.log('   └─ (checkout.session.completed will handle it)')
-      console.log('═══════════════════════════════════════════════════════════')
-      console.log('✅ PAYMENT INTENT SUCCEEDED COMPLETED (items exist)')
-      console.log(
-        '═══════════════════════════════════════════════════════════\n'
-      )
-      return
+      console.log('   ✅ Items exist, just updating payment status')
+
+      await supabaseAdmin
+        .from('orders')
+        .update({
+          payment_status: 'paid',
+          status: 'processing',
+          paid_at: new Date().toISOString(),
+          payment_intent_id: paymentIntent.id,
+        })
+        .eq('id', order.id)
+
+      await decrementStockForOrder(order.id)
+      await sendConfirmationEmailSafe(order.id)
+    } else {
+      console.log('   ⚠️  No items exist, creating everything now')
+
+      const fullSession = await stripe.checkout.sessions.retrieve(sessionId, {
+        expand: ['line_items', 'customer_details'],
+      })
+
+      await createOrderItemsAndConfirm(order.id, fullSession, paymentIntent.id)
     }
 
-    console.log('   ✅ No existing items, will create them')
-    console.log('\n⚠️  WARNING: payment_intent.succeeded is creating items')
-    console.log('⚠️  This might race with checkout.session.completed!')
-
-    await createOrderItemsFromSession(
-      orderRaw.id,
-      fullSession,
-      paymentIntent.id
-    )
-
     console.log('═══════════════════════════════════════════════════════════')
-    console.log('✅ PAYMENT INTENT SUCCEEDED COMPLETED (items created)')
+    console.log('✅ PAYMENT SUCCEEDED (backup processing done)')
     console.log('═══════════════════════════════════════════════════════════\n')
   } catch (error) {
-    console.error('❌ Error in handlePaymentIntentSucceeded:', error)
-    console.log('═══════════════════════════════════════════════════════════')
-    console.log('❌ PAYMENT INTENT SUCCEEDED FAILED')
-    console.log('═══════════════════════════════════════════════════════════\n')
+    console.error('❌ Error:', error)
   }
 }
 
-async function createOrderItemsFromSession(
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// HELPER: Créer items + confirmer paiement + stock + email
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function createOrderItemsAndConfirm(
   orderId: string,
   fullSession: any,
   paymentIntentId: any
@@ -354,27 +309,59 @@ async function createOrderItemsFromSession(
         ? paymentIntentId
         : paymentIntentId?.id || null
 
-    if (!paymentIntentIdString) return
-
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // ✅ NE PLUS FAIRE D'UPDATE ICI !
-    // Les webhooks principaux s'en chargent déjà
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // CRÉER LES ORDER ITEMS
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    const items = JSON.parse(fullSession.metadata?.items || '[]')
-    if (!items || items.length === 0) {
-      console.error('❌ No items in session metadata')
+    if (!paymentIntentIdString) {
+      console.error('❌ No valid payment intent ID')
       return
     }
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // STEP A: Mettre à jour le statut de paiement
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    console.log('\n📋 Step A: Updating payment status...')
+
+    const { error: updateError } = await supabaseAdmin
+      .from('orders')
+      .update({
+        payment_status: 'paid',
+        status: 'processing',
+        paid_at: new Date().toISOString(),
+        payment_intent_id: paymentIntentIdString,
+      })
+      .eq('id', orderId)
+
+    if (updateError) {
+      console.error('   ❌ Update error:', updateError)
+      return
+    }
+
+    console.log('   ✅ Payment status updated to PAID')
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // STEP B: Créer les order_items
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    console.log('\n📋 Step B: Creating order items...')
+
+    const itemsString = fullSession.metadata?.items || '[]'
+    let items
+    try {
+      items = JSON.parse(itemsString)
+    } catch (e) {
+      console.error('   ❌ Error parsing items:', e)
+      return
+    }
+
+    if (!items || items.length === 0) {
+      console.error('   ❌ No items in metadata')
+      return
+    }
+
+    console.log(`   ✅ Found ${items.length} items`)
 
     const orderItems = items.map((item: any) => ({
       order_id: orderId,
       product_id: item.product_id,
       variant_id: item.variant_id || null,
-      product_name: item.name,
+      product_name: item.name || null,
       variant_name:
         item.size || item.color
           ? `${item.size || ''} ${item.color || ''}`.trim()
@@ -385,26 +372,53 @@ async function createOrderItemsFromSession(
       total_price: item.price * item.quantity,
     }))
 
-    const { error: insertError } = await supabaseAdmin
+    const { data: insertedItems, error: itemsError } = await supabaseAdmin
       .from('order_items')
       .insert(orderItems)
+      .select()
 
-    if (insertError) {
-      // ✅ Ignorer les doublons (race condition)
-      if (insertError.code === '23505') {
-        console.log('⚠️ Items already exist (race condition)')
+    if (itemsError) {
+      if (itemsError.code === '23505') {
+        console.log('   ⚠️ Items already exist (race condition)')
         return
       }
-      console.error('❌ Error inserting order items:', insertError)
-    } else {
-      console.log(`✅ Inserted ${orderItems.length} order items`)
+      console.error('   ❌ Insert error:', itemsError)
+      return
     }
+
+    console.log(`   ✅ Created ${insertedItems.length} items`)
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // STEP C: Décrémenter le stock
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    console.log('\n📦 Step C: Decrementing stock...')
+
+    const stockResult = await decrementStockForOrder(orderId)
+    if (stockResult.success) {
+      console.log(`   ✅ Stock decremented: ${stockResult.decremented} items`)
+    } else {
+      console.error('   ⚠️ Stock errors:', stockResult.errors)
+    }
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // STEP D: Envoyer l'email de confirmation
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    console.log('\n📧 Step D: Sending confirmation email...')
+
+    await sendConfirmationEmailSafe(orderId)
+
+    console.log('\n✅ Full order processing completed')
   } catch (error) {
-    console.error('❌ Error in createOrderItemsFromSession:', error)
+    console.error('❌ Error in createOrderItemsAndConfirm:', error)
   }
 }
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// PAYMENT_INTENT.FAILED
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 async function handlePaymentIntentFailed(paymentIntent: any) {
+  console.log('\n❌ Payment failed:', paymentIntent.id)
+
   await supabaseAdmin
     .from('orders')
     .update({
@@ -413,4 +427,6 @@ async function handlePaymentIntentFailed(paymentIntent: any) {
       cancelled_at: new Date().toISOString(),
     })
     .eq('payment_intent_id', paymentIntent.id)
+
+  console.log('   ✅ Order marked as failed/cancelled')
 }

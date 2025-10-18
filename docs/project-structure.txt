@@ -3,7 +3,7 @@
 ║                          ARBORESCENCE DU PROJET                             ║
 ║                                                                              ║
 ║  Projet: site_v1_next                                                    ║
-║  Généré: 17/10/2025 14:47:23                                            ║
+║  Généré: 18/10/2025 09:46:43                                            ║
 ║                                                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -17,6 +17,7 @@
 │   └── 📋 tasks.json
 ├── 📁 docs
 │   ├── 📝 Analytics_Custom_Doc.md
+│   ├── 📝 Bug-shipping-address.md
 │   ├── 📝 config-stripe-production.md
 │   ├── 📝 description-projet.md
 │   ├── 📝 elements-desing-brouillon-blanche.md
@@ -29,6 +30,7 @@
 │   ├── 📝 installation-sanity.md
 │   ├── 📝 interface-admin-supabase.md
 │   ├── 📝 mep-module-client-admin.md
+│   ├── 📝 Mep-page-admin.md
 │   ├── 📝 mep-stripe.md
 │   ├── 📝 point-etape-9-oct-2025.md
 │   ├── 📄 project-structure.txt
@@ -72,6 +74,9 @@
 │   │   │   ├── 📁 orders
 │   │   │   │   └── 🔷 page.tsx
 │   │   │   ├── 📁 settings
+│   │   │   │   ├── 📁 change-password
+│   │   │   │   │   ├── 🔷 ChangePasswordForm.tsx
+│   │   │   │   │   └── 🔷 page.tsx
 │   │   │   │   └── 🔷 page.tsx
 │   │   │   ├── 📁 wishlist
 │   │   │   │   ├── 🔷 page.tsx
@@ -79,50 +84,53 @@
 │   │   │   ├── 🔷 layout.tsx
 │   │   │   └── 🔷 page.tsx
 │   │   ├── 📁 admin
-│   │   │   ├── 📁 analytics
-│   │   │   │   └── 🔷 page.tsx
-│   │   │   ├── 📁 categories
-│   │   │   │   ├── 🔷 CategoriesClient.tsx
-│   │   │   │   └── 🔷 page.tsx
-│   │   │   ├── 📁 customers
-│   │   │   │   ├── 📁 [id]
-│   │   │   │   │   ├── 📁 tabs
-│   │   │   │   │   │   ├── 🔷 AddressesTab.tsx
-│   │   │   │   │   │   ├── 🔷 NotesTab.tsx
-│   │   │   │   │   │   └── 🔷 OrdersTab.tsx
-│   │   │   │   │   ├── 🔷 actions.ts
-│   │   │   │   │   ├── 🔷 CustomerDetailClient.tsx
+│   │   │   ├── 📁 (auth)
+│   │   │   │   ├── 📁 login
 │   │   │   │   │   └── 🔷 page.tsx
-│   │   │   │   ├── 🔷 CustomersClient.tsx
-│   │   │   │   └── 🔷 page.tsx
-│   │   │   ├── 📁 email-preview
-│   │   │   │   └── 🔷 page.tsx
-│   │   │   ├── 📁 launch-notifications
-│   │   │   │   └── 🔷 page.tsx
-│   │   │   ├── 📁 media
-│   │   │   │   ├── 🔷 BreadcrumbProvider.tsx
-│   │   │   │   ├── 🔷 MediaGridClient.tsx
-│   │   │   │   ├── 🔷 MediaGridHeader.tsx
-│   │   │   │   └── 🔷 page.tsx
-│   │   │   ├── 📁 orders
-│   │   │   │   ├── 📁 [id]
-│   │   │   │   │   ├── 🔷 actions.ts
-│   │   │   │   │   ├── 🔷 OrderAdminClient.tsx
-│   │   │   │   │   └── 🔷 page.tsx
-│   │   │   │   └── 🔷 page.tsx
-│   │   │   ├── 📁 products
-│   │   │   │   ├── 📁 [id]
-│   │   │   │   │   ├── 🔷 actions.ts
-│   │   │   │   │   ├── 🔷 page.tsx
-│   │   │   │   │   ├── 🔷 ProductFormClient.tsx
-│   │   │   │   │   └── 🔷 ProductPageWrapper.tsx
-│   │   │   │   ├── 📁 new
-│   │   │   │   │   └── 🔷 page.tsx
-│   │   │   │   ├── 🔷 actions.ts
-│   │   │   │   ├── 🔷 page.tsx
-│   │   │   │   ├── 🔷 ProductsFilter.tsx
-│   │   │   │   └── 🔷 ProductsList.tsx
-│   │   │   └── 🔷 layout.tsx
+│   │   │   │   └── 🔷 layout.tsx
+│   │   │   └── 📁 (protected)
+│   │   │       ├── 📁 analytics
+│   │   │       │   └── 🔷 page.tsx
+│   │   │       ├── 📁 categories
+│   │   │       │   ├── 🔷 CategoriesClient.tsx
+│   │   │       │   └── 🔷 page.tsx
+│   │   │       ├── 📁 customers
+│   │   │       │   ├── 📁 [id]
+│   │   │       │   │   ├── 📁 tabs
+│   │   │       │   │   ├── 🔷 actions.ts
+│   │   │       │   │   ├── 🔷 CustomerDetailClient.tsx
+│   │   │       │   │   └── 🔷 page.tsx
+│   │   │       │   ├── 🔷 CustomersClient.tsx
+│   │   │       │   └── 🔷 page.tsx
+│   │   │       ├── 📁 email-preview
+│   │   │       │   └── 🔷 page.tsx
+│   │   │       ├── 📁 launch-notifications
+│   │   │       │   └── 🔷 page.tsx
+│   │   │       ├── 📁 media
+│   │   │       │   ├── 🔷 BreadcrumbProvider.tsx
+│   │   │       │   ├── 🔷 MediaGridClient.tsx
+│   │   │       │   ├── 🔷 MediaGridHeader.tsx
+│   │   │       │   └── 🔷 page.tsx
+│   │   │       ├── 📁 orders
+│   │   │       │   ├── 📁 [id]
+│   │   │       │   │   ├── 🔷 actions.ts
+│   │   │       │   │   ├── 🔷 OrderAdminClient.tsx
+│   │   │       │   │   └── 🔷 page.tsx
+│   │   │       │   └── 🔷 page.tsx
+│   │   │       ├── 📁 products
+│   │   │       │   ├── 📁 [id]
+│   │   │       │   │   ├── 🔷 actions.ts
+│   │   │       │   │   ├── 🔷 page.tsx
+│   │   │       │   │   ├── 🔷 ProductFormClient.tsx
+│   │   │       │   │   └── 🔷 ProductPageWrapper.tsx
+│   │   │       │   ├── 📁 new
+│   │   │       │   │   └── 🔷 page.tsx
+│   │   │       │   ├── 🔷 actions.ts
+│   │   │       │   ├── 🔷 page.tsx
+│   │   │       │   ├── 🔷 ProductsFilter.tsx
+│   │   │       │   └── 🔷 ProductsList.tsx
+│   │   │       ├── 🔷 layout.tsx
+│   │   │       └── 🔷 page.tsx
 │   │   ├── 📁 api
 │   │   │   ├── 📁 admin
 │   │   │   │   ├── 📁 analytics
@@ -185,7 +193,11 @@
 │   │   │   │           ├── 📁 stock-adjust
 │   │   │   │           └── 🔷 route.ts
 │   │   │   ├── 📁 auth
-│   │   │   │   └── 📁 ensure-profile
+│   │   │   │   ├── 📁 change-password
+│   │   │   │   │   └── 🔷 route.tsx
+│   │   │   │   ├── 📁 ensure-profile
+│   │   │   │   │   └── 🔷 route.ts
+│   │   │   │   └── 📁 logout
 │   │   │   │       └── 🔷 route.ts
 │   │   │   ├── 📁 checkout
 │   │   │   │   ├── 📁 create-session
@@ -197,6 +209,8 @@
 │   │   │   │   └── 🔷 route.ts
 │   │   │   ├── 📁 launch-notifications
 │   │   │   │   └── 🔷 route.ts
+│   │   │   ├── 📁 logout
+│   │   │   │   └── 🔷 route.tsx
 │   │   │   ├── 📁 orders
 │   │   │   │   └── 📁 by-session
 │   │   │   │       └── 📁 [sessionId]
@@ -297,6 +311,7 @@
 │   │   │   ├── 🔷 AdminProductImage.tsx
 │   │   │   ├── 🔷 Breadcrumb.tsx
 │   │   │   ├── 🔷 ImageEditorModal.tsx
+│   │   │   ├── 🔷 LogoutButton.tsx
 │   │   │   ├── 🔷 QuickActions.tsx
 │   │   │   ├── 🔷 SendTrackingModal.tsx
 │   │   │   ├── 🔷 ThemeProvider.tsx
@@ -410,7 +425,6 @@
 │   │   ├── 🔷 analytics.ts
 │   │   ├── 🔷 constants.ts
 │   │   ├── 🔷 database.types.ts
-│   │   ├── 🔷 databasetypes.ts
 │   │   ├── 🔷 design-tokens.ts
 │   │   ├── 🔷 image-helpers.ts
 │   │   ├── 🔷 images.ts
@@ -449,6 +463,7 @@
 ├── 📄 .gitignore
 ├── 📋 .prettierrc.json
 ├── 🟨 eslint.config.mjs
+├── 📄 migrate-admin-structure.ps1
 ├── 🔷 next-env.d.ts
 ├── 🔷 next.config.ts
 ├── 📋 package-lock.json
@@ -464,8 +479,8 @@
 
 
 📈 Statistiques :
-   • Dossiers : 147
-   • Fichiers : 262
-   • Total : 409 éléments
+   • Dossiers : 154
+   • Fichiers : 268
+   • Total : 422 éléments
 
 💡 Généré automatiquement - Ne pas modifier manuellement

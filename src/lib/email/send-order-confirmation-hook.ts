@@ -11,6 +11,19 @@ type ProductImagePartial = {
   sort_order: number | null
 }
 
+// ✅ TYPE POUR L'ADRESSE (correspond à la structure en DB)
+interface ShippingAddress {
+  first_name: string
+  last_name: string
+  email?: string
+  phone?: string
+  address_line1: string
+  address_line2?: string
+  city: string
+  postal_code: string
+  country: string
+}
+
 /**
  * Hook appelé après la création d'une commande pour envoyer l'email de confirmation
  */
@@ -18,7 +31,6 @@ export async function sendOrderConfirmationHook(orderId: string) {
   try {
     console.log('📧 Fetching order details for ID:', orderId)
 
-    // ✅ Utiliser supabaseAdmin (service role) pour bypasser RLS dans les webhooks
     const supabase = supabaseAdmin
 
     // Récupérer les détails de la commande
@@ -47,7 +59,7 @@ export async function sendOrderConfirmationHook(orderId: string) {
 
     console.log('✅ Order found:', order.order_number)
 
-    // ✅✅✅ LOGS CRITIQUES POUR LE DEBUG
+    // ✅✅✅ LOGS CRITIQUES POUR DEBUG
     console.log('='.repeat(60))
     console.log('📦 DEBUG SHIPPING ADDRESS')
     console.log('='.repeat(60))
@@ -58,12 +70,17 @@ export async function sendOrderConfirmationHook(orderId: string) {
     console.log('📦 Type of shipping_address:', typeof order.shipping_address)
     console.log('📦 Is null?', order.shipping_address === null)
     console.log('📦 Is undefined?', order.shipping_address === undefined)
-    console.log(
-      '📦 Has address_line1?',
-      order.shipping_address &&
-        typeof order.shipping_address === 'object' &&
-        'address_line1' in (order.shipping_address as object)
-    )
+
+    // ✅ CAST vers notre type
+    const shippingAddress = order.shipping_address as ShippingAddress | null
+
+    if (shippingAddress && typeof shippingAddress === 'object') {
+      console.log('📦 address_line1:', shippingAddress.address_line1)
+      console.log('📦 address_line2:', shippingAddress.address_line2)
+      console.log('📦 city:', shippingAddress.city)
+      console.log('📦 postal_code:', shippingAddress.postal_code)
+      console.log('📦 country:', shippingAddress.country)
+    }
     console.log('='.repeat(60))
 
     // Récupérer les items de la commande
@@ -103,7 +120,6 @@ export async function sendOrderConfirmationHook(orderId: string) {
       .order('is_primary', { ascending: false })
       .order('sort_order', { ascending: true })
 
-    // Map des images par product_id
     const imagesByProduct = new Map<string, ProductImagePartial>()
 
     if (productImages) {
@@ -114,7 +130,7 @@ export async function sendOrderConfirmationHook(orderId: string) {
       })
     }
 
-    // Transformer les items au format attendu par l'email
+    // Transformer les items
     const formattedItems = orderItems.map((item) => {
       let itemName = item.product_name || 'Produit'
       if (item.variant_name && item.variant_value) {
@@ -150,16 +166,13 @@ export async function sendOrderConfirmationHook(orderId: string) {
       customerFirstName = order.customer_name.split(' ')[0] || 'Client'
     }
 
-    // Vérifier que l'email existe
+    // Vérifier email
     if (!order.customer_email) {
       throw new Error('Email client manquant')
     }
 
     // Calculer le subtotal
     const subtotal = orderItems.reduce((sum, item) => sum + item.total_price, 0)
-
-    // ✅ Formater l'adresse au bon format
-    const shippingAddress = order.shipping_address as any
 
     console.log('🔍 PARSING SHIPPING ADDRESS')
     console.log(
@@ -173,11 +186,12 @@ export async function sendOrderConfirmationHook(orderId: string) {
     )
     console.log('🔍 shippingAddress?.country:', shippingAddress?.country)
 
+    // ✅ Formater l'adresse pour l'email
     const formattedAddress = {
-      line1: shippingAddress?.address_line1 || '', // ✅ Sans underscore au milieu
-      line2: shippingAddress?.address_line2 || '', // ✅ Sans underscore au milieu
+      line1: shippingAddress?.address_line1 || '',
+      line2: shippingAddress?.address_line2 || '',
       city: shippingAddress?.city || '',
-      postalCode: shippingAddress?.postal_code || '', // ✅ Garde l'underscore
+      postalCode: shippingAddress?.postal_code || '',
       country: shippingAddress?.country || '',
       firstName: shippingAddress?.first_name || '',
       lastName: shippingAddress?.last_name || '',
@@ -189,7 +203,17 @@ export async function sendOrderConfirmationHook(orderId: string) {
       JSON.stringify(formattedAddress, null, 2)
     )
 
-    // ✅ Envoyer l'email avec EXACTEMENT les champs attendus
+    // ✅ VÉRIFICATION FINALE
+    if (!formattedAddress.line1) {
+      console.error('🚨 CRITICAL: address_line1 is empty!')
+      console.error('🚨 Raw address:', JSON.stringify(shippingAddress, null, 2))
+      console.error(
+        '🚨 Formatted address:',
+        JSON.stringify(formattedAddress, null, 2)
+      )
+    }
+
+    // Envoyer l'email
     await sendOrderConfirmationEmail(order.customer_email, {
       orderNumber: order.order_number,
       customerName: customerFirstName,
