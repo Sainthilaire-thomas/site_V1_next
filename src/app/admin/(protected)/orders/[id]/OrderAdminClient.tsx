@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { toast } from 'sonner'
 import type { Database } from '@/lib/database.types'
-import { Mail, Send, Loader2 } from 'lucide-react'
+import { Mail, Send, Loader2, Package, Truck } from 'lucide-react'
 
 import { SendTrackingModal } from '@/components/admin/SendTrackingModal'
 
@@ -77,35 +77,6 @@ export default function OrderAdminClient({
     }
   }
 
-  const handleAddTracking = async () => {
-    const trackingNumber = prompt('Numéro de suivi:')
-    if (!trackingNumber) return
-
-    setIsUpdating(true)
-    try {
-      const res = await fetch(`/api/admin/orders/${order.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tracking_number: trackingNumber,
-          status: 'shipped',
-          shipped_at: new Date().toISOString(),
-        }),
-      })
-
-      if (!res.ok) throw new Error('Erreur')
-
-      const updated = await res.json()
-      setOrder(updated.order)
-      toast.success('Tracking ajouté')
-      router.refresh()
-    } catch (error) {
-      toast.error('Erreur')
-    } finally {
-      setIsUpdating(false)
-    }
-  }
-
   const handleResendConfirmation = async () => {
     setIsSendingConfirmation(true)
     try {
@@ -122,7 +93,10 @@ export default function OrderAdminClient({
         throw new Error(data.error || "Erreur lors de l'envoi")
       }
 
-      toast.success('Email de confirmation renvoyé !')
+      toast.success('✅ Email de confirmation renvoyé avec succès !', {
+        description: `Envoyé à ${order.customer_email}`,
+        duration: 5000,
+      })
     } catch (error) {
       console.error('Error:', error)
       toast.error(
@@ -140,7 +114,7 @@ export default function OrderAdminClient({
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold">Commande {order.order_number}</h1>
-          <p className="text-gray-500">
+          <p className="text-gray-500 dark:text-gray-400">
             {new Date(order.created_at).toLocaleDateString('fr-FR')}
           </p>
         </div>
@@ -162,17 +136,17 @@ export default function OrderAdminClient({
                   key={item.id}
                   className="flex gap-4 pb-4 border-b last:border-0"
                 >
-                  <div className="w-16 h-16 bg-gray-100 rounded" />
+                  <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded" />
                   <div className="flex-1">
                     <h3 className="font-medium">
                       {item.product_name || 'Produit'}
                     </h3>
                     {item.variant_value && (
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
                         {item.variant_name}: {item.variant_value}
                       </p>
                     )}
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       Quantité: {item.quantity}
                     </p>
                   </div>
@@ -180,7 +154,7 @@ export default function OrderAdminClient({
                     <p className="font-medium">
                       {Number(item.total_price).toFixed(2)}€
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       {Number(item.unit_price).toFixed(2)}€/u
                     </p>
                   </div>
@@ -226,9 +200,11 @@ export default function OrderAdminClient({
             <CardContent className="space-y-2">
               <div>
                 <p className="font-medium">{order.customer_name}</p>
-                <p className="text-sm text-gray-500">{order.customer_email}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {order.customer_email}
+                </p>
                 {order.customer_phone && (
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
                     {order.customer_phone}
                   </p>
                 )}
@@ -260,6 +236,75 @@ export default function OrderAdminClient({
             </CardContent>
           </Card>
 
+          {/* ✅ Suivi de livraison */}
+          {order.tracking_number && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Truck className="h-5 w-5" />
+                  Suivi de livraison
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      Transporteur
+                    </span>
+                    <span className="font-medium">
+                      {order.carrier || 'Non spécifié'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      Numéro
+                    </span>
+                    <code className="text-sm font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                      {order.tracking_number}
+                    </code>
+                  </div>
+
+                  {order.tracking_url && (
+                    <a
+                      href={order.tracking_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 w-full mt-3 px-4 py-2 bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-950/50 transition-colors text-sm font-medium"
+                    >
+                      <Package className="h-4 w-4" />
+                      Suivre le colis
+                    </a>
+                  )}
+
+                  {order.estimated_delivery && (
+                    <div className="mt-3 p-3 bg-green-50 dark:bg-green-950/20 rounded-lg">
+                      <p className="text-xs text-green-600 dark:text-green-400 font-medium">
+                        Livraison estimée
+                      </p>
+                      <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                        {order.estimated_delivery}
+                      </p>
+                    </div>
+                  )}
+
+                  {order.shipped_at && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      Expédiée le{' '}
+                      {new Date(order.shipped_at).toLocaleDateString('fr-FR', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Historique */}
           {order.history && order.history.length > 0 && (
             <Card>
@@ -271,7 +316,7 @@ export default function OrderAdminClient({
                   {order.history.map((h: OrderStatusHistory) => (
                     <div key={h.id} className="text-sm">
                       <p className="font-medium">{h.to_status}</p>
-                      <p className="text-gray-500">
+                      <p className="text-gray-500 dark:text-gray-400">
                         {h.created_at
                           ? new Date(h.created_at).toLocaleString('fr-FR')
                           : 'Date inconnue'}
@@ -294,7 +339,9 @@ export default function OrderAdminClient({
             <CardContent className="space-y-3">
               {/* Statut */}
               <div>
-                <label className="text-sm font-medium">Statut</label>
+                <label className="text-sm font-medium dark:text-gray-200">
+                  Statut
+                </label>
                 <select
                   className="w-full mt-1 p-2 border rounded bg-background text-foreground dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                   value={order.status || ''}
@@ -314,7 +361,9 @@ export default function OrderAdminClient({
 
               {/* Emails */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">Emails</label>
+                <label className="text-sm font-medium dark:text-gray-200">
+                  Emails
+                </label>
 
                 <Button
                   onClick={handleResendConfirmation}
@@ -337,11 +386,16 @@ export default function OrderAdminClient({
                 </Button>
 
                 {order.tracking_number ? (
-                  <div className="p-3 bg-muted rounded-md">
-                    <p className="text-xs text-muted-foreground mb-1">
-                      Suivi envoyé
+                  <div className="p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-md">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="h-2 w-2 bg-green-500 rounded-full" />
+                      <p className="text-xs font-medium text-green-700 dark:text-green-400">
+                        Email de tracking envoyé
+                      </p>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      à {order.customer_email}
                     </p>
-                    <p className="text-sm font-mono">{order.tracking_number}</p>
                   </div>
                 ) : (
                   <Button
@@ -365,6 +419,11 @@ export default function OrderAdminClient({
             isOpen={isTrackingModalOpen}
             onClose={() => setIsTrackingModalOpen(false)}
             onSuccess={() => {
+              setIsTrackingModalOpen(false)
+              toast.success('🚚 Commande marquée comme expédiée !', {
+                description: 'Email de tracking envoyé au client',
+                duration: 5000,
+              })
               router.refresh()
             }}
           />

@@ -2,6 +2,7 @@
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
+import { Truck } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -100,6 +101,7 @@ export default async function AdminOrdersPage() {
                 <th className="text-left py-3 px-4 font-medium">Articles</th>
                 <th className="text-left py-3 px-4 font-medium">Montant</th>
                 <th className="text-left py-3 px-4 font-medium">Statut</th>
+                <th className="text-left py-3 px-4 font-medium">Tracking</th>
                 <th className="text-left py-3 px-4 font-medium">Actions</th>
               </tr>
             </thead>
@@ -133,6 +135,26 @@ export default async function AdminOrdersPage() {
                     <Badge variant={statusColors[order.status || 'pending']}>
                       {statusLabels[order.status || 'pending']}
                     </Badge>
+                  </td>
+                  {/* ✅ NOUVELLE COLONNE : Tracking */}
+                  <td className="py-3 px-4">
+                    {order.tracking_number ? (
+                      <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                          <Truck className="h-3.5 w-3.5" />
+                          <span className="text-xs font-medium">Envoyé</span>
+                        </div>
+                        {order.carrier && (
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            ({order.carrier})
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400 dark:text-gray-500">
+                        Non expédiée
+                      </span>
+                    )}
                   </td>
                   <td className="py-3 px-4">
                     <Link
