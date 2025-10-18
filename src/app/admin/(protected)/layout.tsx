@@ -1,4 +1,4 @@
-// src/app/admin/layout.tsx
+// src/app/admin/(protected)/layout.tsx
 import type { ReactNode } from 'react'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
@@ -9,10 +9,10 @@ import { Breadcrumb } from '@/components/admin/Breadcrumb'
 import { QuickActions } from '@/components/admin/QuickActions'
 import { AdminNav } from '@/components/admin/AdminNav'
 import { ThemeToggle } from '@/components/admin/ThemeToggle'
-import { LogoutButton } from '@/components/admin/LogoutButton' // ✅ NOUVEAU
+import { LogoutButton } from '@/components/admin/LogoutButton'
 import Link from 'next/link'
 
-export default async function AdminLayout({
+export default async function ProtectedAdminLayout({
   children,
 }: {
   children: ReactNode
@@ -23,7 +23,11 @@ export default async function AdminLayout({
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      cookies: { get: (k) => cookieStore.get(k)?.value, set() {}, remove() {} },
+      cookies: {
+        get: (k) => cookieStore.get(k)?.value,
+        set() {},
+        remove() {},
+      },
     }
   )
 
@@ -31,7 +35,9 @@ export default async function AdminLayout({
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) redirect('/admin/login')
+  if (!user) {
+    redirect('/admin/login')
+  }
 
   const { data: profile } = await supabase
     .from('profiles')
@@ -128,7 +134,6 @@ export default async function AdminLayout({
                 >
                   Voir le site →
                 </Link>
-                {/* ✅ NOUVEAU : Bouton de déconnexion */}
                 <LogoutButton />
               </div>
             </div>

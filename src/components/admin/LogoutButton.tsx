@@ -17,15 +17,18 @@ export function LogoutButton() {
         method: 'POST',
       })
 
+      // ✅ FIX : Rediriger vers la homepage au lieu de /auth/login
       if (response.redirected) {
-        window.location.href = response.url
+        // Si l'API a défini une redirection, l'ignorer
+        window.location.href = '/'
       } else {
-        window.location.href = '/admin/login'
+        // Sinon, rediriger manuellement vers la homepage
+        window.location.href = '/'
       }
     } catch (error) {
       console.error('Logout error:', error)
-      // En cas d'erreur, rediriger quand même
-      window.location.href = '/admin/login'
+      // ✅ En cas d'erreur, rediriger quand même vers la homepage
+      window.location.href = '/'
     }
   }
 
