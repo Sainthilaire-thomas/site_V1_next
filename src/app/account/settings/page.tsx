@@ -1,8 +1,7 @@
-// ============================================
 // src/app/account/settings/page.tsx
-// ============================================
 import { redirect } from 'next/navigation'
 import { getServerSupabase } from '@/lib/supabase-server'
+import Link from 'next/link'
 
 export default async function SettingsPage() {
   const supabase = await getServerSupabase()
@@ -37,9 +36,12 @@ export default async function SettingsPage() {
         <div className="border border-grey-light p-6">
           <h2 className="text-[18px] font-light text-black mb-4">Sécurité</h2>
 
-          <button className="text-[13px] tracking-[0.05em] font-semibold lowercase text-black hover:text-grey-medium transition-colors">
+          <Link
+            href="/account/settings/change-password"
+            className="text-[13px] tracking-[0.05em] font-semibold lowercase text-black hover:text-grey-medium transition-colors"
+          >
             Changer le mot de passe →
-          </button>
+          </Link>
         </div>
       </div>
     </div>
