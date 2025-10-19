@@ -3,13 +3,26 @@
 
 import { useEffect, useRef } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { trackPageView, trackTimeOnPage } from '@/lib/analytics'
+import {
+  trackPageView,
+  trackTimeOnPage,
+  preloadAnalyticsData,
+} from '@/lib/analytics'
 
 export function AnalyticsTracker() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const startTimeRef = useRef<number>(0)
   const lastPathRef = useRef<string>('')
+  const preloadedRef = useRef<boolean>(false) // ⭐ NOUVEAU : Flag pour éviter le double preload
+
+  // ⭐ NOUVEAU : Preload analytics data (géo + UTM) au premier render
+  useEffect(() => {
+    if (!preloadedRef.current) {
+      preloadedRef.current = true
+      preloadAnalyticsData().catch(console.debug)
+    }
+  }, [])
 
   useEffect(() => {
     // Track page view on mount and route change

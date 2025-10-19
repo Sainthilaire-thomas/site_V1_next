@@ -1,4 +1,4 @@
-// src/app/admin/orders/[id]/OrderAdminClient.tsx
+// src/app/admin/(protected)/orders/[id]/OrderAdminClient.tsx
 'use client'
 
 import { useState } from 'react'
@@ -9,8 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { toast } from 'sonner'
 import type { Database } from '@/lib/database.types'
-import { Mail, Send, Loader2, Package, Truck } from 'lucide-react'
-
+import { Mail, Send, Loader2, Package, Truck, CheckCircle } from 'lucide-react'
+import { ProductImage } from '@/components/products/ProductImage'
 import { SendTrackingModal } from '@/components/admin/SendTrackingModal'
 
 type Order = Database['public']['Tables']['orders']['Row']
@@ -18,9 +18,27 @@ type OrderItem = Database['public']['Tables']['order_items']['Row']
 type OrderStatusHistory =
   Database['public']['Tables']['order_status_history']['Row']
 
+// ✅ Type étendu pour les items avec produit et images
+interface ProductImage {
+  id: string
+  storage_original: string
+  is_primary: boolean | null
+  sort_order: number | null
+}
+
+interface Product {
+  id: string
+  name: string
+  images?: ProductImage[]
+}
+
+interface OrderItemWithProduct extends OrderItem {
+  product?: Product | null
+}
+
 // Type étendu avec relations
 interface OrderWithRelations extends Order {
-  items?: OrderItem[]
+  items?: OrderItemWithProduct[]
   history?: OrderStatusHistory[]
 }
 
@@ -47,6 +65,7 @@ export default function OrderAdminClient({
   const [isUpdating, setIsUpdating] = useState(false)
   const [isTrackingModalOpen, setIsTrackingModalOpen] = useState(false)
   const [isSendingConfirmation, setIsSendingConfirmation] = useState(false)
+  const [isMarkingDelivered, setIsMarkingDelivered] = useState(false)
 
   const shippingAddr =
     order.shipping_address as unknown as ShippingAddress | null
@@ -54,6 +73,37 @@ export default function OrderAdminClient({
     Number(order.total_amount) -
     Number(order.shipping_amount || 0) -
     Number(order.tax_amount || 0)
+
+  // ✅ Fonction pour obtenir l'URL de l'image d'un item
+  const getItemImageUrl = (item: OrderItemWithProduct): string | null => {
+    // 1. Essayer image_url direct (priorité pour compatibilité)
+    if (item.image_url) {
+      return item.image_url
+    }
+
+    // 2. Essayer depuis product.images
+    if (item.product?.images && item.product.images.length > 0) {
+      // Chercher l'image principale
+      const primaryImage = item.product.images.find((img) => img.is_primary)
+      // Sinon prendre la première image
+      const imageToUse = primaryImage || item.product.images[0]
+
+      if (imageToUse?.id) {
+        return `/api/product-images/${imageToUse.id}`
+      }
+    }
+
+    return null
+  }
+
+  // ✅ Fonction pour recharger les données de la commande
+  const refreshOrderData = async () => {
+    try {
+      window.location.reload()
+    } catch (error) {
+      console.error('Erreur lors du rechargement:', error)
+    }
+  }
 
   const handleStatusChange = async (newStatus: string) => {
     setIsUpdating(true)
@@ -69,7 +119,8 @@ export default function OrderAdminClient({
       const updated = await res.json()
       setOrder(updated.order)
       toast.success('Statut mis à jour')
-      router.refresh()
+
+      setTimeout(() => refreshOrderData(), 500)
     } catch (error) {
       toast.error('Erreur lors de la mise à jour')
     } finally {
@@ -109,6 +160,57 @@ export default function OrderAdminClient({
     }
   }
 
+  const handleMarkDelivered = async () => {
+    const confirm = window.confirm(
+      'Êtes-vous sûr de vouloir marquer cette commande comme livrée et envoyer un email au client ?'
+    )
+
+    if (!confirm) return
+
+    setIsMarkingDelivered(true)
+
+    const toastId = toast.loading(
+      '📦 Marquage de la commande comme livrée...',
+      {
+        description: "Envoi de l'email en cours",
+      }
+    )
+
+    try {
+      const res = await fetch(`/api/admin/orders/${order.id}/mark-delivered`, {
+        method: 'POST',
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Erreur lors de la mise à jour')
+      }
+
+      toast.success('✅ Commande livrée avec succès !', {
+        id: toastId,
+        description: `Email envoyé à ${order.customer_email}`,
+        duration: 4000,
+      })
+
+      setTimeout(() => refreshOrderData(), 1000)
+    } catch (error) {
+      console.error('Error:', error)
+
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'Erreur lors de la mise à jour',
+        {
+          id: toastId,
+          description: 'Veuillez réessayer',
+        }
+      )
+    } finally {
+      setIsMarkingDelivered(false)
+    }
+  }
+
   return (
     <div className="container mx-auto py-8">
       <div className="flex items-center justify-between mb-6">
@@ -131,35 +233,58 @@ export default function OrderAdminClient({
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {order.items?.map((item: OrderItem) => (
-                <div
-                  key={item.id}
-                  className="flex gap-4 pb-4 border-b last:border-0"
-                >
-                  <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded" />
-                  <div className="flex-1">
-                    <h3 className="font-medium">
-                      {item.product_name || 'Produit'}
-                    </h3>
-                    {item.variant_value && (
+              {order.items?.map((item) => {
+                // ✅ Récupérer l'image primaire ou la première
+                const primaryImage = item.product?.images?.find(
+                  (img) => img.is_primary
+                )
+                const imageToUse = primaryImage || item.product?.images?.[0]
+
+                return (
+                  <div
+                    key={item.id}
+                    className="flex gap-4 pb-4 border-b last:border-0"
+                  >
+                    {/* ✅ Image du produit */}
+                    <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded overflow-hidden flex-shrink-0">
+                      {imageToUse && item.product_id ? (
+                        <ProductImage
+                          productId={item.product_id}
+                          imageId={imageToUse.id}
+                          alt={item.product_name || 'Produit'}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                          <Package className="h-6 w-6" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex-1">
+                      <h3 className="font-medium">
+                        {item.product_name || 'Produit'}
+                      </h3>
+                      {item.variant_value && (
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {item.variant_name}: {item.variant_value}
+                        </p>
+                      )}
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {item.variant_name}: {item.variant_value}
+                        Quantité: {item.quantity}
                       </p>
-                    )}
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Quantité: {item.quantity}
-                    </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium">
+                        {Number(item.total_price).toFixed(2)}€
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {Number(item.unit_price).toFixed(2)}€/u
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-medium">
-                      {Number(item.total_price).toFixed(2)}€
-                    </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {Number(item.unit_price).toFixed(2)}€/u
-                    </p>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
 
             <Separator className="my-4" />
@@ -386,17 +511,64 @@ export default function OrderAdminClient({
                 </Button>
 
                 {order.tracking_number ? (
-                  <div className="p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-md">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="h-2 w-2 bg-green-500 rounded-full" />
-                      <p className="text-xs font-medium text-green-700 dark:text-green-400">
-                        Email de tracking envoyé
+                  <>
+                    <div className="p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-md">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="h-2 w-2 bg-green-500 rounded-full" />
+                        <p className="text-xs font-medium text-green-700 dark:text-green-400">
+                          Email de tracking envoyé
+                        </p>
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        à {order.customer_email}
                       </p>
                     </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      à {order.customer_email}
-                    </p>
-                  </div>
+
+                    {/* ✅ NOUVEAU : Bouton marquer comme livrée */}
+                    {order.status === 'shipped' && !order.delivered_at && (
+                      <Button
+                        onClick={handleMarkDelivered}
+                        disabled={isMarkingDelivered}
+                        className="w-full bg-green-600 hover:bg-green-700"
+                        size="sm"
+                      >
+                        {isMarkingDelivered ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Envoi...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            Marquer comme livrée
+                          </>
+                        )}
+                      </Button>
+                    )}
+
+                    {/* ✅ Badge si déjà livrée */}
+                    {order.delivered_at && (
+                      <div className="p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-md">
+                        <div className="flex items-center gap-2 mb-1">
+                          <CheckCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          <p className="text-xs font-medium text-blue-700 dark:text-blue-400">
+                            Commande livrée
+                          </p>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Le{' '}
+                          {new Date(order.delivered_at).toLocaleDateString(
+                            'fr-FR',
+                            {
+                              day: 'numeric',
+                              month: 'long',
+                              year: 'numeric',
+                            }
+                          )}
+                        </p>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <Button
                     onClick={() => setIsTrackingModalOpen(true)}
@@ -418,13 +590,15 @@ export default function OrderAdminClient({
             orderNumber={order.order_number}
             isOpen={isTrackingModalOpen}
             onClose={() => setIsTrackingModalOpen(false)}
-            onSuccess={() => {
+            onSuccess={(data) => {
               setIsTrackingModalOpen(false)
+
               toast.success('🚚 Commande marquée comme expédiée !', {
-                description: 'Email de tracking envoyé au client',
-                duration: 5000,
+                description: "Rechargement de l'interface...",
+                duration: 3000,
               })
-              router.refresh()
+
+              setTimeout(() => refreshOrderData(), 1000)
             }}
           />
         </div>

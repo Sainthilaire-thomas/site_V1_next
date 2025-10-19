@@ -1,4 +1,5 @@
 // src/app/admin/(protected)/layout.tsx
+
 import type { ReactNode } from 'react'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
@@ -11,6 +12,7 @@ import { AdminNav } from '@/components/admin/AdminNav'
 import { ThemeToggle } from '@/components/admin/ThemeToggle'
 import { LogoutButton } from '@/components/admin/LogoutButton'
 import Link from 'next/link'
+import { Home } from 'lucide-react'
 
 export default async function ProtectedAdminLayout({
   children,
@@ -111,40 +113,60 @@ export default async function ProtectedAdminLayout({
 
   return (
     <ToastProvider>
-      <div className="min-h-screen bg-white dark:bg-slate-950 text-black dark:text-white">
-        {/* Header */}
-        <header className="border-b border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 sticky top-0 z-10">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between h-16">
+      <div className="flex min-h-screen bg-gray-50 dark:bg-slate-950">
+        {/* ✅ Sidebar fixe à gauche */}
+        <aside className="fixed inset-y-0 left-0 z-50 w-64 border-r border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+          <div className="flex h-full flex-col">
+            {/* Logo/Header */}
+            <div className="flex h-16 items-center border-b border-gray-200 dark:border-slate-700 px-6">
               <Link
                 href="/admin"
-                className="font-semibold text-lg text-gray-900 dark:text-gray-100 hover:text-violet dark:hover:text-violet transition-colors"
+                className="text-xl font-bold text-gray-900 dark:text-gray-100 hover:text-violet dark:hover:text-violet transition-colors"
               >
                 Admin
               </Link>
+            </div>
 
+            {/* Navigation */}
+            <div className="flex-1 overflow-y-auto p-4">
               <AdminNav />
+            </div>
 
-              <div className="flex items-center gap-3">
+            {/* Footer */}
+            <div className="border-t border-gray-200 dark:border-slate-700 p-4 space-y-2">
+              <Link
+                href="/"
+                target="_blank"
+                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+              >
+                <Home className="h-4 w-4" />
+                Voir le site
+              </Link>
+
+              <div className="flex items-center justify-between px-3">
                 <ThemeToggle />
-                <Link
-                  href="/"
-                  className="text-sm text-gray-700 dark:text-gray-300 hover:text-violet dark:hover:text-violet transition-colors hidden sm:block"
-                  target="_blank"
-                >
-                  Voir le site →
-                </Link>
                 <LogoutButton />
+              </div>
+
+              <div className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400 truncate">
+                {user.email}
               </div>
             </div>
           </div>
-        </header>
+        </aside>
 
-        {/* Main content */}
-        <main className="container mx-auto px-4 py-6">
-          <Breadcrumb />
-          <QuickActions />
-          {children}
+        {/* ✅ Contenu principal avec marge à gauche */}
+        <main className="flex-1 ml-64">
+          {/* Top bar (optionnel) */}
+          <header className="sticky top-0 z-40 border-b border-gray-200 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-slate-900/60">
+            <div className="flex h-16 items-center justify-between px-8">
+              <Breadcrumb />
+              <QuickActions />
+            </div>
+          </header>
+
+          {/* Page content */}
+          <div className="min-h-[calc(100vh-4rem)]">{children}</div>
         </main>
       </div>
     </ToastProvider>

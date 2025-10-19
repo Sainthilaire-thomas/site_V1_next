@@ -1,5 +1,5 @@
 // src/lib/analytics.ts
-// ⚡ Custom Analytics System - FIXED VERSION
+// ⚡ Custom Analytics System - VERSION WITH UTM SUPPORT
 // Tracks user behavior without cookies (GDPR-friendly)
 
 import { createBrowserClient } from './supabase-browser'
@@ -33,6 +33,14 @@ interface AnalyticsEvent {
   city?: string
   timezone?: string
   language?: string
+
+  // ⭐ NOUVEAU : Paramètres UTM
+  utm_source?: string | null
+  utm_medium?: string | null
+  utm_campaign?: string | null
+  utm_content?: string | null
+  utm_term?: string | null
+
   page_load_time?: number
   time_on_page?: number
   product_id?: string
@@ -208,7 +216,60 @@ async function fetchGeolocation(): Promise<GeoLocation> {
 }
 
 // ============================================
+// ⭐ NOUVELLES FONCTIONS UTM
+// ============================================
+
+/**
+ * Extraire les paramètres UTM de l'URL
+ */
+function extractUtmParams(): Record<string, string | null> {
+  if (typeof window === 'undefined') return {}
+  
+  const params = new URLSearchParams(window.location.search)
+  
+  return {
+    utm_source: params.get('utm_source'),
+    utm_medium: params.get('utm_medium'),
+    utm_campaign: params.get('utm_campaign'),
+    utm_content: params.get('utm_content'),
+    utm_term: params.get('utm_term'),
+  }
+}
+
+/**
+ * Sauvegarder les UTM en sessionStorage pour attribution multi-page
+ */
+function saveUtmToSession() {
+  if (typeof window === 'undefined') return
+  
+  const utm = extractUtmParams()
+  
+  // Sauvegarder seulement si au moins un paramètre UTM est présent
+  if (Object.values(utm).some(v => v !== null)) {
+    sessionStorage.setItem('analytics_utm', JSON.stringify(utm))
+    console.log('📊 UTM sauvegardés:', utm)
+  }
+}
+
+/**
+ * Récupérer les UTM sauvegardés
+ */
+function getSavedUtm(): Record<string, string | null> {
+  if (typeof window === 'undefined') return {}
+  
+  const saved = sessionStorage.getItem('analytics_utm')
+  if (!saved) return {}
+  
+  try {
+    return JSON.parse(saved)
+  } catch {
+    return {}
+  }
+}
+
+// ============================================
 // 🚀 PRELOAD FUNCTION (called during homepage animation)
+// ⭐ MODIFIÉE pour sauvegarder les UTM
 // ============================================
 
 export function preloadAnalyticsData(): Promise<void> {
@@ -217,6 +278,9 @@ export function preloadAnalyticsData(): Promise<void> {
   preloadPromise = (async () => {
     try {
       console.log('🚀 Preloading analytics data...')
+
+      // ⭐ NOUVEAU : Sauvegarder les UTM dès l'arrivée
+      saveUtmToSession()
 
       // Preload device info (instant)
       getDeviceInfo()
@@ -237,6 +301,7 @@ export function preloadAnalyticsData(): Promise<void> {
 
 // ============================================
 // 📤 CORE TRACKING FUNCTION
+// ⭐ MODIFIÉE pour inclure les UTM
 // ============================================
 
 async function sendEvent(event: Partial<AnalyticsEvent>): Promise<void> {
@@ -247,18 +312,34 @@ async function sendEvent(event: Partial<AnalyticsEvent>): Promise<void> {
     const deviceInfo = getDeviceInfo()
     const geo = await fetchGeolocation()
 
+    // ⭐ NOUVEAU : Récupérer les UTM sauvegardés
+    const utmParams = getSavedUtm()
+
     const eventData: AnalyticsEvent = {
       session_id: getSessionId(),
       ...deviceInfo,
       ...geo,
+
+      // ⭐ NOUVEAU : Inclure les paramètres UTM
+      utm_source: utmParams.utm_source || null,
+      utm_medium: utmParams.utm_medium || null,
+      utm_campaign: utmParams.utm_campaign || null,
+      utm_content: utmParams.utm_content || null,
+      utm_term: utmParams.utm_term || null,
+
       ...event,
       event_type: event.event_type || 'custom',
     }
 
     console.log('📊 Tracking event:', eventData.event_type)
+
+    // ⭐ Log UTM si présents
+    if (utmParams.utm_campaign) {
+      console.log('🎯 UTM Campaign:', utmParams.utm_campaign)
+    }
+
     console.log('📤 Sending to Supabase:', eventData)
 
-    // 🔥 CRITICAL FIX: Use anon client explicitly
     const { error } = await supabase.from('analytics_events').insert(eventData)
 
     if (error) {

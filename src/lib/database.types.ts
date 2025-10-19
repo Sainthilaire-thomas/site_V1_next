@@ -91,6 +91,11 @@ export type Database = {
           time_on_page: number | null
           timezone: string | null
           user_id: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
         }
         Insert: {
           browser?: string | null
@@ -117,6 +122,11 @@ export type Database = {
           time_on_page?: number | null
           timezone?: string | null
           user_id?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
         }
         Update: {
           browser?: string | null
@@ -143,6 +153,11 @@ export type Database = {
           time_on_page?: number | null
           timezone?: string | null
           user_id?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
         }
         Relationships: []
       }
@@ -984,6 +999,75 @@ export type Database = {
         }
         Relationships: []
       }
+      social_posts: {
+        Row: {
+          account_handle: string | null
+          account_type: string
+          caption: string | null
+          comments: number | null
+          created_at: string | null
+          engagement_rate: number | null
+          featured_product_ids: string[] | null
+          id: string
+          image_url: string | null
+          impressions: number | null
+          likes: number | null
+          post_type: string
+          post_url: string | null
+          published_at: string
+          reach: number | null
+          saves: number | null
+          shares: number | null
+          tracking_link: string | null
+          updated_at: string | null
+          utm_campaign: string
+        }
+        Insert: {
+          account_handle?: string | null
+          account_type: string
+          caption?: string | null
+          comments?: number | null
+          created_at?: string | null
+          engagement_rate?: number | null
+          featured_product_ids?: string[] | null
+          id?: string
+          image_url?: string | null
+          impressions?: number | null
+          likes?: number | null
+          post_type: string
+          post_url?: string | null
+          published_at: string
+          reach?: number | null
+          saves?: number | null
+          shares?: number | null
+          tracking_link?: string | null
+          updated_at?: string | null
+          utm_campaign: string
+        }
+        Update: {
+          account_handle?: string | null
+          account_type?: string
+          caption?: string | null
+          comments?: number | null
+          created_at?: string | null
+          engagement_rate?: number | null
+          featured_product_ids?: string[] | null
+          id?: string
+          image_url?: string | null
+          impressions?: number | null
+          likes?: number | null
+          post_type?: string
+          post_url?: string | null
+          published_at?: string
+          reach?: number | null
+          saves?: number | null
+          shares?: number | null
+          tracking_link?: string | null
+          updated_at?: string | null
+          utm_campaign?: string
+        }
+        Relationships: []
+      }
       stock_movements: {
         Row: {
           created_at: string
@@ -1092,6 +1176,46 @@ export type Database = {
           user_email: string | null
           user_full_name: string | null
           user_id: string | null
+        }
+        Relationships: []
+      }
+      social_posts_performance: {
+        Row: {
+          account_handle: string | null
+          account_type: string | null
+          caption: string | null
+          comments: number | null
+          cpm_revenue: number | null
+          engagement_rate: number | null
+          id: string | null
+          impressions: number | null
+          likes: number | null
+          post_type: string | null
+          post_url: string | null
+          published_at: string | null
+          reach: number | null
+          saves: number | null
+          shares: number | null
+          utm_campaign: string | null
+          web_add_to_cart: number | null
+          web_avg_order_value: number | null
+          web_conversion_rate: number | null
+          web_purchases: number | null
+          web_revenue: number | null
+          web_visits: number | null
+        }
+        Relationships: []
+      }
+      social_stats_by_period: {
+        Row: {
+          account_type: string | null
+          date: string | null
+          posts_count: number | null
+          total_engagements: number | null
+          total_impressions: number | null
+          total_purchases: number | null
+          total_revenue: number | null
+          total_visits: number | null
         }
         Relationships: []
       }

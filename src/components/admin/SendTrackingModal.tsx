@@ -28,7 +28,12 @@ interface SendTrackingModalProps {
   orderNumber: string
   isOpen: boolean
   onClose: () => void
-  onSuccess?: () => void
+  onSuccess?: (data: {
+    trackingNumber: string
+    carrier: string
+    trackingUrl: string
+    estimatedDelivery?: string
+  }) => void
 }
 
 // Transporteurs français courants
@@ -115,7 +120,15 @@ export function SendTrackingModal({
 
     setIsLoading(true)
 
+    // ✅ Toast de chargement
+    const toastId = toast.loading("📤 Envoi de l'email en cours...", {
+      description: 'Veuillez patienter',
+    })
+
     try {
+      const carrierLabel =
+        CARRIERS.find((c) => c.value === carrier)?.label || carrier
+
       const response = await fetch(
         `/api/admin/orders/${orderId}/send-tracking`,
         {
@@ -125,8 +138,7 @@ export function SendTrackingModal({
           },
           body: JSON.stringify({
             trackingNumber: trackingNumber.trim(),
-            carrier:
-              CARRIERS.find((c) => c.value === carrier)?.label || carrier,
+            carrier: carrierLabel,
             trackingUrl,
             estimatedDelivery: estimatedDelivery || undefined,
           }),
@@ -136,15 +148,34 @@ export function SendTrackingModal({
       const data = await response.json()
 
       if (response.ok && data.success) {
-        toast.success('Email de suivi envoyé avec succès')
-        onSuccess?.()
+        // ✅ Mettre à jour le toast en succès
+        toast.success('🚚 Email de suivi envoyé avec succès !', {
+          id: toastId,
+          description: `Tracking: ${trackingNumber.trim()}`,
+          duration: 5000,
+        })
+
+        // ✅ Passer les données au callback
+        onSuccess?.({
+          trackingNumber: trackingNumber.trim(),
+          carrier: carrierLabel,
+          trackingUrl,
+          estimatedDelivery: estimatedDelivery || undefined,
+        })
+
         handleClose()
       } else {
-        toast.error(data.error || "Erreur lors de l'envoi")
+        // ✅ Mettre à jour le toast en erreur
+        toast.error(data.error || "Erreur lors de l'envoi", {
+          id: toastId,
+        })
       }
     } catch (error) {
       console.error('Erreur:', error)
-      toast.error("Erreur lors de l'envoi de l'email")
+      // ✅ Mettre à jour le toast en erreur
+      toast.error("Erreur lors de l'envoi de l'email", {
+        id: toastId,
+      })
     } finally {
       setIsLoading(false)
     }
