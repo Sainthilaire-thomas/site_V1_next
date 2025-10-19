@@ -6,10 +6,11 @@ import { createServerClient } from '@/lib/supabase-server'
 // GET : Récupérer un post spécifique
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // ✅ Promise<>
 ) {
   try {
-    const supabase = await createServerClient() // ✅ AWAIT
+    const supabase = await createServerClient()
+    const { id } = await params // ✅ AWAIT params
 
     // Vérifier l'authentification
     const {
@@ -34,7 +35,7 @@ export async function GET(
     const { data: post, error } = await supabase
       .from('social_posts_performance')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id) // ✅ Utiliser id déstructuré
       .single()
 
     if (error) {
@@ -56,10 +57,11 @@ export async function GET(
 // PATCH : Mettre à jour un post
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // ✅ Promise<>
 ) {
   try {
-    const supabase = await createServerClient() // ✅ AWAIT
+    const supabase = await createServerClient()
+    const { id } = await params // ✅ AWAIT params
 
     // Vérifier l'authentification
     const {
@@ -103,7 +105,7 @@ export async function PATCH(
         saves: body.saves,
         published_at: body.published_at,
       })
-      .eq('id', params.id)
+      .eq('id', id) // ✅ Utiliser id déstructuré
       .select()
       .single()
 
@@ -122,10 +124,11 @@ export async function PATCH(
 // DELETE : Supprimer un post
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // ✅ Promise<>
 ) {
   try {
-    const supabase = await createServerClient() // ✅ AWAIT
+    const supabase = await createServerClient()
+    const { id } = await params // ✅ AWAIT params
 
     // Vérifier l'authentification
     const {
@@ -147,10 +150,7 @@ export async function DELETE(
     }
 
     // Supprimer le post
-    const { error } = await supabase
-      .from('social_posts')
-      .delete()
-      .eq('id', params.id)
+    const { error } = await supabase.from('social_posts').delete().eq('id', id) // ✅ Utiliser id déstructuré
 
     if (error) {
       console.error('Error deleting post:', error)

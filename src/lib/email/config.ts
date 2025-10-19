@@ -1,10 +1,16 @@
 // src/lib/email/config.ts
 
+import { Resend } from 'resend'
+
+/**
+ * Client Resend initialisé
+ */
+export const resend = new Resend(process.env.RESEND_API_KEY!)
+
 /**
  * Configuration centralisée pour les emails transactionnels
  * Domaine vérifié : blancherenaudin.com ✅
  */
-
 export const EMAIL_CONFIG = {
   // ✅ Expéditeur par défaut (vérifié dans Resend)
   from: {
@@ -25,6 +31,7 @@ export const EMAIL_CONFIG = {
     noreply: 'noreply@blancherenaudin.com',
     orders: 'contact@blancherenaudin.com',
     support: 'contact@blancherenaudin.com',
+    newsletter: 'contact@blancherenaudin.com', // ✅ Ajouté pour newsletter
   },
 }
 

@@ -3,7 +3,7 @@
 ║                          ARBORESCENCE DU PROJET                             ║
 ║                                                                              ║
 ║  Projet: site_v1_next                                                    ║
-║  Généré: 19/10/2025 11:10:03                                            ║
+║  Généré: 19/10/2025 18:27:23                                            ║
 ║                                                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -33,6 +33,7 @@
 │   ├── 📝 mep-module-client-admin.md
 │   ├── 📝 Mep-page-admin.md
 │   ├── 📝 mep-stripe.md
+│   ├── 📝 MVP-Newsletter-avancement-19-10.md
 │   ├── 📝 MVP-Newsletter.md
 │   ├── 📝 Newsletter-specifications.md
 │   ├── 📝 point-etape-9-oct-2025.md
@@ -174,6 +175,8 @@
 │   │   │   │   │   └── 📁 send-test
 │   │   │   │   │       └── 🔷 route.ts
 │   │   │   │   ├── 📁 email-preview
+│   │   │   │   │   ├── 📁 newsletter-confirmation
+│   │   │   │   │   │   └── 🔷 route.ts
 │   │   │   │   │   ├── 📁 order-confirmation
 │   │   │   │   │   │   └── 🔷 route.ts
 │   │   │   │   │   ├── 📁 order-delivered
@@ -183,6 +186,10 @@
 │   │   │   │   │   ├── 📁 password-reset
 │   │   │   │   │   │   └── 🔷 route.ts
 │   │   │   │   │   └── 📁 welcome
+│   │   │   │   │       └── 🔷 route.ts
+│   │   │   │   ├── 📁 newsletter
+│   │   │   │   │   └── 📁 campaigns
+│   │   │   │   │       ├── 📁 [id]
 │   │   │   │   │       └── 🔷 route.ts
 │   │   │   │   ├── 📁 orders
 │   │   │   │   │   └── 📁 [id]
@@ -257,8 +264,6 @@
 │   │   │   │   │   └── 🔷 route.ts
 │   │   │   │   └── 📁 send-shipped
 │   │   │   │       └── 🔷 route.ts
-│   │   │   ├── 📁 test-newsletter
-│   │   │   │   └── 🔷 route.ts
 │   │   │   ├── 📁 webhooks
 │   │   │   │   └── 📁 stripe
 │   │   │   │       ├── 📁 resend
@@ -372,6 +377,8 @@
 │   │   │   ├── 🔷 Homepage.tsx
 │   │   │   ├── 🔷 InteractiveEntry.tsx
 │   │   │   └── 🔷 UnifiedHeader.tsx
+│   │   ├── 📁 newsletter
+│   │   │   └── 🔷 NewsletterSubscribe.tsx
 │   │   ├── 📁 products
 │   │   │   ├── 🔷 ProductCardJacquemus.tsx
 │   │   │   ├── 🔷 ProductCardMinimal.tsx
@@ -441,6 +448,7 @@
 │   │   │   └── 🔷 requireAdmin.ts
 │   │   ├── 📁 email
 │   │   │   ├── 🔷 config.ts
+│   │   │   ├── 🔷 newsletter-campaign.tsx
 │   │   │   ├── 🔷 newsletter-confirmation.tsx
 │   │   │   ├── 🔷 order-confirmation.tsx
 │   │   │   ├── 🔷 order-delivered.tsx
@@ -450,6 +458,11 @@
 │   │   │   ├── 🔷 send.ts
 │   │   │   ├── 🔷 utils.ts
 │   │   │   └── 🔷 welcome.tsx
+│   │   ├── 📁 newsletter
+│   │   │   ├── 🔷 images.ts
+│   │   │   ├── 🔷 render.ts
+│   │   │   ├── 🔷 utils.ts
+│   │   │   └── 🔷 validation.ts
 │   │   ├── 📁 services
 │   │   │   └── 🔷 customerService.ts
 │   │   ├── 📁 shipping
@@ -518,8 +531,8 @@
 
 
 📈 Statistiques :
-   • Dossiers : 173
-   • Fichiers : 285
-   • Total : 458 éléments
+   • Dossiers : 178
+   • Fichiers : 292
+   • Total : 470 éléments
 
 💡 Généré automatiquement - Ne pas modifier manuellement
