@@ -37,6 +37,8 @@ export const EMAIL_TYPES = {
   ORDER_DELIVERED: 'order-delivered',
   WELCOME: 'welcome',
   PASSWORD_RESET: 'password-reset',
+  NEWSLETTER_CONFIRMATION: 'newsletter-confirmation',
+  NEWSLETTER_CAMPAIGN: 'newsletter-campaign',
 } as const
 
 export type EmailType = (typeof EMAIL_TYPES)[keyof typeof EMAIL_TYPES]

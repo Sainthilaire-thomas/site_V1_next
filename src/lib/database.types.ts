@@ -397,6 +397,249 @@ export type Database = {
         }
         Relationships: []
       }
+      newsletter_campaigns: {
+        Row: {
+          bounced: number | null
+          click_rate: number | null
+          clicked: number | null
+          complained: number | null
+          content: Json
+          created_at: string | null
+          created_by: string | null
+          delivered: number | null
+          id: string
+          name: string
+          open_rate: number | null
+          opened: number | null
+          preview_text: string | null
+          scheduled_for: string | null
+          sent: number | null
+          sent_at: string | null
+          status: string
+          subject: string
+          unsubscribed: number | null
+          updated_at: string | null
+          utm_campaign: string
+        }
+        Insert: {
+          bounced?: number | null
+          click_rate?: number | null
+          clicked?: number | null
+          complained?: number | null
+          content: Json
+          created_at?: string | null
+          created_by?: string | null
+          delivered?: number | null
+          id?: string
+          name: string
+          open_rate?: number | null
+          opened?: number | null
+          preview_text?: string | null
+          scheduled_for?: string | null
+          sent?: number | null
+          sent_at?: string | null
+          status?: string
+          subject: string
+          unsubscribed?: number | null
+          updated_at?: string | null
+          utm_campaign: string
+        }
+        Update: {
+          bounced?: number | null
+          click_rate?: number | null
+          clicked?: number | null
+          complained?: number | null
+          content?: Json
+          created_at?: string | null
+          created_by?: string | null
+          delivered?: number | null
+          id?: string
+          name?: string
+          open_rate?: number | null
+          opened?: number | null
+          preview_text?: string | null
+          scheduled_for?: string | null
+          sent?: number | null
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          unsubscribed?: number | null
+          updated_at?: string | null
+          utm_campaign?: string
+        }
+        Relationships: []
+      }
+      newsletter_clicks: {
+        Row: {
+          clicked_at: string | null
+          id: string
+          link_url: string
+          send_id: string
+          utm_content: string | null
+        }
+        Insert: {
+          clicked_at?: string | null
+          id?: string
+          link_url: string
+          send_id: string
+          utm_content?: string | null
+        }
+        Update: {
+          clicked_at?: string | null
+          id?: string
+          link_url?: string
+          send_id?: string
+          utm_content?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_clicks_send_id_fkey"
+            columns: ["send_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_sends"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      newsletter_sends: {
+        Row: {
+          bounce_reason: string | null
+          campaign_id: string
+          clicks_count: number | null
+          complaint_reason: string | null
+          created_at: string | null
+          delivered_at: string | null
+          first_clicked_at: string | null
+          first_opened_at: string | null
+          id: string
+          last_clicked_at: string | null
+          last_opened_at: string | null
+          opens_count: number | null
+          resend_email_id: string | null
+          sent_at: string | null
+          status: string
+          subscriber_id: string
+        }
+        Insert: {
+          bounce_reason?: string | null
+          campaign_id: string
+          clicks_count?: number | null
+          complaint_reason?: string | null
+          created_at?: string | null
+          delivered_at?: string | null
+          first_clicked_at?: string | null
+          first_opened_at?: string | null
+          id?: string
+          last_clicked_at?: string | null
+          last_opened_at?: string | null
+          opens_count?: number | null
+          resend_email_id?: string | null
+          sent_at?: string | null
+          status?: string
+          subscriber_id: string
+        }
+        Update: {
+          bounce_reason?: string | null
+          campaign_id?: string
+          clicks_count?: number | null
+          complaint_reason?: string | null
+          created_at?: string | null
+          delivered_at?: string | null
+          first_clicked_at?: string | null
+          first_opened_at?: string | null
+          id?: string
+          last_clicked_at?: string | null
+          last_opened_at?: string | null
+          opens_count?: number | null
+          resend_email_id?: string | null
+          sent_at?: string | null
+          status?: string
+          subscriber_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_sends_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "newsletter_sends_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_performance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "newsletter_sends_subscriber_id_fkey"
+            columns: ["subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_subscribers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      newsletter_subscribers: {
+        Row: {
+          consent_given_at: string
+          consent_ip: string | null
+          consent_source: string | null
+          created_at: string | null
+          email: string
+          first_name: string | null
+          id: string
+          last_clicked_at: string | null
+          last_name: string | null
+          last_opened_at: string | null
+          status: string
+          total_clicks: number | null
+          total_opens: number | null
+          unsubscribe_reason: string | null
+          unsubscribed_at: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          consent_given_at?: string
+          consent_ip?: string | null
+          consent_source?: string | null
+          created_at?: string | null
+          email: string
+          first_name?: string | null
+          id?: string
+          last_clicked_at?: string | null
+          last_name?: string | null
+          last_opened_at?: string | null
+          status?: string
+          total_clicks?: number | null
+          total_opens?: number | null
+          unsubscribe_reason?: string | null
+          unsubscribed_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          consent_given_at?: string
+          consent_ip?: string | null
+          consent_source?: string | null
+          created_at?: string | null
+          email?: string
+          first_name?: string | null
+          id?: string
+          last_clicked_at?: string | null
+          last_name?: string | null
+          last_opened_at?: string | null
+          status?: string
+          total_clicks?: number | null
+          total_opens?: number | null
+          unsubscribe_reason?: string | null
+          unsubscribed_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
@@ -1143,6 +1386,32 @@ export type Database = {
         }
         Relationships: []
       }
+      newsletter_performance: {
+        Row: {
+          click_rate: number | null
+          clicked: number | null
+          delivered: number | null
+          id: string | null
+          name: string | null
+          open_rate: number | null
+          opened: number | null
+          sent: number | null
+          sent_at: string | null
+          status: string | null
+          subject: string | null
+          unsubscribed: number | null
+          utm_campaign: string | null
+          web_add_to_cart: number | null
+          web_avg_order_value: number | null
+          web_conversion_rate: number | null
+          web_pageviews: number | null
+          web_product_views: number | null
+          web_purchases: number | null
+          web_revenue: number | null
+          web_sessions: number | null
+        }
+        Relationships: []
+      }
       orders_with_details: {
         Row: {
           admin_notes: string | null
@@ -1240,6 +1509,14 @@ export type Database = {
           title: string
           views: number
         }[]
+      }
+      increment_campaign_counter: {
+        Args: { p_campaign_id: string; p_counter: string }
+        Returns: undefined
+      }
+      increment_subscriber_counter: {
+        Args: { p_counter: string; p_subscriber_id: string }
+        Returns: undefined
       }
       insert_order_with_addresses: {
         Args: {
