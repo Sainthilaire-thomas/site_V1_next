@@ -21,6 +21,7 @@ import {
   TrendingUp,
   Link2,
   FileText,
+  Mail, // ✅ AJOUTÉ
 } from 'lucide-react'
 
 interface NavItem {
@@ -95,7 +96,7 @@ export function AdminNav() {
           icon: FileText,
         },
         {
-          label: 'Comparaison', // ✅ AJOUTER ICI
+          label: 'Comparaison',
           href: '/admin/social/compare',
           icon: BarChart3,
         },
@@ -105,6 +106,12 @@ export function AdminNav() {
           icon: Link2,
         },
       ],
+    },
+    // ✅ AJOUTÉ : Email Preview
+    {
+      label: 'Email Preview',
+      href: '/admin/email-preview',
+      icon: Mail,
     },
   ]
 
@@ -149,12 +156,11 @@ export function AdminNav() {
           </button>
 
           {/* Sous-menu */}
-          {isOpen &&
-            item.children /* ✅ AJOUT : Vérification item.children */ && (
-              <div className="ml-4 space-y-1 border-l-2 border-border pl-2">
-                {item.children.map((child) => renderNavItem(child, depth + 1))}
-              </div>
-            )}
+          {isOpen && item.children && (
+            <div className="ml-4 space-y-1 border-l-2 border-border pl-2">
+              {item.children.map((child) => renderNavItem(child, depth + 1))}
+            </div>
+          )}
         </div>
       )
     }

@@ -1,12 +1,18 @@
 // src/components/layout/FooterMinimal.tsx
 import Link from 'next/link'
+import { NewsletterSubscribe } from '@/components/newsletter/NewsletterSubscribe'
 
 export default function FooterMinimal() {
   return (
     <footer className="border-t border-grey-light py-16 px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-12 mb-16">
-          {/* Column 1: Shop */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-12 mb-16">
+          {/* Column 1: Newsletter */}
+          <div>
+            <NewsletterSubscribe />
+          </div>
+
+          {/* Column 2: Shop */}
           <div>
             <h3 className="text-product mb-3">SHOP</h3>
             <ul className="space-y-3">
@@ -36,7 +42,7 @@ export default function FooterMinimal() {
               </li>
               <li>
                 <Link
-                  href="/silhouettess"
+                  href="/silhouettes"
                   className="text-[13px] tracking-[0.05em] font-semibold lowercase text-grey-medium hover:text-black transition-colors"
                 >
                   .silhouettes
@@ -45,7 +51,7 @@ export default function FooterMinimal() {
             </ul>
           </div>
 
-          {/* Column 2: House */}
+          {/* Column 3: House */}
           <div>
             <h3 className="text-product mb-3">MAISON</h3>
             <ul className="space-y-3">
@@ -76,7 +82,7 @@ export default function FooterMinimal() {
             </ul>
           </div>
 
-          {/* Column 3: Help */}
+          {/* Column 4: Help */}
           <div>
             <h3 className="text-product mb-3">HELP</h3>
             <ul className="space-y-3">

@@ -21,13 +21,13 @@ import {
   Send,
   Loader2,
   CheckCircle2,
+  Newspaper, // ✅ AJOUTÉ pour Newsletter
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
 export default function EmailPreviewPage() {
   const [sendingEmail, setSendingEmail] = useState<string | null>(null)
-  // ✅ Plus de restriction : vous pouvez entrer n'importe quel email
   const [testEmail, setTestEmail] = useState('sonearthomas@gmail.com')
 
   const emailTemplates = [
@@ -66,10 +66,17 @@ export default function EmailPreviewPage() {
       icon: Key,
       type: 'password-reset',
     },
+    // ✅ AJOUTÉ : Newsletter Confirmation
+    {
+      name: 'Newsletter confirmation',
+      href: '/api/admin/email-preview/newsletter-confirmation',
+      description: 'Double opt-in confirmation email',
+      icon: Newspaper,
+      type: 'newsletter-confirmation',
+    },
   ]
 
   const handleSendTest = async (type: string, templateName: string) => {
-    // ✅ Validation basique de l'email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(testEmail)) {
       toast.error('Please enter a valid email address')

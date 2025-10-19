@@ -8,8 +8,10 @@ import {
   sendOrderDeliveredEmail,
   sendWelcomeEmail,
   sendPasswordResetEmail,
+  sendNewsletterConfirmationEmail, // ✅ AJOUTÉ
 } from '@/lib/email/send'
 
+import NewsletterConfirmation from '@/lib/email/newsletter-confirmation'
 export async function POST(request: NextRequest) {
   try {
     // Vérifier que l'utilisateur est admin
@@ -161,6 +163,14 @@ export async function POST(request: NextRequest) {
         await sendPasswordResetEmail(email, {
           resetUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/reset-password?token=test123`,
           expiresIn: '1 hour',
+        })
+        break
+      }
+
+      case 'newsletter-confirmation': {
+        await sendNewsletterConfirmationEmail(email, {
+          firstName: 'thomas',
+          confirmUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/newsletter/confirm?token=TEST_TOKEN_123456`,
         })
         break
       }

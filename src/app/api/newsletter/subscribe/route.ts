@@ -62,7 +62,12 @@ export async function POST(req: NextRequest) {
       })
     ).toString('base64')
 
-    const confirmUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.blancherenaudin.com'}/newsletter/confirm?token=${confirmToken}`
+    // ✅ CORRECTION : Ajouter /api/ dans l'URL
+    const baseUrl =
+      process.env.NEXT_PUBLIC_BASE_URL || 'https://www.blancherenaudin.com'
+    const confirmUrl = `${baseUrl}/api/newsletter/confirm?token=${confirmToken}`
+
+    console.log('🔗 Lien de confirmation généré:', confirmUrl)
 
     // Envoyer email de confirmation
     await sendEmail({

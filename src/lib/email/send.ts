@@ -229,6 +229,23 @@ export async function sendWelcomeEmail(
   })
 }
 
+export async function sendNewsletterConfirmationEmail(
+  email: string,
+  data: {
+    firstName?: string
+    confirmUrl: string
+  }
+) {
+  const NewsletterConfirmation = (await import('./newsletter-confirmation'))
+    .default
+  return sendEmail({
+    to: email,
+    subject: 'confirm your newsletter subscription',
+    react: NewsletterConfirmation(data),
+    type: 'newsletter-confirmation',
+  })
+}
+
 /**
  * Formater un prix en centimes en euros
  */
