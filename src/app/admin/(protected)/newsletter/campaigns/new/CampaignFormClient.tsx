@@ -17,15 +17,14 @@ type Product = {
   id: string
   name: string
   price: number
-  stock: number
-  image_url: string | null
+  image_id: string | null
 }
 
 type Props = {
   products: Product[]
 }
 
-export default function CampaignFormClient({ products }: Props) {
+export default function CampaignFormClient({ products = [] }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [heroImage, setHeroImage] = useState<string>('')
@@ -63,70 +62,123 @@ export default function CampaignFormClient({ products }: Props) {
     reader.readAsDataURL(file)
     setHeroFile(file)
   }
-
   const handleSubmit = async (action: 'save' | 'test' | 'send') => {
-    // Validation
+    console.log('🎯 ========== handleSubmit CALLED ==========')
+    console.log('📌 Action:', action)
+    console.log('📝 FormData:', formData)
+    console.log('🖼️ Hero image:', heroImage ? 'Present' : 'Missing')
+    console.log('📦 Hero file:', heroFile ? heroFile.name : 'No file')
+    console.log('🔒 Loading state:', loading)
+
+    // Validation de base
+    console.log('✅ Step 1: Validating name...')
     if (!formData.name.trim()) {
+      console.log('❌ VALIDATION FAILED: Name is empty')
       toast.error('Le nom de la campagne est requis')
       return
     }
+    console.log('✅ Name OK:', formData.name)
+
+    console.log('✅ Step 2: Validating subject...')
     if (!formData.subject.trim()) {
+      console.log('❌ VALIDATION FAILED: Subject is empty')
       toast.error("L'objet de l'email est requis")
       return
     }
-    if (!heroImage) {
-      toast.error("L'image hero est requise")
-      return
-    }
-    if (
-      !formData.product_1 ||
-      !formData.product_2 ||
-      !formData.product_3 ||
-      !formData.product_4
-    ) {
-      toast.error('Veuillez sélectionner 4 produits')
-      return
-    }
+    console.log('✅ Subject OK:', formData.subject)
 
+    // ✅ Image hero requise uniquement pour test/envoi
+    console.log('✅ Step 3: Validating hero image (if needed)...')
+    if ((action === 'test' || action === 'send') && !heroImage) {
+      console.log('❌ VALIDATION FAILED: Hero image required for', action)
+      toast.error("L'image hero est requise pour tester/envoyer")
+      return
+    }
+    console.log('✅ Hero image validation passed')
+
+    // ✅ Produits requis uniquement pour test/envoi
+    console.log('✅ Step 4: Validating products (if needed)...')
+    if (action === 'test' || action === 'send') {
+      if (
+        !formData.product_1 ||
+        !formData.product_2 ||
+        !formData.product_3 ||
+        !formData.product_4
+      ) {
+        console.log('❌ VALIDATION FAILED: Missing products')
+        console.log('Products:', {
+          p1: formData.product_1,
+          p2: formData.product_2,
+          p3: formData.product_3,
+          p4: formData.product_4,
+        })
+        toast.error('Veuillez sélectionner 4 produits')
+        return
+      }
+    }
+    console.log('✅ Products validation passed')
+
+    console.log('🚀 ALL VALIDATIONS PASSED - Starting API calls...')
     setLoading(true)
 
     try {
-      // 1. Upload image hero si nécessaire
+      // 1. Upload image hero si fichier présent
       let heroImageUrl = heroImage
       if (heroFile) {
+        console.log('📤 Step 5: Uploading hero image...')
         const formDataUpload = new FormData()
         formDataUpload.append('file', heroFile)
 
+        console.log('📤 Calling /api/admin/newsletter/upload-hero...')
         const uploadRes = await fetch('/api/admin/newsletter/upload-hero', {
           method: 'POST',
           body: formDataUpload,
         })
 
-        if (!uploadRes.ok) throw new Error('Erreur upload image')
+        console.log('📥 Upload response status:', uploadRes.status)
 
-        const { url } = await uploadRes.json()
-        heroImageUrl = url
+        if (!uploadRes.ok) {
+          const errorText = await uploadRes.text()
+          console.error('❌ Upload error response:', errorText)
+          throw new Error('Erreur upload image')
+        }
+
+        const uploadData = await uploadRes.json()
+        console.log('📥 Upload response data:', uploadData)
+
+        heroImageUrl = uploadData.url
+        console.log('✅ Hero image uploaded:', heroImageUrl)
+      } else {
+        console.log('⏭️ No hero file to upload, keeping preview URL')
       }
 
       // 2. Créer la campagne
+      console.log('📤 Step 6: Creating campaign...')
       const campaignData = {
         name: formData.name,
         subject: formData.subject,
-        preview_text: formData.preview_text,
+        preview_text: formData.preview_text || '',
+        status: action === 'send' ? 'sent' : 'draft',
         content: {
-          hero_image_url: heroImageUrl,
-          title: formData.title,
-          subtitle: formData.subtitle,
-          cta_text: formData.cta_text,
-          cta_link: formData.cta_link,
+          hero_image_url: heroImageUrl || null,
+          title: formData.title || '',
+          subtitle: formData.subtitle || '',
+          cta_text: formData.cta_text || 'Découvrir',
+          cta_link: formData.cta_link || '/products',
           products: [
-            { id: formData.product_1, position: 1 },
-            { id: formData.product_2, position: 2 },
-            { id: formData.product_3, position: 3 },
-            { id: formData.product_4, position: 4 },
-          ],
+            formData.product_1 ? { id: formData.product_1, position: 1 } : null,
+            formData.product_2 ? { id: formData.product_2, position: 2 } : null,
+            formData.product_3 ? { id: formData.product_3, position: 3 } : null,
+            formData.product_4 ? { id: formData.product_4, position: 4 } : null,
+          ].filter(Boolean),
         },
       }
+
+      console.log(
+        '📤 Campaign data to send:',
+        JSON.stringify(campaignData, null, 2)
+      )
+      console.log('📤 Calling /api/admin/newsletter/campaigns...')
 
       const createRes = await fetch('/api/admin/newsletter/campaigns', {
         method: 'POST',
@@ -134,25 +186,50 @@ export default function CampaignFormClient({ products }: Props) {
         body: JSON.stringify(campaignData),
       })
 
-      if (!createRes.ok) throw new Error('Erreur création campagne')
+      console.log('📥 Create response status:', createRes.status)
 
-      const { campaign } = await createRes.json()
+      if (!createRes.ok) {
+        const errorText = await createRes.text()
+        console.error('❌ Create campaign error response:', errorText)
+        throw new Error('Erreur création campagne')
+      }
+
+      const createData = await createRes.json()
+      console.log('📥 Create response data:', createData)
+      console.log('✅ Campaign created:', createData.campaign)
 
       if (action === 'save') {
-        toast.success('Campagne sauvegardée')
+        console.log('✅ Action = save: Showing success toast and redirecting')
+        toast.success('✅ Campagne sauvegardée en brouillon')
         router.push('/admin/newsletter')
         router.refresh()
       } else if (action === 'test') {
-        // TODO: Implémenter modal email de test
-        toast.info('Email de test à implémenter')
+        console.log('📧 Action = test: Showing test info')
+        toast.info('📧 Email de test à implémenter')
       } else if (action === 'send') {
-        // TODO: Implémenter modal confirmation envoi
-        toast.info('Envoi à implémenter')
+        console.log('📨 Action = send: Showing success toast and redirecting')
+        toast.success('📨 Campagne envoyée avec succès')
+        router.push('/admin/newsletter')
+        router.refresh()
       }
+
+      console.log('🎉 ========== handleSubmit COMPLETED ==========')
     } catch (error) {
-      console.error('Error:', error)
-      toast.error('Une erreur est survenue')
+      console.error('❌ ========== handleSubmit ERROR ==========')
+      console.error('Error object:', error)
+      console.error(
+        'Error message:',
+        error instanceof Error ? error.message : 'Unknown'
+      )
+      console.error(
+        'Error stack:',
+        error instanceof Error ? error.stack : 'N/A'
+      )
+      toast.error(
+        error instanceof Error ? error.message : 'Une erreur est survenue'
+      )
     } finally {
+      console.log('🔓 Setting loading to false')
       setLoading(false)
     }
   }
@@ -322,8 +399,7 @@ export default function CampaignFormClient({ products }: Props) {
                     <option value="">Sélectionner...</option>
                     {products.map((product) => (
                       <option key={product.id} value={product.id}>
-                        {product.name} - {product.price}€ (Stock:{' '}
-                        {product.stock})
+                        {product.name} - {product.price}€
                       </option>
                     ))}
                   </select>

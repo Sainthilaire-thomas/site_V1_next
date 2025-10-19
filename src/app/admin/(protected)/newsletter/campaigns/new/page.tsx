@@ -22,33 +22,40 @@ export default async function NewCampaignPage() {
   if (profile?.role !== 'admin') redirect('/')
 
   // Récupérer les produits actifs pour la sélection
-  const { data: products } = await supabase
+  const { data: products, error: productsError } = await supabase
     .from('products')
     .select(
       `
       id,
       name,
       price,
-      total_stock,
-      product_images (
-        image_url,
-        sort_order
+      product_images!product_images_product_id_fkey (
+        id,
+        sort_order,
+        is_primary
       )
     `
     )
-    .eq('status', 'active')
-    .gt('total_stock', 0)
+    .eq('is_active', true)
     .order('name')
 
-  // Formatter les produits avec leur première image
-  const formattedProducts =
-    products?.map((p) => ({
+  if (productsError) {
+    console.error('Error fetching products:', productsError)
+  }
+
+  // Formatter les produits avec leur première image (avec fallback sécurisé)
+  const formattedProducts = (products || []).map((p) => {
+    // Trouver l'image primaire ou prendre la première
+    const images = Array.isArray(p.product_images) ? p.product_images : []
+    const primaryImage = images.find((img) => img.is_primary) || images[0]
+
+    return {
       id: p.id,
       name: p.name,
       price: p.price,
-      stock: p.total_stock,
-      image_url: p.product_images?.[0]?.image_url || null,
-    })) || []
+      image_id: primaryImage?.id || null,
+    }
+  })
 
   return (
     <div className="p-8">
@@ -60,7 +67,8 @@ export default async function NewCampaignPage() {
           </p>
         </div>
 
-        <CampaignFormClient products={formattedProducts} />
+        {/* Toujours passer un array, même vide */}
+        <CampaignFormClient products={formattedProducts || []} />
       </div>
     </div>
   )
