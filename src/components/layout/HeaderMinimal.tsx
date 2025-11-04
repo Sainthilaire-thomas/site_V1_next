@@ -250,8 +250,9 @@ export default function HeaderMinimal() {
         ].join(' ')}
       >
         <div className="flex items-center justify-between px-12 py-6">
+          {/* ✅ FIX: Ajout de font-brand pour Archivo Black */}
           <span
-            className="text-sm font-bold tracking-[0.15em]"
+            className="text-sm font-brand tracking-[0.15em]"
             style={{ color: 'hsl(271 74% 37%)' }}
           >
             .blancherenaudin

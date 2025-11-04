@@ -26,12 +26,15 @@ export function ProductImage({
   const [signedUrl, setSignedUrl] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(false) // ✅ NOUVEAU
 
   useEffect(() => {
     let cancelled = false
 
     async function fetchSignedUrl() {
       setIsLoading(true)
+      setImageLoaded(false) // ✅ Reset au changement d'image
+
       try {
         const format = await detectBestFormat()
 
@@ -122,13 +125,16 @@ export function ProductImage({
     )
   }
 
-  // ✅ Image chargée
+  // ✅ Image chargée avec FADE-IN
   return (
     <img
       src={signedUrl}
       alt={alt}
-      className={className}
+      className={`${className} transition-opacity duration-300 ${
+        imageLoaded ? 'opacity-100' : 'opacity-0'
+      }`}
       loading={priority ? 'eager' : 'lazy'}
+      onLoad={() => setImageLoaded(true)} // ✅ Déclenche le fade-in
       onError={() => setError(true)}
     />
   )
@@ -146,12 +152,15 @@ export function ResponsiveProductImage({
   const [urls, setUrls] = useState<Record<ImageSize, string> | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(false) // ✅ NOUVEAU
 
   useEffect(() => {
     let cancelled = false
 
     async function fetchAllUrls() {
       setIsLoading(true)
+      setImageLoaded(false) // ✅ Reset
+
       try {
         const format = await detectBestFormat()
         const sizes: ImageSize[] = ['sm', 'md', 'lg', 'xl']
@@ -258,7 +267,7 @@ export function ResponsiveProductImage({
     )
   }
 
-  // ✅ Picture avec fallback
+  // ✅ Picture avec fallback + FADE-IN
   return (
     <picture>
       {urls.sm && <source media="(max-width: 640px)" srcSet={urls.sm} />}
@@ -267,8 +276,11 @@ export function ResponsiveProductImage({
       <img
         src={urls.xl || urls.lg || urls.md || urls.sm}
         alt={alt}
-        className={className}
+        className={`${className} transition-opacity duration-300 ${
+          imageLoaded ? 'opacity-100' : 'opacity-0'
+        }`}
         loading="lazy"
+        onLoad={() => setImageLoaded(true)} // ✅ Déclenche le fade-in
         onError={(e) => {
           console.error('Image failed to load')
           setError(true)
