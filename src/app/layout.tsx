@@ -1,7 +1,7 @@
 // src/app/layout.tsx
 import type { Metadata } from 'next'
 import Script from 'next/script'
-import { Suspense } from 'react' // ← Ajoutez cet import
+import { Suspense } from 'react'
 import { Archivo_Black, Archivo_Narrow } from 'next/font/google'
 import './globals.css'
 import { Analytics } from '@vercel/analytics/react'
@@ -43,7 +43,18 @@ export default function RootLayout({
           <AnalyticsTracker />
         </Suspense>
 
-        {children}
+        {/* ✅ NOUVEAU : Wrapper les children dans Suspense */}
+        <Suspense
+          fallback={
+            <div className="min-h-screen flex items-center justify-center bg-white">
+              <div className="text-sm text-gray-400 animate-pulse">
+                loading...
+              </div>
+            </div>
+          }
+        >
+          {children}
+        </Suspense>
 
         {/* Vercel Analytics (garde pour la perf) */}
         <Analytics />
