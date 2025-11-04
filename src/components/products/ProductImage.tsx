@@ -24,15 +24,13 @@ export function ProductImage({
   priority = false,
 }: ProductImageProps) {
   const [signedUrl, setSignedUrl] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState(false)
   const [imageLoaded, setImageLoaded] = useState(false)
+  const [error, setError] = useState(false)
 
   useEffect(() => {
     let cancelled = false
 
     async function fetchSignedUrl() {
-      setIsLoading(true)
       setImageLoaded(false)
 
       try {
@@ -40,7 +38,10 @@ export function ProductImage({
 
         const res = await fetch(
           `/api/admin/product-images/${imageId}/signed-url?variant=${size}&format=${format}&mode=json`,
-          { cache: 'no-store' }
+          {
+            cache: 'force-cache',
+            next: { revalidate: 3600 },
+          }
         )
 
         if (!res.ok) {
@@ -52,13 +53,11 @@ export function ProductImage({
 
         if (!cancelled && data.signedUrl) {
           setSignedUrl(data.signedUrl)
-          setIsLoading(false)
         }
       } catch (err) {
         console.error('Error fetching signed URL:', err)
         if (!cancelled) {
           setError(true)
-          setIsLoading(false)
         }
       }
     }
@@ -70,74 +69,28 @@ export function ProductImage({
     }
   }, [imageId, size])
 
-  // ✅ État d'erreur uniquement
-  if (error) {
-    return (
-      <div
-        className={`flex items-center justify-center bg-gray-100 dark:bg-gray-800 ${className}`}
-      >
-        <div className="text-center">
-          <svg
-            className="w-12 h-12 mx-auto text-gray-400 dark:text-gray-500 mb-2"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-            />
-          </svg>
-          <span className="text-gray-500 dark:text-gray-400 text-xs">
-            Image indisponible
-          </span>
-        </div>
-      </div>
-    )
-  }
-
-  // ✅ Container avec skeleton + image superposés
+  // ✅ Container minimaliste - fond blanc
   return (
-    <div className={`relative ${className}`}>
-      {/* Skeleton - fade out quand image chargée */}
-      <div
-        className={`absolute inset-0 animate-pulse bg-gray-200 dark:bg-gray-700 transition-opacity duration-500 ${
-          imageLoaded ? 'opacity-0 pointer-events-none' : 'opacity-100'
-        }`}
-      >
-        <div className="h-full w-full flex items-center justify-center">
-          <svg
-            className="w-12 h-12 text-gray-400 dark:text-gray-500"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-            />
-          </svg>
-        </div>
-      </div>
-
-      {/* Image - fade in quand chargée */}
-      {signedUrl && (
+    <div className={`relative bg-white ${className}`}>
+      {/* Image avec fade-in élégant */}
+      {signedUrl && !error && (
         <img
           src={signedUrl}
           alt={alt}
-          className={`relative w-full h-full transition-opacity duration-500 ${
+          className={`w-full h-full object-cover transition-opacity duration-500 ${
             imageLoaded ? 'opacity-100' : 'opacity-0'
           }`}
           loading={priority ? 'eager' : 'lazy'}
           onLoad={() => setImageLoaded(true)}
           onError={() => setError(true)}
         />
+      )}
+
+      {/* État d'erreur minimaliste */}
+      {error && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-gray-400 text-xs">Image indisponible</span>
+        </div>
       )}
     </div>
   )
@@ -153,15 +106,13 @@ export function ResponsiveProductImage({
   className = '',
 }: Omit<ProductImageProps, 'size'>) {
   const [urls, setUrls] = useState<Record<ImageSize, string> | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState(false)
   const [imageLoaded, setImageLoaded] = useState(false)
+  const [error, setError] = useState(false)
 
   useEffect(() => {
     let cancelled = false
 
     async function fetchAllUrls() {
-      setIsLoading(true)
       setImageLoaded(false)
 
       try {
@@ -172,7 +123,10 @@ export function ResponsiveProductImage({
           try {
             const res = await fetch(
               `/api/admin/product-images/${imageId}/signed-url?variant=${size}&format=${format}&mode=json`,
-              { cache: 'no-store' }
+              {
+                cache: 'force-cache',
+                next: { revalidate: 3600 },
+              }
             )
             if (!res.ok) throw new Error('Failed')
             const data = await res.json()
@@ -197,13 +151,11 @@ export function ResponsiveProductImage({
           } else {
             setUrls(newUrls)
           }
-          setIsLoading(false)
         }
       } catch (err) {
         console.error('Error fetching URLs:', err)
         if (!cancelled) {
           setError(true)
-          setIsLoading(false)
         }
       }
     }
@@ -215,72 +167,19 @@ export function ResponsiveProductImage({
     }
   }, [imageId])
 
-  // ✅ État d'erreur uniquement
-  if (error) {
-    return (
-      <div
-        className={`flex items-center justify-center bg-gray-100 dark:bg-gray-800 ${className}`}
-      >
-        <div className="text-center">
-          <svg
-            className="w-12 h-12 mx-auto text-gray-400 dark:text-gray-500 mb-2"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-            />
-          </svg>
-          <span className="text-gray-500 dark:text-gray-400 text-xs">
-            Image indisponible
-          </span>
-        </div>
-      </div>
-    )
-  }
-
-  // ✅ Container avec skeleton + picture superposés
+  // ✅ Container minimaliste - fond blanc
   return (
-    <div className={`relative ${className}`}>
-      {/* Skeleton - fade out quand image chargée */}
-      <div
-        className={`absolute inset-0 animate-pulse bg-gray-200 dark:bg-gray-700 transition-opacity duration-500 ${
-          imageLoaded ? 'opacity-0 pointer-events-none' : 'opacity-100'
-        }`}
-      >
-        <div className="h-full w-full flex items-center justify-center">
-          <svg
-            className="w-12 h-12 text-gray-400 dark:text-gray-500"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-            />
-          </svg>
-        </div>
-      </div>
-
-      {/* Picture - fade in quand chargée */}
-      {urls && (
-        <picture className="relative">
+    <div className={`relative bg-white ${className}`}>
+      {/* Picture avec fade-in élégant */}
+      {urls && !error && (
+        <picture>
           {urls.sm && <source media="(max-width: 640px)" srcSet={urls.sm} />}
           {urls.md && <source media="(max-width: 1024px)" srcSet={urls.md} />}
           {urls.lg && <source media="(max-width: 1536px)" srcSet={urls.lg} />}
           <img
             src={urls.xl || urls.lg || urls.md || urls.sm}
             alt={alt}
-            className={`w-full h-full transition-opacity duration-500 ${
+            className={`w-full h-full object-cover transition-opacity duration-500 ${
               imageLoaded ? 'opacity-100' : 'opacity-0'
             }`}
             loading="lazy"
@@ -291,6 +190,13 @@ export function ResponsiveProductImage({
             }}
           />
         </picture>
+      )}
+
+      {/* État d'erreur minimaliste */}
+      {error && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-gray-400 text-xs">Image indisponible</span>
+        </div>
       )}
     </div>
   )
