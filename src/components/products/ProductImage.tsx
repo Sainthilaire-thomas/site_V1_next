@@ -24,6 +24,7 @@ export function ProductImage({
   priority = false,
 }: ProductImageProps) {
   const [signedUrl, setSignedUrl] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const [imageLoaded, setImageLoaded] = useState(false)
   const [error, setError] = useState(false)
 
@@ -31,6 +32,7 @@ export function ProductImage({
     let cancelled = false
 
     async function fetchSignedUrl() {
+      setIsLoading(true)
       setImageLoaded(false)
 
       try {
@@ -38,10 +40,7 @@ export function ProductImage({
 
         const res = await fetch(
           `/api/admin/product-images/${imageId}/signed-url?variant=${size}&format=${format}&mode=json`,
-          {
-            cache: 'force-cache',
-            next: { revalidate: 3600 },
-          }
+          { cache: 'no-store' }
         )
 
         if (!res.ok) {
@@ -53,11 +52,13 @@ export function ProductImage({
 
         if (!cancelled && data.signedUrl) {
           setSignedUrl(data.signedUrl)
+          setIsLoading(false)
         }
       } catch (err) {
         console.error('Error fetching signed URL:', err)
         if (!cancelled) {
           setError(true)
+          setIsLoading(false)
         }
       }
     }
@@ -69,11 +70,26 @@ export function ProductImage({
     }
   }, [imageId, size])
 
-  // ✅ Container minimaliste - fond blanc
+  // ✅ Pendant chargement initial
+  if (isLoading && !signedUrl) {
+    return <div className={`bg-gray-50 ${className}`} />
+  }
+
+  // ✅ État d'erreur
+  if (error) {
+    return (
+      <div
+        className={`relative bg-white ${className} flex items-center justify-center`}
+      >
+        <span className="text-gray-400 text-xs">Image indisponible</span>
+      </div>
+    )
+  }
+
+  // ✅ Image avec fade-in
   return (
     <div className={`relative bg-white ${className}`}>
-      {/* Image avec fade-in élégant */}
-      {signedUrl && !error && (
+      {signedUrl && (
         <img
           src={signedUrl}
           alt={alt}
@@ -84,13 +100,6 @@ export function ProductImage({
           onLoad={() => setImageLoaded(true)}
           onError={() => setError(true)}
         />
-      )}
-
-      {/* État d'erreur minimaliste */}
-      {error && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-gray-400 text-xs">Image indisponible</span>
-        </div>
       )}
     </div>
   )
@@ -106,6 +115,7 @@ export function ResponsiveProductImage({
   className = '',
 }: Omit<ProductImageProps, 'size'>) {
   const [urls, setUrls] = useState<Record<ImageSize, string> | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const [imageLoaded, setImageLoaded] = useState(false)
   const [error, setError] = useState(false)
 
@@ -113,6 +123,7 @@ export function ResponsiveProductImage({
     let cancelled = false
 
     async function fetchAllUrls() {
+      setIsLoading(true)
       setImageLoaded(false)
 
       try {
@@ -123,10 +134,7 @@ export function ResponsiveProductImage({
           try {
             const res = await fetch(
               `/api/admin/product-images/${imageId}/signed-url?variant=${size}&format=${format}&mode=json`,
-              {
-                cache: 'force-cache',
-                next: { revalidate: 3600 },
-              }
+              { cache: 'no-store' }
             )
             if (!res.ok) throw new Error('Failed')
             const data = await res.json()
@@ -151,11 +159,13 @@ export function ResponsiveProductImage({
           } else {
             setUrls(newUrls)
           }
+          setIsLoading(false)
         }
       } catch (err) {
         console.error('Error fetching URLs:', err)
         if (!cancelled) {
           setError(true)
+          setIsLoading(false)
         }
       }
     }
@@ -167,11 +177,26 @@ export function ResponsiveProductImage({
     }
   }, [imageId])
 
-  // ✅ Container minimaliste - fond blanc
+  // ✅ Pendant chargement initial
+  if (isLoading && !urls) {
+    return <div className={`bg-gray-50 ${className}`} />
+  }
+
+  // ✅ État d'erreur
+  if (error) {
+    return (
+      <div
+        className={`relative bg-white ${className} flex items-center justify-center`}
+      >
+        <span className="text-gray-400 text-xs">Image indisponible</span>
+      </div>
+    )
+  }
+
+  // ✅ Picture avec fade-in
   return (
     <div className={`relative bg-white ${className}`}>
-      {/* Picture avec fade-in élégant */}
-      {urls && !error && (
+      {urls && (
         <picture>
           {urls.sm && <source media="(max-width: 640px)" srcSet={urls.sm} />}
           {urls.md && <source media="(max-width: 1024px)" srcSet={urls.md} />}
@@ -191,13 +216,6 @@ export function ResponsiveProductImage({
           />
         </picture>
       )}
-
-      {/* État d'erreur minimaliste */}
-      {error && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-gray-400 text-xs">Image indisponible</span>
-        </div>
-      )}
     </div>
   )
 }
@@ -206,11 +224,8 @@ export function ResponsiveProductImage({
  * Détecte le meilleur format d'image supporté par le navigateur
  */
 async function detectBestFormat(): Promise<ImageFormat> {
-  // Support AVIF
   if (await supportsFormat('avif')) return 'avif'
-  // Support WebP
   if (await supportsFormat('webp')) return 'webp'
-  // Fallback JPEG
   return 'jpg'
 }
 
