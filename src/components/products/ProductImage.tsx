@@ -26,14 +26,14 @@ export function ProductImage({
   const [signedUrl, setSignedUrl] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(false)
-  const [imageLoaded, setImageLoaded] = useState(false) // ✅ NOUVEAU
+  const [imageLoaded, setImageLoaded] = useState(false)
 
   useEffect(() => {
     let cancelled = false
 
     async function fetchSignedUrl() {
       setIsLoading(true)
-      setImageLoaded(false) // ✅ Reset au changement d'image
+      setImageLoaded(false)
 
       try {
         const format = await detectBestFormat()
@@ -70,34 +70,8 @@ export function ProductImage({
     }
   }, [imageId, size])
 
-  // ✅ Skeleton loader animé
-  if (isLoading) {
-    return (
-      <div
-        className={`animate-pulse bg-gray-200 dark:bg-gray-700 ${className}`}
-      >
-        <div className="h-full w-full flex items-center justify-center">
-          <svg
-            className="w-12 h-12 text-gray-400 dark:text-gray-500"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-            />
-          </svg>
-        </div>
-      </div>
-    )
-  }
-
-  // ✅ État d'erreur
-  if (error || !signedUrl) {
+  // ✅ État d'erreur uniquement
+  if (error) {
     return (
       <div
         className={`flex items-center justify-center bg-gray-100 dark:bg-gray-800 ${className}`}
@@ -125,18 +99,47 @@ export function ProductImage({
     )
   }
 
-  // ✅ Image chargée avec FADE-IN
+  // ✅ Container avec skeleton + image superposés
   return (
-    <img
-      src={signedUrl}
-      alt={alt}
-      className={`${className} transition-opacity duration-300 ${
-        imageLoaded ? 'opacity-100' : 'opacity-0'
-      }`}
-      loading={priority ? 'eager' : 'lazy'}
-      onLoad={() => setImageLoaded(true)} // ✅ Déclenche le fade-in
-      onError={() => setError(true)}
-    />
+    <div className={`relative ${className}`}>
+      {/* Skeleton - fade out quand image chargée */}
+      <div
+        className={`absolute inset-0 animate-pulse bg-gray-200 dark:bg-gray-700 transition-opacity duration-500 ${
+          imageLoaded ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        }`}
+      >
+        <div className="h-full w-full flex items-center justify-center">
+          <svg
+            className="w-12 h-12 text-gray-400 dark:text-gray-500"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+        </div>
+      </div>
+
+      {/* Image - fade in quand chargée */}
+      {signedUrl && (
+        <img
+          src={signedUrl}
+          alt={alt}
+          className={`relative w-full h-full transition-opacity duration-500 ${
+            imageLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
+          loading={priority ? 'eager' : 'lazy'}
+          onLoad={() => setImageLoaded(true)}
+          onError={() => setError(true)}
+        />
+      )}
+    </div>
   )
 }
 
@@ -152,14 +155,14 @@ export function ResponsiveProductImage({
   const [urls, setUrls] = useState<Record<ImageSize, string> | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(false)
-  const [imageLoaded, setImageLoaded] = useState(false) // ✅ NOUVEAU
+  const [imageLoaded, setImageLoaded] = useState(false)
 
   useEffect(() => {
     let cancelled = false
 
     async function fetchAllUrls() {
       setIsLoading(true)
-      setImageLoaded(false) // ✅ Reset
+      setImageLoaded(false)
 
       try {
         const format = await detectBestFormat()
@@ -212,34 +215,8 @@ export function ResponsiveProductImage({
     }
   }, [imageId])
 
-  // ✅ Skeleton loader
-  if (isLoading) {
-    return (
-      <div
-        className={`animate-pulse bg-gray-200 dark:bg-gray-700 ${className}`}
-      >
-        <div className="h-full w-full flex items-center justify-center">
-          <svg
-            className="w-12 h-12 text-gray-400 dark:text-gray-500"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-            />
-          </svg>
-        </div>
-      </div>
-    )
-  }
-
-  // ✅ État d'erreur
-  if (error || !urls) {
+  // ✅ État d'erreur uniquement
+  if (error) {
     return (
       <div
         className={`flex items-center justify-center bg-gray-100 dark:bg-gray-800 ${className}`}
@@ -267,26 +244,55 @@ export function ResponsiveProductImage({
     )
   }
 
-  // ✅ Picture avec fallback + FADE-IN
+  // ✅ Container avec skeleton + picture superposés
   return (
-    <picture>
-      {urls.sm && <source media="(max-width: 640px)" srcSet={urls.sm} />}
-      {urls.md && <source media="(max-width: 1024px)" srcSet={urls.md} />}
-      {urls.lg && <source media="(max-width: 1536px)" srcSet={urls.lg} />}
-      <img
-        src={urls.xl || urls.lg || urls.md || urls.sm}
-        alt={alt}
-        className={`${className} transition-opacity duration-300 ${
-          imageLoaded ? 'opacity-100' : 'opacity-0'
+    <div className={`relative ${className}`}>
+      {/* Skeleton - fade out quand image chargée */}
+      <div
+        className={`absolute inset-0 animate-pulse bg-gray-200 dark:bg-gray-700 transition-opacity duration-500 ${
+          imageLoaded ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}
-        loading="lazy"
-        onLoad={() => setImageLoaded(true)} // ✅ Déclenche le fade-in
-        onError={(e) => {
-          console.error('Image failed to load')
-          setError(true)
-        }}
-      />
-    </picture>
+      >
+        <div className="h-full w-full flex items-center justify-center">
+          <svg
+            className="w-12 h-12 text-gray-400 dark:text-gray-500"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+        </div>
+      </div>
+
+      {/* Picture - fade in quand chargée */}
+      {urls && (
+        <picture className="relative">
+          {urls.sm && <source media="(max-width: 640px)" srcSet={urls.sm} />}
+          {urls.md && <source media="(max-width: 1024px)" srcSet={urls.md} />}
+          {urls.lg && <source media="(max-width: 1536px)" srcSet={urls.lg} />}
+          <img
+            src={urls.xl || urls.lg || urls.md || urls.sm}
+            alt={alt}
+            className={`w-full h-full transition-opacity duration-500 ${
+              imageLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
+            loading="lazy"
+            onLoad={() => setImageLoaded(true)}
+            onError={(e) => {
+              console.error('Image failed to load')
+              setError(true)
+            }}
+          />
+        </picture>
+      )}
+    </div>
   )
 }
 
