@@ -192,7 +192,8 @@ export default function ProductDetailClient({
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [selectedColor, setSelectedColor] = useState<string>('')
   const [selectedSize, setSelectedSize] = useState<string>('')
-  const [showNotifyModal, setShowNotifyModal] = useState(false)
+  // ⏸️ TEMPORAIREMENT DÉSACTIVÉ - À réactiver avec backend
+  // const [showNotifyModal, setShowNotifyModal] = useState(false)
 
   const { colors, sizes, stockByCombo, modByColor, modBySize } = useMemo(
     () => parseVariants(product.variants),
@@ -413,18 +414,19 @@ export default function ProductDetailClient({
             </Button>
           </div>
 
-          {/* ✅ MODIFICATION : "Notify me when available" */}
+          {/* ⏸️ TEMPORAIREMENT DÉSACTIVÉ - À réactiver avec backend
           <p 
             onClick={() => setShowNotifyModal(true)}
             className="text-[11px] text-gray-400 leading-relaxed underline cursor-pointer hover:text-gray-900 text-right"
           >
             Notify me when available
           </p>
+          */}
 
           {/* ✅ MODIFICATION : Texte centré à gauche avec max-w-2xl */}
           <div className="pt-6 space-y-6 text-[12px] border-t border-gray-200 max-w-2xl">
             {/* ✅ MODIFICATION : Ordre réorganisé - Impact en premier */}
-            
+
             {/* Impact - PREMIER */}
             {product.impact && (
               <div className="space-y-2">
@@ -530,7 +532,7 @@ export default function ProductDetailClient({
         </div>
       )}
 
-      {/* ✅ NOUVEAU : Modal "Notify me" (simple version) */}
+      {/* ⏸️ TEMPORAIREMENT DÉSACTIVÉ - À réactiver avec backend
       {showNotifyModal && (
         <div
           className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center"
@@ -569,6 +571,7 @@ export default function ProductDetailClient({
           </div>
         </div>
       )}
+      */}
     </div>
   )
 }
