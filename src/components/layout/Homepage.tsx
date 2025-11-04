@@ -206,7 +206,7 @@ export default function Homepage({ data }: HomepageProps) {
               <CategoryCard
                 image={getImageUrl(zoneImpact?.image, 1200, 900)}
                 imageData={zoneImpact?.image}
-                title={zoneImpact?.title || 'impact'}
+                title={zoneImpact?.title || '.impact'}
                 subtitle={zoneImpact?.subtitle}
                 link={zoneImpact?.link || '/impact'}
                 size="medium"

@@ -13,7 +13,7 @@ export const dynamicParams = false
 const CATEGORY_DEFS = [
   {
     slug: 'hauts',
-    title: '.tops&jackets',
+    title: '.tops and jackets',
     description: 'Chemises, t-shirts, pulls et blouses.',
   },
   {

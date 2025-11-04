@@ -88,7 +88,7 @@ export default function ProductCardMinimal({ product }: { product: Product }) {
       {/* Infos produit */}
       <div className="space-y-2">
         <Link href={`/products/${product.id}`}>
-          <h3 className="font-brand text-[13px] tracking-[0.15em] uppercase text-black group-hover:text-grey-medium transition-colors">
+          <h3 className="text-product text-black group-hover:text-grey-medium transition-colors">
             {product.name.toUpperCase()}
           </h3>
         </Link>

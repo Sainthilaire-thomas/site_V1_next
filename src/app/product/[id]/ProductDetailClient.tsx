@@ -306,7 +306,10 @@ export default function ProductDetailClient({
         {/* Right column - Product info */}
         <div className="space-y-6 lg:pt-2 lg:sticky lg:top-4">
           <div className="text-right">
-            <h1 className="text-2xl font-light text-gray-900 leading-tight">
+            <h1
+              style={{ fontFamily: 'var(--font-archivo-black)' }}
+              className="text-2xl text-gray-900 leading-tight lowercase"
+            >
               {product.name}
             </h1>
           </div>
