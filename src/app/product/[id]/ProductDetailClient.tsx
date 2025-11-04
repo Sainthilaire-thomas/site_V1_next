@@ -64,6 +64,30 @@ function isSizeKey(name?: string) {
   return ['size', 'taille', 'sizes', 'tailles'].includes(n)
 }
 
+// ✅ NOUVEAU : Ordre constant des tailles
+const SIZE_ORDER = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
+
+function sortSizes(sizes: string[]): string[] {
+  return [...sizes].sort((a, b) => {
+    const indexA = SIZE_ORDER.indexOf(a.toUpperCase())
+    const indexB = SIZE_ORDER.indexOf(b.toUpperCase())
+    
+    // Si les deux sont dans SIZE_ORDER, utiliser cet ordre
+    if (indexA !== -1 && indexB !== -1) {
+      return indexA - indexB
+    }
+    
+    // Si seulement a est dans SIZE_ORDER, il vient en premier
+    if (indexA !== -1) return -1
+    
+    // Si seulement b est dans SIZE_ORDER, il vient en premier
+    if (indexB !== -1) return 1
+    
+    // Sinon, ordre alphabétique
+    return a.localeCompare(b)
+  })
+}
+
 function parseVariants(rows: ProductVariant[] | null | undefined) {
   const out = {
     colors: [] as string[],
@@ -79,7 +103,10 @@ function parseVariants(rows: ProductVariant[] | null | undefined) {
 
   const uniq = <T,>(arr: T[]) => Array.from(new Set(arr))
   out.colors = uniq(colors.map((r) => String(r.value)))
-  out.sizes = uniq(sizes.map((r) => String(r.value)))
+  
+  // ✅ MODIFICATION : Trier les tailles avec l'ordre constant
+  const rawSizes = uniq(sizes.map((r) => String(r.value)))
+  out.sizes = sortSizes(rawSizes)
 
   colors.forEach((r) =>
     out.modByColor.set(String(r.value), r.price_modifier ?? 0)
@@ -165,6 +192,7 @@ export default function ProductDetailClient({
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [selectedColor, setSelectedColor] = useState<string>('')
   const [selectedSize, setSelectedSize] = useState<string>('')
+  const [showNotifyModal, setShowNotifyModal] = useState(false)
 
   const { colors, sizes, stockByCombo, modByColor, modBySize } = useMemo(
     () => parseVariants(product.variants),
@@ -216,8 +244,8 @@ export default function ProductDetailClient({
         (selectedColor || selectedSize ? ' - ' : '') +
         [selectedColor, selectedSize].filter(Boolean).join(' / '),
       price: displayPrice,
-      productId: product.id, // ✅ Nouveau
-      imageId: primaryImage?.id, // ✅ Nouveau
+      productId: product.id,
+      imageId: primaryImage?.id,
       color: selectedColor || undefined,
       size: selectedSize || undefined,
     })
@@ -285,11 +313,11 @@ export default function ProductDetailClient({
                           imageId={image.id}
                           alt={image.alt || product.name}
                           size="xl"
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                          className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
                           priority={globalIndex === 0}
                         />
 
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-300" />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-200" />
                       </button>
                     )
                   })}
@@ -385,41 +413,23 @@ export default function ProductDetailClient({
             </Button>
           </div>
 
-          <p className="text-[11px] text-gray-400 leading-relaxed underline cursor-pointer hover:text-gray-900 text-right">
-            Check availability and book an appointment
+          {/* ✅ MODIFICATION : "Notify me when available" */}
+          <p 
+            onClick={() => setShowNotifyModal(true)}
+            className="text-[11px] text-gray-400 leading-relaxed underline cursor-pointer hover:text-gray-900 text-right"
+          >
+            Notify me when available
           </p>
 
-          {/* Product details */}
-          <div className="pt-6 space-y-6 text-[12px] border-t border-gray-200 text-right">
-            {/* Composition */}
-            {product.composition && (
-              <div className="space-y-2">
-                <h3 className="text-[13px] font-light text-gray-900 uppercase tracking-wider">
-                  Composition
-                </h3>
-                <p className="text-gray-600 leading-relaxed whitespace-pre-line">
-                  {product.composition}
-                </p>
-              </div>
-            )}
-
-            {/* Care */}
-            {product.care && (
-              <div className="space-y-2">
-                <h3 className="text-[13px] font-light text-gray-900 uppercase tracking-wider">
-                  Care
-                </h3>
-                <p className="text-gray-600 leading-relaxed whitespace-pre-line">
-                  {product.care}
-                </p>
-              </div>
-            )}
-
-            {/* Impact */}
+          {/* ✅ MODIFICATION : Texte centré à gauche avec max-w-2xl */}
+          <div className="pt-6 space-y-6 text-[12px] border-t border-gray-200 max-w-2xl">
+            {/* ✅ MODIFICATION : Ordre réorganisé - Impact en premier */}
+            
+            {/* Impact - PREMIER */}
             {product.impact && (
               <div className="space-y-2">
-                <h3 className="text-[13px] font-light text-gray-900 uppercase tracking-wider">
-                  Impact
+                <h3 className="font-brand text-[13px] text-gray-900 lowercase tracking-wider">
+                  .impact
                 </h3>
                 <p className="text-gray-600 leading-relaxed whitespace-pre-line">
                   {product.impact}
@@ -427,11 +437,11 @@ export default function ProductDetailClient({
               </div>
             )}
 
-            {/* Craftsmanship */}
+            {/* Artisanat - DEUXIÈME */}
             {product.craftsmanship && (
               <div className="space-y-2">
-                <h3 className="text-[13px] font-light text-gray-900 uppercase tracking-wider">
-                  Artisanat
+                <h3 className="font-brand text-[13px] text-gray-900 lowercase tracking-wider">
+                  .artisanat
                 </h3>
                 <p className="text-gray-600 leading-relaxed whitespace-pre-line">
                   {product.craftsmanship}
@@ -439,28 +449,44 @@ export default function ProductDetailClient({
               </div>
             )}
 
-            {/* Product reference */}
-            <div className="pt-4 border-t border-gray-200">
-              <div className="flex justify-end text-xs text-gray-500">
-                <span className="mr-4">Reference</span>
-                <span className="text-gray-900 font-mono">
-                  BR-{String(product.id).slice(0, 8).toUpperCase()}
-                </span>
+            {/* Composition - TROISIÈME */}
+            {product.composition && (
+              <div className="space-y-2">
+                <h3 className="font-brand text-[13px] text-gray-900 lowercase tracking-wider">
+                  .composition
+                </h3>
+                <p className="text-gray-600 leading-relaxed whitespace-pre-line">
+                  {product.composition}
+                </p>
               </div>
-            </div>
+            )}
+
+            {/* Care - QUATRIÈME */}
+            {product.care && (
+              <div className="space-y-2">
+                <h3 className="font-brand text-[13px] text-gray-900 lowercase tracking-wider">
+                  .care
+                </h3>
+                <p className="text-gray-600 leading-relaxed whitespace-pre-line">
+                  {product.care}
+                </p>
+              </div>
+            )}
+
+            {/* ✅ SUPPRIMÉ : Product reference section complètement retirée */}
           </div>
         </div>
       </div>
 
-      {/* Lightbox */}
+      {/* Lightbox - ✅ MODIFICATION : Transitions plus rapides (duration-200) */}
       {lightboxIndex !== null && (
         <div
-          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center transition-opacity duration-200"
           onClick={closeLightbox}
         >
           <button
             onClick={closeLightbox}
-            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-10"
+            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors duration-200 z-10"
           >
             <X className="w-8 h-8" />
           </button>
@@ -470,7 +496,7 @@ export default function ProductDetailClient({
               e.stopPropagation()
               navigateLightbox('prev')
             }}
-            className="absolute left-4 text-white hover:text-gray-300 transition-colors z-10"
+            className="absolute left-4 text-white hover:text-gray-300 transition-colors duration-200 z-10"
           >
             <ChevronLeft className="w-12 h-12" />
           </button>
@@ -484,7 +510,7 @@ export default function ProductDetailClient({
               imageId={sortedImages[lightboxIndex].id}
               alt={sortedImages[lightboxIndex].alt || product.name}
               size="xl"
-              className="max-w-full max-h-[85vh] object-contain"
+              className="max-w-full max-h-[85vh] object-contain transition-opacity duration-200"
             />
 
             <div className="text-center text-white mt-4 text-sm">
@@ -497,10 +523,50 @@ export default function ProductDetailClient({
               e.stopPropagation()
               navigateLightbox('next')
             }}
-            className="absolute right-4 text-white hover:text-gray-300 transition-colors z-10"
+            className="absolute right-4 text-white hover:text-gray-300 transition-colors duration-200 z-10"
           >
             <ChevronRight className="w-12 h-12" />
           </button>
+        </div>
+      )}
+
+      {/* ✅ NOUVEAU : Modal "Notify me" (simple version) */}
+      {showNotifyModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center"
+          onClick={() => setShowNotifyModal(false)}
+        >
+          <div
+            className="bg-white p-8 max-w-md mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="font-brand text-lg mb-4 lowercase">notify me when available</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Enter your email to be notified when this product is back in stock.
+            </p>
+            <input
+              type="email"
+              placeholder="your email"
+              className="w-full border border-gray-300 px-4 py-2 mb-4 text-sm lowercase"
+            />
+            <div className="flex gap-4">
+              <button
+                onClick={() => {
+                  toast.success('You will be notified!')
+                  setShowNotifyModal(false)
+                }}
+                className="flex-1 bg-black text-white py-2 text-sm lowercase hover:bg-gray-800 transition"
+              >
+                notify me
+              </button>
+              <button
+                onClick={() => setShowNotifyModal(false)}
+                className="flex-1 border border-gray-300 py-2 text-sm lowercase hover:bg-gray-50 transition"
+              >
+                cancel
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

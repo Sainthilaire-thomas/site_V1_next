@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import Link from 'next/link'
 import { useState } from 'react'
@@ -66,7 +66,7 @@ export default function ProductCardJacquemus({
 
       {/* Infos produit */}
       <div className="space-y-1">
-        <h3 className="text-[11px] tracking-[0.05em] uppercase font-brand text-black group-hover:text-black/60 transition-colors duration-300">
+        <h3 style={{ fontFamily: "var(--font-archivo-black)" }} className="text-[11px] tracking-[0.05em] uppercase text-black group-hover:text-black/60 transition-colors duration-300">
           {product.name}
         </h3>
 
