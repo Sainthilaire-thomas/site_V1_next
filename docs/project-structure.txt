@@ -3,7 +3,7 @@
 ║                          ARBORESCENCE DU PROJET                             ║
 ║                                                                              ║
 ║  Projet: site_v1_next                                                    ║
-║  Généré: 19/10/2025 18:27:23                                            ║
+║  Généré: 20/10/2025 16:08:39                                            ║
 ║                                                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -18,27 +18,33 @@
 ├── 📁 docs
 │   ├── 📝 Analytics_Custom_Doc.md
 │   ├── 📝 Bug-shipping-address.md
-│   ├── 📝 config-stripe-production.md
 │   ├── 📝 description-projet.md
-│   ├── 📝 Doc-technique-SocialMedia.md
 │   ├── 📝 elements-desing-brouillon-blanche.md
 │   ├── 📝 etats-des-lieux-admin-photos.md
 │   ├── 📝 gestion-automatique-stock.md
-│   ├── 📝 gestion-images.md
-│   ├── 📝 guide-dev-fonctions-etendues-photos.md
-│   ├── 📝 implementation_stripe_checkout_avec_supabase.md
-│   ├── 📝 installation-module-image.md
-│   ├── 📝 installation-sanity.md
+│   ├── 📝 guide-blanche.md
+│   ├── 📕 guide-blanche.pdf
+│   ├── 📝 IMAGES-gestion-images.md
+│   ├── 📝 IMAGES-guide-dev-fonctions-etendues-photos.md
+│   ├── 📝 IMAGES-installation-module-image.md
 │   ├── 📝 interface-admin-supabase.md
 │   ├── 📝 mep-module-client-admin.md
 │   ├── 📝 Mep-page-admin.md
-│   ├── 📝 mep-stripe.md
-│   ├── 📝 MVP-Newsletter-avancement-19-10.md
-│   ├── 📝 MVP-Newsletter.md
-│   ├── 📝 Newsletter-specifications.md
+│   ├── 📝 NEWSLETTER-MVP-avancement-19-10.md
+│   ├── 📝 NEWSLETTER-MVP.md
+│   ├── 📝 NEWSLETTER-specifications.md
+│   ├── 📝 OFFLINE_MVP.md
 │   ├── 📝 point-etape-9-oct-2025.md
+│   ├── 📝 principes-seo.md
+│   ├── 📕 principes-seo.pdf
 │   ├── 📄 project-structure.txt
 │   ├── 📝 roadmap-site.md
+│   ├── 📝 SANITY-installation-sanity.md
+│   ├── 📝 SOCIALMEDIA-Doctechnique-SocialMedia.md
+│   ├── 📝 STRIPE_ config-production.md
+│   ├── 📝 STRIPE-implementation_checkout_avec_supabase.md
+│   ├── 📝 STRIPE-mep.md
+│   ├── 📝 STRIPE-Test-Stging-Live-Mode.md
 │   ├── 📝 supabase-desc.md
 │   └── 📝 systeme-gestion-commandes.md
 ├── 📁 lib
@@ -115,6 +121,10 @@
 │   │   │       │   ├── 🔷 MediaGridClient.tsx
 │   │   │       │   ├── 🔷 MediaGridHeader.tsx
 │   │   │       │   └── 🔷 page.tsx
+│   │   │       ├── 📁 newsletter
+│   │   │       │   ├── 📁 campaigns
+│   │   │       │   │   └── 📁 new
+│   │   │       │   └── 🔷 page.tsx
 │   │   │       ├── 📁 orders
 │   │   │       │   ├── 📁 [id]
 │   │   │       │   │   ├── 🔷 actions.ts
@@ -188,8 +198,10 @@
 │   │   │   │   │   └── 📁 welcome
 │   │   │   │   │       └── 🔷 route.ts
 │   │   │   │   ├── 📁 newsletter
-│   │   │   │   │   └── 📁 campaigns
-│   │   │   │   │       ├── 📁 [id]
+│   │   │   │   │   ├── 📁 campaigns
+│   │   │   │   │   │   ├── 📁 [id]
+│   │   │   │   │   │   └── 🔷 route.ts
+│   │   │   │   │   └── 📁 upload-hero
 │   │   │   │   │       └── 🔷 route.ts
 │   │   │   │   ├── 📁 orders
 │   │   │   │   │   └── 📁 [id]
@@ -522,6 +534,7 @@
 ├── 📦 package.json
 ├── 🟨 postcss.config.js
 ├── 🟨 postcss.config.mjs
+├── 📝 production-staging-dev-mode.md
 ├── 📖 README.md
 ├── 🔷 tailwind.config.ts
 ├── 📋 tsconfig.base.json
@@ -531,8 +544,8 @@
 
 
 📈 Statistiques :
-   • Dossiers : 178
-   • Fichiers : 292
-   • Total : 470 éléments
+   • Dossiers : 182
+   • Fichiers : 294
+   • Total : 476 éléments
 
 💡 Généré automatiquement - Ne pas modifier manuellement

@@ -62,177 +62,171 @@ export default function CampaignFormClient({ products = [] }: Props) {
     reader.readAsDataURL(file)
     setHeroFile(file)
   }
-  const handleSubmit = async (action: 'save' | 'test' | 'send') => {
-    console.log('🎯 ========== handleSubmit CALLED ==========')
-    console.log('📌 Action:', action)
-    console.log('📝 FormData:', formData)
-    console.log('🖼️ Hero image:', heroImage ? 'Present' : 'Missing')
-    console.log('📦 Hero file:', heroFile ? heroFile.name : 'No file')
-    console.log('🔒 Loading state:', loading)
+const handleSubmit = async (action: 'save' | 'test' | 'send') => {
+  console.log('🎯 ========== handleSubmit CALLED ==========')
+  console.log('📌 Action:', action)
 
-    // Validation de base
-    console.log('✅ Step 1: Validating name...')
-    if (!formData.name.trim()) {
-      console.log('❌ VALIDATION FAILED: Name is empty')
-      toast.error('Le nom de la campagne est requis')
-      return
+  // ✅ Collecteur d'erreurs
+  const errors: string[] = []
+
+  // Validation nom
+  if (!formData.name.trim()) {
+    errors.push('Le nom de la campagne est requis')
+  }
+
+  // Validation objet
+  if (!formData.subject.trim()) {
+    errors.push("L'objet de l'email est requis")
+  }
+
+  // Validation pour test/envoi
+  if (action === 'test' || action === 'send') {
+    if (!heroImage) {
+      errors.push("L'image hero est requise")
     }
-    console.log('✅ Name OK:', formData.name)
-
-    console.log('✅ Step 2: Validating subject...')
-    if (!formData.subject.trim()) {
-      console.log('❌ VALIDATION FAILED: Subject is empty')
-      toast.error("L'objet de l'email est requis")
-      return
+    if (!formData.title.trim()) {
+      errors.push('Le titre principal est requis')
     }
-    console.log('✅ Subject OK:', formData.subject)
-
-    // ✅ Image hero requise uniquement pour test/envoi
-    console.log('✅ Step 3: Validating hero image (if needed)...')
-    if ((action === 'test' || action === 'send') && !heroImage) {
-      console.log('❌ VALIDATION FAILED: Hero image required for', action)
-      toast.error("L'image hero est requise pour tester/envoyer")
-      return
+    if (!formData.subtitle.trim()) {
+      errors.push('Le sous-titre est requis')
     }
-    console.log('✅ Hero image validation passed')
-
-    // ✅ Produits requis uniquement pour test/envoi
-    console.log('✅ Step 4: Validating products (if needed)...')
-    if (action === 'test' || action === 'send') {
-      if (
-        !formData.product_1 ||
-        !formData.product_2 ||
-        !formData.product_3 ||
-        !formData.product_4
-      ) {
-        console.log('❌ VALIDATION FAILED: Missing products')
-        console.log('Products:', {
-          p1: formData.product_1,
-          p2: formData.product_2,
-          p3: formData.product_3,
-          p4: formData.product_4,
-        })
-        toast.error('Veuillez sélectionner 4 produits')
-        return
-      }
-    }
-    console.log('✅ Products validation passed')
-
-    console.log('🚀 ALL VALIDATIONS PASSED - Starting API calls...')
-    setLoading(true)
-
-    try {
-      // 1. Upload image hero si fichier présent
-      let heroImageUrl = heroImage
-      if (heroFile) {
-        console.log('📤 Step 5: Uploading hero image...')
-        const formDataUpload = new FormData()
-        formDataUpload.append('file', heroFile)
-
-        console.log('📤 Calling /api/admin/newsletter/upload-hero...')
-        const uploadRes = await fetch('/api/admin/newsletter/upload-hero', {
-          method: 'POST',
-          body: formDataUpload,
-        })
-
-        console.log('📥 Upload response status:', uploadRes.status)
-
-        if (!uploadRes.ok) {
-          const errorText = await uploadRes.text()
-          console.error('❌ Upload error response:', errorText)
-          throw new Error('Erreur upload image')
-        }
-
-        const uploadData = await uploadRes.json()
-        console.log('📥 Upload response data:', uploadData)
-
-        heroImageUrl = uploadData.url
-        console.log('✅ Hero image uploaded:', heroImageUrl)
-      } else {
-        console.log('⏭️ No hero file to upload, keeping preview URL')
-      }
-
-      // 2. Créer la campagne
-      console.log('📤 Step 6: Creating campaign...')
-      const campaignData = {
-        name: formData.name,
-        subject: formData.subject,
-        preview_text: formData.preview_text || '',
-        status: action === 'send' ? 'sent' : 'draft',
-        content: {
-          hero_image_url: heroImageUrl || null,
-          title: formData.title || '',
-          subtitle: formData.subtitle || '',
-          cta_text: formData.cta_text || 'Découvrir',
-          cta_link: formData.cta_link || '/products',
-          products: [
-            formData.product_1 ? { id: formData.product_1, position: 1 } : null,
-            formData.product_2 ? { id: formData.product_2, position: 2 } : null,
-            formData.product_3 ? { id: formData.product_3, position: 3 } : null,
-            formData.product_4 ? { id: formData.product_4, position: 4 } : null,
-          ].filter(Boolean),
-        },
-      }
-
-      console.log(
-        '📤 Campaign data to send:',
-        JSON.stringify(campaignData, null, 2)
-      )
-      console.log('📤 Calling /api/admin/newsletter/campaigns...')
-
-      const createRes = await fetch('/api/admin/newsletter/campaigns', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(campaignData),
-      })
-
-      console.log('📥 Create response status:', createRes.status)
-
-      if (!createRes.ok) {
-        const errorText = await createRes.text()
-        console.error('❌ Create campaign error response:', errorText)
-        throw new Error('Erreur création campagne')
-      }
-
-      const createData = await createRes.json()
-      console.log('📥 Create response data:', createData)
-      console.log('✅ Campaign created:', createData.campaign)
-
-      if (action === 'save') {
-        console.log('✅ Action = save: Showing success toast and redirecting')
-        toast.success('✅ Campagne sauvegardée en brouillon')
-        router.push('/admin/newsletter')
-        router.refresh()
-      } else if (action === 'test') {
-        console.log('📧 Action = test: Showing test info')
-        toast.info('📧 Email de test à implémenter')
-      } else if (action === 'send') {
-        console.log('📨 Action = send: Showing success toast and redirecting')
-        toast.success('📨 Campagne envoyée avec succès')
-        router.push('/admin/newsletter')
-        router.refresh()
-      }
-
-      console.log('🎉 ========== handleSubmit COMPLETED ==========')
-    } catch (error) {
-      console.error('❌ ========== handleSubmit ERROR ==========')
-      console.error('Error object:', error)
-      console.error(
-        'Error message:',
-        error instanceof Error ? error.message : 'Unknown'
-      )
-      console.error(
-        'Error stack:',
-        error instanceof Error ? error.stack : 'N/A'
-      )
-      toast.error(
-        error instanceof Error ? error.message : 'Une erreur est survenue'
-      )
-    } finally {
-      console.log('🔓 Setting loading to false')
-      setLoading(false)
+    if (
+      !formData.product_1 ||
+      !formData.product_2 ||
+      !formData.product_3 ||
+      !formData.product_4
+    ) {
+      errors.push('Les 4 produits doivent être sélectionnés')
     }
   }
+
+  // ✅ Afficher toutes les erreurs à l'utilisateur
+  if (errors.length > 0) {
+    console.log('❌ VALIDATION FAILED:', errors)
+
+    // Toast avec la liste des erreurs
+    toast.error(
+      <div className="space-y-1">
+        <div className="font-semibold">Veuillez corriger les erreurs :</div>
+        <ul className="list-disc list-inside text-sm">
+          {errors.map((err, i) => (
+            <li key={i}>{err}</li>
+          ))}
+        </ul>
+      </div>,
+      { duration: 6000 } // 6 secondes pour lire
+    )
+    return
+  }
+
+  console.log('✅ ALL VALIDATIONS PASSED')
+  setLoading(true)
+
+  try {
+    // Upload image hero si fichier présent
+    let heroImageUrl = heroImage
+    if (heroFile) {
+      console.log('📤 Uploading hero image...')
+      const formDataUpload = new FormData()
+      formDataUpload.append('file', heroFile)
+
+      const uploadRes = await fetch('/api/admin/newsletter/upload-hero', {
+        method: 'POST',
+        body: formDataUpload,
+      })
+
+      if (!uploadRes.ok) {
+        const errorText = await uploadRes.text()
+        console.error('❌ Upload error:', errorText)
+        throw new Error("Erreur lors de l'upload de l'image")
+      }
+
+      const uploadData = await uploadRes.json()
+      heroImageUrl = uploadData.url
+      console.log('✅ Hero image uploaded:', heroImageUrl)
+    }
+
+    // Créer la campagne
+    console.log('📤 Creating campaign...')
+    const campaignData = {
+      name: formData.name,
+      subject: formData.subject,
+      preview_text: formData.preview_text || '',
+      status: action === 'send' ? 'sent' : 'draft',
+      content: {
+        hero_image_url: heroImageUrl || null,
+        title: formData.title || '',
+        subtitle: formData.subtitle || '',
+        cta_text: formData.cta_text || 'Découvrir',
+        cta_link: formData.cta_link || '/products',
+        products: [
+          formData.product_1 ? { id: formData.product_1, position: 1 } : null,
+          formData.product_2 ? { id: formData.product_2, position: 2 } : null,
+          formData.product_3 ? { id: formData.product_3, position: 3 } : null,
+          formData.product_4 ? { id: formData.product_4, position: 4 } : null,
+        ].filter(Boolean),
+      },
+    }
+
+    console.log('📤 Data:', JSON.stringify(campaignData, null, 2))
+
+    const createRes = await fetch('/api/admin/newsletter/campaigns', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(campaignData),
+    })
+
+    console.log('📥 Response status:', createRes.status)
+
+    if (!createRes.ok) {
+      const errorData = await createRes.json()
+      console.error('❌ API error:', errorData)
+
+      // ✅ Afficher les erreurs de l'API de façon lisible
+      if (errorData.details && Array.isArray(errorData.details)) {
+        const apiErrors = errorData.details.map(
+          (d: any) => `${d.path}: ${d.message}`
+        )
+        toast.error(
+          <div className="space-y-1">
+            <div className="font-semibold">Erreur serveur :</div>
+            <ul className="list-disc list-inside text-sm">
+              {apiErrors.map((err: string, i: number) => (
+                <li key={i}>{err}</li>
+              ))}
+            </ul>
+          </div>,
+          { duration: 6000 }
+        )
+      } else {
+        toast.error(errorData.error || 'Erreur lors de la création')
+      }
+      return
+    }
+
+    const createData = await createRes.json()
+    console.log('✅ Campaign created:', createData.campaign)
+
+    if (action === 'save') {
+      toast.success('✅ Campagne sauvegardée en brouillon')
+      router.push('/admin/newsletter')
+      router.refresh()
+    } else if (action === 'test') {
+      toast.info('📧 Email de test à implémenter')
+    } else if (action === 'send') {
+      toast.success('📨 Campagne envoyée avec succès')
+      router.push('/admin/newsletter')
+      router.refresh()
+    }
+  } catch (error) {
+    console.error('❌ Exception:', error)
+    toast.error(
+      error instanceof Error ? error.message : 'Une erreur est survenue'
+    )
+  } finally {
+    setLoading(false)
+  }
+}
 
   return (
     <div className="space-y-6">

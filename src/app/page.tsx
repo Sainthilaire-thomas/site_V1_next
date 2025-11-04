@@ -265,8 +265,8 @@ const InteractiveEntry = ({
               top: `${letter.y}%`,
               transform: `translate(-50%, -50%) rotate(${letter.rotation}deg)`,
               fontSize: 'clamp(1.6rem, 5vw, 3rem)',
-              fontFamily: 'var(--font-archivo-narrow)',
-              fontWeight: 600,
+              fontFamily: 'var(--font-archivo-black)',
+              // fontWeight: 600,
               color: isArranging ? 'hsl(271 74% 37%)' : 'hsl(0 0% 0%)',
               opacity: 0,
               animation: `letter-appear 0.35s ease-out ${letter.delay}s forwards${
