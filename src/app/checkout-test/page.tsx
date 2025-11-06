@@ -6,6 +6,7 @@ import { useCartStore } from '@/store/useCartStore'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { PayPalButtonsWrapper } from '@/components/checkout/PayPalButtons'
 import { toast } from 'sonner'
 
 interface ShippingAddress {
@@ -20,14 +21,11 @@ interface ShippingAddress {
   country: string
 }
 
-export default function CheckoutTestPage() {
+export default function CheckoutTestPayPalPage() {
   const router = useRouter()
-
-  // ✅ CORRECTION : Utiliser totalPrice au lieu de getTotalPrice()
   const { items, totalPrice, clearCart } = useCartStore()
 
-  const [isLoading, setIsLoading] = useState(false)
-
+  const [showPayPal, setShowPayPal] = useState(false)
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     first_name: '',
     last_name: '',
@@ -40,14 +38,17 @@ export default function CheckoutTestPage() {
     country: 'FR',
   })
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleContinueToPayment = (e: React.FormEvent) => {
     e.preventDefault()
 
     // Validation
     if (
       !shippingAddress.first_name ||
+      !shippingAddress.last_name ||
       !shippingAddress.email ||
-      !shippingAddress.address_line1
+      !shippingAddress.address_line1 ||
+      !shippingAddress.city ||
+      !shippingAddress.postal_code
     ) {
       toast.error('Veuillez remplir tous les champs obligatoires')
       return
@@ -59,60 +60,32 @@ export default function CheckoutTestPage() {
       return
     }
 
-    setIsLoading(true)
+    // Afficher les boutons PayPal
+    setShowPayPal(true)
+    toast.success('Informations enregistrées')
 
-    try {
-      // Appel API pour créer la session Stripe
-      const response = await fetch('/api/checkout/create-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: items.map((item) => ({
-            productId: item.productId,
-            variantId: item.variantId,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            size: item.size,
-            color: item.color,
-            image: item.image,
-          })),
-          shippingAddress,
-        }),
+    // Scroll vers les boutons PayPal
+    setTimeout(() => {
+      document.getElementById('paypal-section')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
       })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(
-          errorData.error || 'Erreur lors de la création de la session'
-        )
-      }
-
-      const { url, error } = await response.json()
-
-      if (error) {
-        toast.error(error)
-        return
-      }
-
-      // ✅ Redirection vers Stripe Checkout
-      window.location.href = url
-    } catch (error) {
-      console.error('Checkout error:', error)
-      toast.error('Erreur lors du paiement. Veuillez réessayer.')
-    } finally {
-      setIsLoading(false)
-    }
+    }, 100)
   }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-16">
-      <h1 className="text-3xl font-bold mb-8">Checkout Test</h1>
+      <h1 className="text-3xl font-bold mb-2 font-['Archivo_Black'] uppercase tracking-[0.05em]">
+        Checkout Test - PayPal
+      </h1>
+      <p className="text-sm text-gray-500 mb-8">
+        Page de test pour l'intégration PayPal (mode Sandbox)
+      </p>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleContinueToPayment}>
         {/* Formulaire d'adresse */}
-        <div className="space-y-4 mb-8">
-          <h2 className="text-xl font-semibold mb-4">
+        <div className="space-y-4 mb-8 bg-white p-6 rounded-lg border">
+          <h2 className="text-xl font-semibold mb-4 uppercase tracking-wider">
             Informations de livraison
           </h2>
 
@@ -129,6 +102,7 @@ export default function CheckoutTestPage() {
                   })
                 }
                 required
+                disabled={showPayPal}
               />
             </div>
 
@@ -144,6 +118,7 @@ export default function CheckoutTestPage() {
                   })
                 }
                 required
+                disabled={showPayPal}
               />
             </div>
           </div>
@@ -161,6 +136,7 @@ export default function CheckoutTestPage() {
                 })
               }
               required
+              disabled={showPayPal}
             />
           </div>
 
@@ -177,6 +153,7 @@ export default function CheckoutTestPage() {
                 })
               }
               placeholder="+33..."
+              disabled={showPayPal}
             />
           </div>
 
@@ -192,6 +169,7 @@ export default function CheckoutTestPage() {
                 })
               }
               required
+              disabled={showPayPal}
             />
           </div>
 
@@ -207,6 +185,7 @@ export default function CheckoutTestPage() {
                 })
               }
               placeholder="Appartement, étage, etc."
+              disabled={showPayPal}
             />
           </div>
 
@@ -223,6 +202,7 @@ export default function CheckoutTestPage() {
                   })
                 }
                 required
+                disabled={showPayPal}
               />
             </div>
 
@@ -238,29 +218,33 @@ export default function CheckoutTestPage() {
                   })
                 }
                 required
+                disabled={showPayPal}
               />
             </div>
           </div>
 
           <div>
             <Label htmlFor="country">Pays</Label>
-            <Input
-              id="country"
-              value={shippingAddress.country}
-              onChange={(e) =>
-                setShippingAddress({
-                  ...shippingAddress,
-                  country: e.target.value,
-                })
-              }
-              disabled
-            />
+            <Input id="country" value="France" disabled />
           </div>
+
+          {showPayPal && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowPayPal(false)}
+              className="w-full"
+            >
+              Modifier l'adresse
+            </Button>
+          )}
         </div>
 
         {/* Résumé panier */}
-        <div className="bg-gray-50 p-6 rounded-lg mb-8">
-          <h2 className="text-xl font-semibold mb-4">Résumé de la commande</h2>
+        <div className="bg-gray-50 p-6 rounded-lg mb-8 border">
+          <h2 className="text-xl font-semibold mb-4 uppercase tracking-wider">
+            Résumé de la commande
+          </h2>
 
           {items.length === 0 ? (
             <p className="text-gray-500 text-center py-4">
@@ -289,7 +273,6 @@ export default function CheckoutTestPage() {
               <div className="border-t pt-4 space-y-2">
                 <div className="flex justify-between">
                   <span>Sous-total</span>
-                  {/* ✅ CORRECTION : Utiliser totalPrice directement */}
                   <span>{totalPrice.toFixed(2)}€</span>
                 </div>
                 <div className="flex justify-between">
@@ -298,7 +281,6 @@ export default function CheckoutTestPage() {
                 </div>
                 <div className="flex justify-between font-bold text-lg border-t pt-2">
                   <span>Total</span>
-                  {/* ✅ CORRECTION : Utiliser totalPrice directement */}
                   <span>{totalPrice.toFixed(2)}€</span>
                 </div>
               </div>
@@ -306,26 +288,54 @@ export default function CheckoutTestPage() {
           )}
         </div>
 
-        {/* Bouton paiement */}
-        <Button
-          type="submit"
-          disabled={isLoading || items.length === 0}
-          className="w-full"
-          size="lg"
-        >
-          {isLoading ? (
-            <>
-              <span className="mr-2">Redirection vers Stripe...</span>
-              <span className="animate-spin">⏳</span>
-            </>
-          ) : (
-            'Procéder au paiement'
-          )}
-        </Button>
+        {/* Bouton continuer ou Section PayPal */}
+        {!showPayPal ? (
+          <Button
+            type="submit"
+            disabled={items.length === 0}
+            className="w-full bg-[hsl(271,74%,37%)] hover:bg-[hsl(271,74%,30%)]"
+            size="lg"
+          >
+            Continuer vers le paiement
+          </Button>
+        ) : (
+          <div id="paypal-section" className="bg-white p-6 rounded-lg border">
+            <h2 className="text-xl font-semibold mb-4 uppercase tracking-wider">
+              Paiement PayPal
+            </h2>
+
+            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-4">
+              <p className="text-sm text-blue-800">
+                🧪 <strong>Mode Test (Sandbox)</strong> - Utilisez un compte
+                PayPal de test
+              </p>
+            </div>
+
+            <PayPalButtonsWrapper
+              items={items.map((item) => ({
+                product_id: item.productId,
+                variant_id: item.variantId,
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity,
+                variant_name: [item.size, item.color]
+                  .filter(Boolean)
+                  .join(' - '),
+                image: item.image,
+              }))}
+              shippingAddress={shippingAddress}
+              billingAddress={shippingAddress}
+              customerEmail={shippingAddress.email}
+              customerName={`${shippingAddress.first_name} ${shippingAddress.last_name}`}
+              onSuccess={() => {
+                clearCart()
+              }}
+            />
+          </div>
+        )}
 
         <p className="text-xs text-gray-500 text-center mt-4">
-          Paiement sécurisé par Stripe. Vos informations bancaires ne sont
-          jamais stockées sur nos serveurs.
+          🔒 Paiement sécurisé par PayPal. Environnement de test (Sandbox).
         </p>
       </form>
     </div>

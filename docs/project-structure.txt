@@ -3,7 +3,7 @@
 ║                          ARBORESCENCE DU PROJET                             ║
 ║                                                                              ║
 ║  Projet: site_v1_next                                                    ║
-║  Généré: 20/10/2025 16:08:39                                            ║
+║  Généré: 06/11/2025 07:32:58                                            ║
 ║                                                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -17,11 +17,13 @@
 │   └── 📋 tasks.json
 ├── 📁 docs
 │   ├── 📝 Analytics_Custom_Doc.md
+│   ├── 📝 ARCHITECTURE-migration-archi-modulaire.md
 │   ├── 📝 Bug-shipping-address.md
 │   ├── 📝 description-projet.md
 │   ├── 📝 elements-desing-brouillon-blanche.md
 │   ├── 📝 etats-des-lieux-admin-photos.md
 │   ├── 📝 gestion-automatique-stock.md
+│   ├── 📕 Gmail - Revue du site.pdf
 │   ├── 📝 guide-blanche.md
 │   ├── 📕 guide-blanche.pdf
 │   ├── 📝 IMAGES-gestion-images.md
@@ -30,6 +32,7 @@
 │   ├── 📝 interface-admin-supabase.md
 │   ├── 📝 mep-module-client-admin.md
 │   ├── 📝 Mep-page-admin.md
+│   ├── 📝 Modif-revue-site-4-nov.md
 │   ├── 📝 NEWSLETTER-MVP-avancement-19-10.md
 │   ├── 📝 NEWSLETTER-MVP.md
 │   ├── 📝 NEWSLETTER-specifications.md
@@ -72,6 +75,7 @@
 │   ├── 🔷 sanity.config.ts
 │   └── 🔷 structure.ts
 ├── 📁 scripts
+│   ├── 📄 analyze-image-components.ps1
 │   ├── 🟨 check-vercel-config.js
 │   ├── 🟨 db-types.mjs
 │   ├── 🟨 generate-tree.js
@@ -289,7 +293,8 @@
 │   │   │   └── 📁 login
 │   │   │       └── 🔷 page.tsx
 │   │   ├── 📁 cart
-│   │   │   └── 🔷 page.tsx
+│   │   │   ├── 🔷 page.tsx
+│   │   │   └── 📄 page.tsx.backup-20251104-115614
 │   │   ├── 📁 checkout
 │   │   │   ├── 📁 cancel
 │   │   │   │   └── 🔷 page.tsx
@@ -384,16 +389,22 @@
 │   │   ├── 📁 features
 │   │   ├── 📁 layout
 │   │   │   ├── 🔷 FooterMinimal.tsx
+│   │   │   ├── 📄 FooterMinimal.tsx.backup
 │   │   │   ├── 🔷 Header.tsx
 │   │   │   ├── 🔷 HeaderMinimal.tsx
+│   │   │   ├── 📄 HeaderMinimal.tsx.backup-20251104-115614
 │   │   │   ├── 🔷 Homepage.tsx
+│   │   │   ├── 📄 Homepage.tsx.backup-20251104-115614
 │   │   │   ├── 🔷 InteractiveEntry.tsx
 │   │   │   └── 🔷 UnifiedHeader.tsx
 │   │   ├── 📁 newsletter
 │   │   │   └── 🔷 NewsletterSubscribe.tsx
 │   │   ├── 📁 products
 │   │   │   ├── 🔷 ProductCardJacquemus.tsx
+│   │   │   ├── 📄 ProductCardJacquemus.tsx.backup
+│   │   │   ├── 📄 ProductCardJacquemus.tsx.backup-20251104-115614
 │   │   │   ├── 🔷 ProductCardMinimal.tsx
+│   │   │   ├── 📄 ProductCardMinimal.tsx.backup
 │   │   │   ├── 🔷 ProductGridJacquemus.tsx
 │   │   │   ├── 🔷 ProductGridMinimal.tsx
 │   │   │   ├── 🔷 ProductImage.tsx
@@ -532,6 +543,7 @@
 ├── 🔷 next.config.ts
 ├── 📋 package-lock.json
 ├── 📦 package.json
+├── ⚙️ pnpm-lock.yaml
 ├── 🟨 postcss.config.js
 ├── 🟨 postcss.config.mjs
 ├── 📝 production-staging-dev-mode.md
@@ -540,12 +552,13 @@
 ├── 📋 tsconfig.base.json
 ├── ⚙️ tsconfig.json
 ├── 📋 tsconfig.scripts.json
-└── 📄 tsconfig.tsbuildinfo
+├── 📄 tsconfig.tsbuildinfo
+└── 📋 vercel.json
 
 
 📈 Statistiques :
    • Dossiers : 182
-   • Fichiers : 294
-   • Total : 476 éléments
+   • Fichiers : 302
+   • Total : 484 éléments
 
 💡 Généré automatiquement - Ne pas modifier manuellement
