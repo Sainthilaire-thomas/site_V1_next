@@ -3,8 +3,22 @@ import { NextRequest, NextResponse } from 'next/server'
 import { client } from '@/lib/paypal'
 import checkoutNodeJssdk from '@paypal/checkout-server-sdk'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { sendOrderConfirmationHook } from '@/lib/email/send-order-confirmation-hook'
 
 export const runtime = 'nodejs'
+
+// Type pour metadata avec items
+interface OrderMetadata {
+  items?: Array<{
+    product_id: string
+    variant_id?: string
+    name: string
+    price: number
+    quantity: number
+    variant_name?: string
+    image?: string
+  }>
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,6 +32,7 @@ export async function POST(req: NextRequest) {
 
     // Capturer le paiement PayPal
     const request = new checkoutNodeJssdk.orders.OrdersCaptureRequest(orderID)
+    // @ts-ignore - PayPal SDK types issue with empty requestBody
     request.requestBody({})
 
     const response = await client().execute(request)
@@ -57,12 +72,13 @@ export async function POST(req: NextRequest) {
     }
 
     // Créer les order_items depuis les metadata
-    const items = order.metadata?.items || []
+    const metadata = order.metadata as OrderMetadata | null
+    const items = metadata?.items || []
 
-    if (items.length > 0) {
+    if (Array.isArray(items) && items.length > 0) {
       console.log(`📋 Creating ${items.length} order items...`)
 
-      const orderItems = items.map((item: any) => ({
+      const orderItems = items.map((item) => ({
         order_id: order.id,
         product_id: item.product_id,
         variant_id: item.variant_id || null,
@@ -80,13 +96,23 @@ export async function POST(req: NextRequest) {
 
       if (itemsError) {
         console.error('⚠️ Error creating order items:', itemsError)
-        // Ne pas faire échouer la capture si items non créés
       } else {
         console.log('✅ Order items created')
-      }
 
-      // TODO: Décrémenter le stock
-      // TODO: Envoyer email de confirmation
+        // ✅ Envoi email de confirmation
+        try {
+          console.log('📧 Sending order confirmation email...')
+          const emailResult = await sendOrderConfirmationHook(order.id)
+
+          if (emailResult.success) {
+            console.log('✅ Confirmation email sent successfully')
+          } else {
+            console.error('⚠️ Email sending failed:', emailResult.error)
+          }
+        } catch (emailError) {
+          console.error('⚠️ Email error (non-critical):', emailError)
+        }
+      }
     }
 
     console.log('✅ Order processed successfully')
