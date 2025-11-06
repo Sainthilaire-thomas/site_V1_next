@@ -94,6 +94,7 @@
     "@sanity/vision": "^4.10.1",
     "@types/node": "^20.19.17",
     "@types/nodemailer": "^6.4.20",
+    "@types/paypal__checkout-server-sdk": "^1.0.8",
     "@types/qrcode": "^1.5.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
