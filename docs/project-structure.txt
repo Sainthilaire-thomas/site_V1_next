@@ -3,7 +3,7 @@
 ║                          ARBORESCENCE DU PROJET                             ║
 ║                                                                              ║
 ║  Projet: site_v1_next                                                    ║
-║  Généré: 06/11/2025 07:32:58                                            ║
+║  Généré: 07/11/2025 10:46:59                                            ║
 ║                                                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -43,6 +43,7 @@
 │   ├── 📄 project-structure.txt
 │   ├── 📝 roadmap-site.md
 │   ├── 📝 SANITY-installation-sanity.md
+│   ├── 📝 SESSION-finalisation-checkout-test.md
 │   ├── 📝 SOCIALMEDIA-Doctechnique-SocialMedia.md
 │   ├── 📝 STRIPE_ config-production.md
 │   ├── 📝 STRIPE-implementation_checkout_avec_supabase.md
@@ -79,6 +80,7 @@
 │   ├── 🟨 check-vercel-config.js
 │   ├── 🟨 db-types.mjs
 │   ├── 🟨 generate-tree.js
+│   ├── 📄 get-types.ps1
 │   └── 🔷 migrate-to-supabase.ts
 ├── 📁 src
 │   ├── 📁 app
@@ -269,6 +271,11 @@
 │   │   │   │   └── 📁 by-session
 │   │   │   │       └── 📁 [sessionId]
 │   │   │   │           └── 🔷 route.ts
+│   │   │   ├── 📁 paypal
+│   │   │   │   ├── 📁 capture-order
+│   │   │   │   │   └── 🔷 route.ts
+│   │   │   │   └── 📁 create-order
+│   │   │   │       └── 🔷 route.ts
 │   │   │   ├── 📁 products
 │   │   │   │   ├── 📁 [id]
 │   │   │   │   │   └── 🔷 route.ts
@@ -303,6 +310,10 @@
 │   │   │   │   └── 🔷 page.tsx
 │   │   │   └── 🔷 page.tsx
 │   │   ├── 📁 checkout-test
+│   │   │   ├── 📁 cancel
+│   │   │   │   └── 🔷 page.tsx
+│   │   │   ├── 📁 success
+│   │   │   │   └── 🔷 page.tsx
 │   │   │   └── 🔷 page.tsx
 │   │   ├── 📁 collections
 │   │   │   ├── 📁 [slug]
@@ -381,6 +392,8 @@
 │   │   │   └── 🔷 AnalyticsTracker.tsx
 │   │   ├── 📁 auth
 │   │   │   └── 🔷 AuthModal.tsx
+│   │   ├── 📁 checkout
+│   │   │   └── 🔷 PayPalButtons.tsx
 │   │   ├── 📁 common
 │   │   │   ├── 🔷 LazyImage.tsx
 │   │   │   └── 🔷 RichTextRenderer.tsx
@@ -504,6 +517,7 @@
 │   │   ├── 🔷 image-helpers.ts
 │   │   ├── 🔷 images.ts
 │   │   ├── 📄 logsstripe.txt
+│   │   ├── 🔷 paypal.ts
 │   │   ├── 🔷 products.ts
 │   │   ├── 🔷 queries.ts
 │   │   ├── 🔷 sanity.client.ts
@@ -557,8 +571,8 @@
 
 
 📈 Statistiques :
-   • Dossiers : 182
-   • Fichiers : 302
-   • Total : 484 éléments
+   • Dossiers : 188
+   • Fichiers : 309
+   • Total : 497 éléments
 
 💡 Généré automatiquement - Ne pas modifier manuellement
