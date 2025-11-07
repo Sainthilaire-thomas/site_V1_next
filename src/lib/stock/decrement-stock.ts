@@ -11,7 +11,7 @@ interface OrderItemStock {
 
 /**
  * Décrémenter le stock après un paiement validé
- * Appelé depuis le webhook Stripe après checkout.session.completed
+ * Appelé depuis le webhook PayPal après capture du paiement
  */
 export async function decrementStockForOrder(orderId: string) {
   try {
@@ -126,6 +126,11 @@ async function decrementStockForItem(item: OrderItemStock) {
 
 /**
  * Décrémenter le stock d'une variante
+ * 
+ * ✅ CORRECTION : On crée seulement le mouvement de stock
+ * Le trigger trg_apply_stock (apply_stock_movement) se chargera
+ * automatiquement de mettre à jour product_variants.stock_quantity
+ * Ensuite on recalcule le stock du produit parent
  */
 async function decrementVariantStock(
   variantId: string,
@@ -133,40 +138,41 @@ async function decrementVariantStock(
   reason: string
 ) {
   try {
-    // ✅ Récupérer le stock actuel
+    console.log(`📦 Creating stock movement for variant ${variantId}: Δ -${quantity}`)
+
+    // ✅ Créer uniquement le mouvement de stock
+    // Le trigger AFTER INSERT sur stock_movements va automatiquement :
+    // 1. Mettre à jour product_variants.stock_quantity
+    // 2. Via apply_stock_movement()
+    await createStockMovement(variantId, -quantity, reason)
+
+    console.log(`✅ Stock movement created (trigger will update variant stock)`)
+
+    // ✅ AJOUT : Recalculer le stock du produit parent
+    // Récupérer le product_id du variant
     const { data: variant, error: variantError } = await supabaseAdmin
       .from('product_variants')
-      .select('stock_quantity')
+      .select('product_id')
       .eq('id', variantId)
       .single()
 
-    if (variantError || !variant) {
-      console.error('❌ Variant not found:', variantId)
-      return { success: false, error: 'Variant not found' }
+    if (variantError) {
+      console.warn('⚠️ Could not fetch variant product_id:', variantError)
+    } else if (variant?.product_id) {
+      // Appeler la fonction SQL pour recalculer le stock total du produit
+      const { data: newStock, error: rpcError } = await supabaseAdmin
+        .rpc('recompute_product_stock', {
+          p_product_id: variant.product_id
+        })
+
+      if (rpcError) {
+        console.warn('⚠️ Could not recompute product stock:', rpcError)
+      } else {
+        console.log(`✅ Product stock recalculated: ${newStock}`)
+      }
     }
 
-    const currentStock = variant.stock_quantity ?? 0
-    const newStock = Math.max(0, currentStock - quantity)
-
-    console.log(
-      `📦 Variant ${variantId}: ${currentStock} → ${newStock} (Δ -${quantity})`
-    )
-
-    // ✅ Mettre à jour le stock
-    const { error: updateError } = await supabaseAdmin
-      .from('product_variants')
-      .update({ stock_quantity: newStock })
-      .eq('id', variantId)
-
-    if (updateError) {
-      console.error('❌ Error updating variant stock:', updateError)
-      return { success: false, error: updateError.message }
-    }
-
-    // ✅ Créer un mouvement de stock (historique)
-    await createStockMovement(variantId, -quantity, reason)
-
-    return { success: true, newStock }
+    return { success: true }
   } catch (error) {
     console.error('❌ Error in decrementVariantStock:', error)
     return {
@@ -178,6 +184,9 @@ async function decrementVariantStock(
 
 /**
  * Décrémenter le stock d'un produit (sans variante)
+ * 
+ * Note: Pour les produits sans variantes, on met à jour directement
+ * car il n'y a pas de trigger sur products
  */
 async function decrementProductStock(
   productId: string,
@@ -230,6 +239,9 @@ async function decrementProductStock(
 
 /**
  * Créer un mouvement de stock dans l'historique
+ * 
+ * Note: Le trigger trg_apply_stock se déclenchera automatiquement
+ * après l'INSERT et mettra à jour product_variants.stock_quantity
  */
 async function createStockMovement(
   variantId: string,
@@ -245,11 +257,11 @@ async function createStockMovement(
     })
 
     if (error) {
-      console.error('⚠️ Error creating stock movement:', error)
-      // Non-bloquant
+      console.error('❌ Error creating stock movement:', error)
+      throw error
     }
   } catch (error) {
-    console.error('⚠️ Error creating stock movement:', error)
-    // Non-bloquant
+    console.error('❌ Error creating stock movement:', error)
+    throw error
   }
 }
