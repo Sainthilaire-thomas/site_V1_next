@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
@@ -225,6 +225,37 @@ export default function ProductDetailClient({
     (colors.length === 0 || !!selectedColor) &&
     (sizes.length === 0 || !!selectedSize)
 
+  // ✅ NOUVEAU : Trouver le variant_id correspondant à la sélection
+  const getSelectedVariantId = (): string | null => {
+    if (!product.variants || product.variants.length === 0) return null
+
+    // Cas : Produit avec seulement une taille (le plus courant)
+    if (selectedSize && !selectedColor) {
+      const sizeVariant = product.variants.find(
+        (v) => isSizeKey(v.name) && v.value === selectedSize
+      )
+      return sizeVariant?.id || null
+    }
+
+    // Cas : Produit avec couleur ET taille
+    if (selectedColor && selectedSize) {
+      const sizeVariant = product.variants.find(
+        (v) => isSizeKey(v.name) && v.value === selectedSize
+      )
+      return sizeVariant?.id || null
+    }
+
+    // Cas : Produit avec seulement une couleur
+    if (selectedColor && !selectedSize) {
+      const colorVariant = product.variants.find(
+        (v) => isColorKey(v.name) && v.value === selectedColor
+      )
+      return colorVariant?.id || null
+    }
+
+    return null
+  }
+
   const handleAddToCart = () => {
     if (colors.length > 0 && !selectedColor)
       return toast.error('Please select a color')
@@ -238,6 +269,9 @@ export default function ProductDetailClient({
       imageUrl = getProductImageUrl(primaryImage.id, 'sm')
     }
 
+    // ✅ NOUVEAU : Récupérer le variantId
+    const variantId = getSelectedVariantId()
+
     addItem({
       id: `${product.id}${selectedColor ? `:${selectedColor}` : ''}${selectedSize ? `:${selectedSize}` : ''}`,
       name:
@@ -246,6 +280,7 @@ export default function ProductDetailClient({
         [selectedColor, selectedSize].filter(Boolean).join(' / '),
       price: displayPrice,
       productId: product.id,
+      variantId: variantId, // ✅ AJOUTÉ
       imageId: primaryImage?.id,
       color: selectedColor || undefined,
       size: selectedSize || undefined,

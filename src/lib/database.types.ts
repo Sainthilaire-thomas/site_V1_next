@@ -819,7 +819,7 @@ export type Database = {
           id?: string
           metadata?: Json | null
           notes?: string | null
-          order_number: string
+          order_number?: string
           paid_at?: string | null
           payment_intent_id?: string | null
           payment_method?: string | null

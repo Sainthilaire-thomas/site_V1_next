@@ -100,6 +100,24 @@ export async function POST(req: NextRequest) {
       } else {
         console.log('✅ Order items created')
 
+        // ✅ Décrémentation du stock
+        try {
+          console.log('📦 Decrementing stock for order:', order.id)
+          const stockResult = await decrementStockForOrder(order.id)
+
+          if (stockResult.success) {
+            console.log(`✅ Stock decremented: ${stockResult.decremented} items`)
+            if (stockResult.errors && stockResult.errors.length > 0) {
+              console.warn('⚠️ Some stock errors:', stockResult.errors)
+            }
+          } else {
+            console.error('❌ Stock decrement failed:', stockResult.errors || stockResult.error)
+          }
+        } catch (stockError) {
+          console.error('❌ Stock decrement exception:', stockError)
+          // Ne pas faire échouer la commande si le stock échoue
+        }
+
         // ✅ Envoi email de confirmation
         try {
           console.log('📧 Sending order confirmation email...')

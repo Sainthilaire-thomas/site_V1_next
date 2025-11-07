@@ -26,13 +26,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No items in cart' }, { status: 400 })
     }
 
-    // Calculer le total
-    const totalAmount = items.reduce(
+    // Calculate totals
+    const subtotal = items.reduce(
       (sum: number, item: any) => sum + item.price * item.quantity,
       0
     )
+    const SHIPPING_COST = shippingCost || 5.9
+    const totalAmount = subtotal + SHIPPING_COST
 
-    console.log('💰 Total amount:', totalAmount)
+    console.log('💰 Subtotal:', subtotal)
+    console.log('🚚 Shipping:', SHIPPING_COST)
+    console.log('💳 Total:', totalAmount)
 
     // Créer la commande dans Supabase
     const { data: order, error: orderError } = await supabaseAdmin
@@ -42,6 +46,7 @@ export async function POST(req: NextRequest) {
         payment_status: 'pending',
         payment_method: 'paypal',
         total_amount: totalAmount,
+        shipping_amount: SHIPPING_COST,
         shipping_address: shippingAddress || null,
         billing_address: billingAddress || null,
         customer_email: customerEmail || null,
@@ -72,7 +77,31 @@ export async function POST(req: NextRequest) {
             breakdown: {
               item_total: {
                 currency_code: 'EUR',
-                value: totalAmount.toFixed(2),
+                value: subtotal.toFixed(2),
+              },
+              shipping: {
+                currency_code: 'EUR',
+                value: SHIPPING_COST.toFixed(2),
+              },
+              handling: {
+                currency_code: 'EUR',
+                value: '0.00',
+              },
+              tax_total: {
+                currency_code: 'EUR',
+                value: '0.00',
+              },
+              insurance: {
+                currency_code: 'EUR',
+                value: '0.00',
+              },
+              shipping_discount: {
+                currency_code: 'EUR',
+                value: '0.00',
+              },
+              discount: {
+                currency_code: 'EUR',
+                value: '0.00',
               },
             },
           },
@@ -91,7 +120,7 @@ export async function POST(req: NextRequest) {
       application_context: {
         brand_name: 'Blanche Renaudin',
         landing_page: 'NO_PREFERENCE',
-        shipping_preference: 'NO_SHIPPING', // Adresse déjà collectée
+        shipping_preference: 'NO_SHIPPING',
         user_action: 'PAY_NOW',
         return_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/checkout/success`,
         cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/checkout/cancel`,
@@ -109,7 +138,6 @@ export async function POST(req: NextRequest) {
       .from('orders')
       .update({
         paypal_order_id: paypalOrderId,
-        // Sérialiser les items en JSON dans metadata
         metadata: { items },
       })
       .eq('id', order.id)

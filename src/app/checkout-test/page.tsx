@@ -43,18 +43,20 @@ export default function CheckoutTestPayPalPage() {
   })
 
   useEffect(() => {
-    const calculation = calculateShippingCost(
-      shippingMethod,
-      shippingAddress.country || 'FR',
-      totalPrice
-    )
+    const country = shippingAddress.country || 'FR'
+    const method =
+      country === 'FR' || country === 'MC'
+        ? 'france_standard'
+        : 'europe_standard'
+
+    const calculation = calculateShippingCost(method, country, totalPrice)
 
     if (calculation) {
       setShippingCost(calculation.cost)
     } else {
-      setShippingCost(5.9)
+      setShippingCost(country === 'FR' || country === 'MC' ? 5.9 : 12.9)
     }
-  }, [totalPrice, shippingMethod, shippingAddress.country])
+  }, [totalPrice, shippingAddress.country])
 
   const handleContinueToPayment = (e: React.FormEvent) => {
     e.preventDefault()
@@ -236,8 +238,32 @@ export default function CheckoutTestPayPalPage() {
           </div>
 
           <div>
-            <Label htmlFor="country">Country</Label>
-            <Input id="country" value="France" disabled />
+            <Label htmlFor="country">Country *</Label>
+            <select
+              id="country"
+              value={shippingAddress.country}
+              onChange={(e) => {
+                setShippingAddress({
+                  ...shippingAddress,
+                  country: e.target.value,
+                })
+              }}
+              disabled={showPayPal}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+              required
+            >
+              <option value="FR">France</option>
+              <option value="MC">Monaco</option>
+              <option value="BE">Belgium</option>
+              <option value="LU">Luxembourg</option>
+              <option value="DE">Germany</option>
+              <option value="IT">Italy</option>
+              <option value="ES">Spain</option>
+              <option value="PT">Portugal</option>
+              <option value="NL">Netherlands</option>
+              <option value="AT">Austria</option>
+              <option value="CH">Switzerland</option>
+            </select>
           </div>
 
           {showPayPal && (
@@ -285,7 +311,7 @@ export default function CheckoutTestPayPalPage() {
                   <span>{totalPrice.toFixed(2)}€</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Shipping (France)</span>
+                  <span>Shipping</span>
                   <span>{shippingCost.toFixed(2)}€</span>
                 </div>
                 <div className="flex justify-between font-bold text-lg border-t pt-2">
@@ -315,7 +341,7 @@ export default function CheckoutTestPayPalPage() {
             {process.env.NEXT_PUBLIC_PAYPAL_MODE === 'sandbox' && (
               <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg mb-4 text-xs">
                 <p className="text-amber-800">
-                  ⚠️ Test mode: Use a PayPal Sandbox account
+                  Test mode: Use a PayPal Sandbox account
                 </p>
               </div>
             )}
@@ -345,7 +371,7 @@ export default function CheckoutTestPayPalPage() {
         )}
 
         <div className="text-xs text-gray-500 text-center mt-6 space-y-1">
-          <p>🔒 100% secure payment</p>
+          <p>100% secure payment</p>
           <p className="text-gray-400">
             Your banking information is never stored on our servers
           </p>

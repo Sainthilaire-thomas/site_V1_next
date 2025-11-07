@@ -119,16 +119,17 @@ export function PayPalButtonsWrapper({
 
               toast.success('Paiement réussi ! Commande confirmée.')
 
-              if (onSuccess) {
-                onSuccess()
-              }
+              // ✅ CORRECTION : Rediriger IMMÉDIATEMENT
+              router.push(
+                '/checkout-test/success?order=' + captureData.orderNumber
+              )
 
-              // Redirection après 1 seconde
+              // ✅ Vider le panier APRÈS un court délai
               setTimeout(() => {
-                router.push(
-                  '/checkout/success?order=' + captureData.orderNumber
-                )
-              }, 1000)
+                if (onSuccess) {
+                  onSuccess()
+                }
+              }, 500)
             } catch (error: any) {
               console.error('❌ Error capturing order:', error)
               toast.error('Erreur lors de la validation du paiement')
