@@ -15,6 +15,7 @@ export async function POST(req: NextRequest) {
       billingAddress,
       customerEmail,
       customerName,
+      shippingCost,
     } = body
 
     console.log('📦 Creating PayPal order...')

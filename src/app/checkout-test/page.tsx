@@ -1,6 +1,6 @@
-'use client'
+﻿'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCartStore } from '@/store/useCartStore'
 import { Button } from '@/components/ui/button'
@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { PayPalButtonsWrapper } from '@/components/checkout/PayPalButtons'
 import { toast } from 'sonner'
+import { calculateShippingCost } from '@/lib/shipping/calculator'
 
 interface ShippingAddress {
   first_name: string
@@ -26,6 +27,9 @@ export default function CheckoutTestPayPalPage() {
   const { items, totalPrice, clearCart } = useCartStore()
 
   const [showPayPal, setShowPayPal] = useState(false)
+  const [shippingCost, setShippingCost] = useState(5.9)
+  const [shippingMethod] = useState('france_standard')
+
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     first_name: '',
     last_name: '',
@@ -38,10 +42,23 @@ export default function CheckoutTestPayPalPage() {
     country: 'FR',
   })
 
+  useEffect(() => {
+    const calculation = calculateShippingCost(
+      shippingMethod,
+      shippingAddress.country || 'FR',
+      totalPrice
+    )
+
+    if (calculation) {
+      setShippingCost(calculation.cost)
+    } else {
+      setShippingCost(5.9)
+    }
+  }, [totalPrice, shippingMethod, shippingAddress.country])
+
   const handleContinueToPayment = (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Validation
     if (
       !shippingAddress.first_name ||
       !shippingAddress.last_name ||
@@ -50,21 +67,19 @@ export default function CheckoutTestPayPalPage() {
       !shippingAddress.city ||
       !shippingAddress.postal_code
     ) {
-      toast.error('Veuillez remplir tous les champs obligatoires')
+      toast.error('Please fill in all required fields')
       return
     }
 
     if (items.length === 0) {
-      toast.error('Votre panier est vide')
+      toast.error('Your cart is empty')
       router.push('/cart')
       return
     }
 
-    // Afficher les boutons PayPal
     setShowPayPal(true)
-    toast.success('Informations enregistrées')
+    toast.success('Information saved')
 
-    // Scroll vers les boutons PayPal
     setTimeout(() => {
       document.getElementById('paypal-section')?.scrollIntoView({
         behavior: 'smooth',
@@ -76,22 +91,19 @@ export default function CheckoutTestPayPalPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-16">
       <h1 className="text-3xl font-bold mb-2 font-['Archivo_Black'] uppercase tracking-[0.05em]">
-        Checkout Test - PayPal
+        Complete your order
       </h1>
-      <p className="text-sm text-gray-500 mb-8">
-        Page de test pour l'intégration PayPal (mode Sandbox)
-      </p>
+      <p className="text-sm text-gray-500 mb-8">Secure payment with PayPal</p>
 
       <form onSubmit={handleContinueToPayment}>
-        {/* Formulaire d'adresse */}
         <div className="space-y-4 mb-8 bg-white p-6 rounded-lg border">
           <h2 className="text-xl font-semibold mb-4 uppercase tracking-wider">
-            Informations de livraison
+            Shipping information
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="first_name">Prénom *</Label>
+              <Label htmlFor="first_name">First name *</Label>
               <Input
                 id="first_name"
                 value={shippingAddress.first_name}
@@ -107,7 +119,7 @@ export default function CheckoutTestPayPalPage() {
             </div>
 
             <div>
-              <Label htmlFor="last_name">Nom *</Label>
+              <Label htmlFor="last_name">Last name *</Label>
               <Input
                 id="last_name"
                 value={shippingAddress.last_name}
@@ -141,7 +153,7 @@ export default function CheckoutTestPayPalPage() {
           </div>
 
           <div>
-            <Label htmlFor="phone">Téléphone</Label>
+            <Label htmlFor="phone">Phone</Label>
             <Input
               id="phone"
               type="tel"
@@ -158,7 +170,7 @@ export default function CheckoutTestPayPalPage() {
           </div>
 
           <div>
-            <Label htmlFor="address_line1">Adresse *</Label>
+            <Label htmlFor="address_line1">Address *</Label>
             <Input
               id="address_line1"
               value={shippingAddress.address_line1}
@@ -174,7 +186,7 @@ export default function CheckoutTestPayPalPage() {
           </div>
 
           <div>
-            <Label htmlFor="address_line2">Complément d'adresse</Label>
+            <Label htmlFor="address_line2">Address line 2</Label>
             <Input
               id="address_line2"
               value={shippingAddress.address_line2}
@@ -184,14 +196,14 @@ export default function CheckoutTestPayPalPage() {
                   address_line2: e.target.value,
                 })
               }
-              placeholder="Appartement, étage, etc."
+              placeholder="Apartment, floor, etc."
               disabled={showPayPal}
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="postal_code">Code postal *</Label>
+              <Label htmlFor="postal_code">Postal code *</Label>
               <Input
                 id="postal_code"
                 value={shippingAddress.postal_code}
@@ -207,7 +219,7 @@ export default function CheckoutTestPayPalPage() {
             </div>
 
             <div>
-              <Label htmlFor="city">Ville *</Label>
+              <Label htmlFor="city">City *</Label>
               <Input
                 id="city"
                 value={shippingAddress.city}
@@ -224,7 +236,7 @@ export default function CheckoutTestPayPalPage() {
           </div>
 
           <div>
-            <Label htmlFor="country">Pays</Label>
+            <Label htmlFor="country">Country</Label>
             <Input id="country" value="France" disabled />
           </div>
 
@@ -235,21 +247,18 @@ export default function CheckoutTestPayPalPage() {
               onClick={() => setShowPayPal(false)}
               className="w-full"
             >
-              Modifier l'adresse
+              Edit address
             </Button>
           )}
         </div>
 
-        {/* Résumé panier */}
-        <div className="bg-gray-50 p-6 rounded-lg mb-8 border">
+        <div className="bg-white border-2 border-gray-200 p-6 rounded-lg mb-8 shadow-sm">
           <h2 className="text-xl font-semibold mb-4 uppercase tracking-wider">
-            Résumé de la commande
+            Order summary
           </h2>
 
           {items.length === 0 ? (
-            <p className="text-gray-500 text-center py-4">
-              Votre panier est vide
-            </p>
+            <p className="text-gray-500 text-center py-4">Your cart is empty</p>
           ) : (
             <>
               <div className="space-y-2 mb-4">
@@ -272,46 +281,47 @@ export default function CheckoutTestPayPalPage() {
 
               <div className="border-t pt-4 space-y-2">
                 <div className="flex justify-between">
-                  <span>Sous-total</span>
+                  <span>Subtotal</span>
                   <span>{totalPrice.toFixed(2)}€</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Livraison</span>
-                  <span className="text-green-600">Gratuite</span>
+                  <span>Shipping (France)</span>
+                  <span>{shippingCost.toFixed(2)}€</span>
                 </div>
                 <div className="flex justify-between font-bold text-lg border-t pt-2">
                   <span>Total</span>
-                  <span>{totalPrice.toFixed(2)}€</span>
+                  <span>{(totalPrice + shippingCost).toFixed(2)}€</span>
                 </div>
               </div>
             </>
           )}
         </div>
 
-        {/* Bouton continuer ou Section PayPal */}
         {!showPayPal ? (
           <Button
             type="submit"
             disabled={items.length === 0}
-            className="w-full bg-[hsl(271,74%,37%)] hover:bg-[hsl(271,74%,30%)]"
+            className="w-full bg-black hover:bg-black/90 text-white font-['Archivo_Narrow'] uppercase tracking-wider"
             size="lg"
           >
-            Continuer vers le paiement
+            Confirm and pay
           </Button>
         ) : (
           <div id="paypal-section" className="bg-white p-6 rounded-lg border">
             <h2 className="text-xl font-semibold mb-4 uppercase tracking-wider">
-              Paiement PayPal
+              PayPal payment
             </h2>
 
-            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-4">
-              <p className="text-sm text-blue-800">
-                🧪 <strong>Mode Test (Sandbox)</strong> - Utilisez un compte
-                PayPal de test
-              </p>
-            </div>
+            {process.env.NEXT_PUBLIC_PAYPAL_MODE === 'sandbox' && (
+              <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg mb-4 text-xs">
+                <p className="text-amber-800">
+                  ⚠️ Test mode: Use a PayPal Sandbox account
+                </p>
+              </div>
+            )}
 
             <PayPalButtonsWrapper
+              shippingCost={shippingCost}
               items={items.map((item) => ({
                 product_id: item.productId,
                 variant_id: item.variantId,
@@ -334,9 +344,12 @@ export default function CheckoutTestPayPalPage() {
           </div>
         )}
 
-        <p className="text-xs text-gray-500 text-center mt-4">
-          🔒 Paiement sécurisé par PayPal. Environnement de test (Sandbox).
-        </p>
+        <div className="text-xs text-gray-500 text-center mt-6 space-y-1">
+          <p>🔒 100% secure payment</p>
+          <p className="text-gray-400">
+            Your banking information is never stored on our servers
+          </p>
+        </div>
       </form>
     </div>
   )

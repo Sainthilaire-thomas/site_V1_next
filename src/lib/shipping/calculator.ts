@@ -1,16 +1,11 @@
-// src/lib/shipping/calculator.ts
+﻿// src/lib/shipping/calculator.ts
 import { addBusinessDays, format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import {
-  SHIPPING_METHODS,
-  SHIPPING_ZONES,
-  DEFAULT_FREE_SHIPPING_THRESHOLD,
-  HOLIDAYS_2025,
-} from './config'
-import type { ShippingMethod, ShippingCalculation } from './types' // ✅ Ajout de "type"
+import { SHIPPING_METHODS, SHIPPING_ZONES, HOLIDAYS_2025 } from './config'
+import type { ShippingMethod, ShippingCalculation } from './types' // âœ… Ajout de "type"
 
 /**
- * Récupère les méthodes de livraison disponibles pour un pays
+ * RÃ©cupÃ¨re les mÃ©thodes de livraison disponibles pour un pays
  */
 export function getAvailableShippingMethods(
   countryCode: string
@@ -21,7 +16,7 @@ export function getAvailableShippingMethods(
 }
 
 /**
- * Récupère une méthode de livraison par son ID
+ * RÃ©cupÃ¨re une mÃ©thode de livraison par son ID
  */
 export function getShippingMethodById(
   methodId: string
@@ -30,7 +25,7 @@ export function getShippingMethodById(
 }
 
 /**
- * Calcule le coût de livraison pour une commande
+ * Calcule le coÃ»t de livraison pour une commande
  */
 export function calculateShippingCost(
   methodId: string,
@@ -47,7 +42,7 @@ export function calculateShippingCost(
   // Trouver la zone correspondante
   const zone = SHIPPING_ZONES.find((z) => z.countries.includes(countryCode))
 
-  // Récupérer le tarif de la zone (ou utiliser le tarif de base)
+  // RÃ©cupÃ©rer le tarif de la zone (ou utiliser le tarif de base)
   let baseCost = method.base_rate
   let freeThreshold = method.free_shipping_threshold
 
@@ -59,7 +54,7 @@ export function calculateShippingCost(
     }
   }
 
-  // Calculer le coût additionnel si poids fourni
+  // Calculer le coÃ»t additionnel si poids fourni
   let totalCost = baseCost
   if (weight && zone) {
     const zoneRate = zone.rates.find((r) => r.method_id === methodId)
@@ -69,14 +64,14 @@ export function calculateShippingCost(
     }
   }
 
-  // Vérifier si livraison gratuite
+  // VÃ©rifier si livraison gratuite
   const isFree =
     (freeThreshold !== undefined && cartTotal >= freeThreshold) ||
     baseCost === 0
 
   const finalCost = isFree ? 0 : totalCost
 
-  // Calculer la date de livraison estimée
+  // Calculer la date de livraison estimÃ©e
   const estimatedDelivery = calculateEstimatedDelivery(
     method.min_delivery_days,
     method.max_delivery_days
@@ -110,7 +105,7 @@ export function getAllShippingOptions(
 }
 
 /**
- * Calcule la date de livraison estimée (en évitant week-ends et jours fériés)
+ * Calcule la date de livraison estimÃ©e (en Ã©vitant week-ends et jours fÃ©riÃ©s)
  */
 function calculateEstimatedDelivery(
   minDays: number,
@@ -122,7 +117,7 @@ function calculateEstimatedDelivery(
 } {
   const today = new Date()
 
-  // Ajouter les jours ouvrés
+  // Ajouter les jours ouvrÃ©s
   const minDate = addBusinessDays(today, minDays)
   const maxDate = addBusinessDays(today, maxDays)
 
@@ -138,7 +133,7 @@ function calculateEstimatedDelivery(
 }
 
 /**
- * Vérifie si une méthode est disponible pour un poids donné
+ * VÃ©rifie si une mÃ©thode est disponible pour un poids donnÃ©
  */
 export function isMethodAvailableForWeight(
   methodId: string,
@@ -159,7 +154,7 @@ export function isMethodAvailableForWeight(
 }
 
 /**
- * Calcule le montant restant pour bénéficier de la livraison gratuite
+ * Calcule le montant restant pour bÃ©nÃ©ficier de la livraison gratuite
  */
 export function getRemainingForFreeShipping(
   methodId: string,
@@ -176,7 +171,7 @@ export function getRemainingForFreeShipping(
   const threshold =
     zoneRate?.free_threshold ||
     method.free_shipping_threshold ||
-    DEFAULT_FREE_SHIPPING_THRESHOLD
+    null
 
   if (cartTotal >= threshold) return 0
 

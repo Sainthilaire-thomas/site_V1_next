@@ -4,6 +4,7 @@ import { client } from '@/lib/paypal'
 import checkoutNodeJssdk from '@paypal/checkout-server-sdk'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { sendOrderConfirmationHook } from '@/lib/email/send-order-confirmation-hook'
+import { decrementStockForOrder } from '@/lib/stock/decrement-stock'
 
 export const runtime = 'nodejs'
 

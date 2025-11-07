@@ -12,6 +12,7 @@ interface PayPalButtonsWrapperProps {
   billingAddress: any
   customerEmail?: string
   customerName?: string
+  shippingCost?: number
   onSuccess?: () => void
 }
 
@@ -21,6 +22,7 @@ export function PayPalButtonsWrapper({
   billingAddress,
   customerEmail,
   customerName,
+  shippingCost,
   onSuccess,
 }: PayPalButtonsWrapperProps) {
   const router = useRouter()
@@ -78,6 +80,7 @@ export function PayPalButtonsWrapper({
                   billingAddress,
                   customerEmail,
                   customerName,
+                  shippingCost,
                 }),
               })
 

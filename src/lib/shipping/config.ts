@@ -97,7 +97,7 @@ export const SHIPPING_ZONES: ShippingZone[] = [
 /**
  * Seuil de gratuité par défaut (global)
  */
-export const DEFAULT_FREE_SHIPPING_THRESHOLD = 150
+// No free shipping threshold
 
 /**
  * Configuration des jours fériés (pour calcul des délais)
