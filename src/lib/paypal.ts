@@ -1,16 +1,17 @@
 // src/lib/paypal.ts
 import checkoutNodeJssdk from '@paypal/checkout-server-sdk'
+import { PAYPAL_CONFIG } from '@/lib/paypal-config'
 
 function environment() {
-  const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!
-  const clientSecret = process.env.PAYPAL_CLIENT_SECRET!
+  const clientId = PAYPAL_CONFIG.clientId
+  const clientSecret = PAYPAL_CONFIG.clientSecret
 
   if (!clientId || !clientSecret) {
     throw new Error('PayPal credentials are not configured')
   }
 
-  if (process.env.PAYPAL_MODE === 'live') {
-    console.log('🔴 PayPal: Mode PRODUCTION activé')
+  if (PAYPAL_CONFIG.isProduction) {
+    console.log('🔴 PayPal: Mode PRODUCTION activé (LIVE)')
     return new checkoutNodeJssdk.core.LiveEnvironment(clientId, clientSecret)
   }
 

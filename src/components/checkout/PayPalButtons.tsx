@@ -4,7 +4,8 @@
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { PAYPAL_CONFIG, logPayPalEnvironment } from '@/lib/paypal-config'
 
 interface PayPalButtonsWrapperProps {
   items: any[]
@@ -29,13 +30,12 @@ export function PayPalButtonsWrapper({
   const [isProcessing, setIsProcessing] = useState(false)
 
   const initialOptions = {
-    clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!,
+    clientId: PAYPAL_CONFIG.clientId, // ✅ MODIFIÉ
     currency: 'EUR',
     intent: 'capture',
-    locale: 'fr_FR',
   }
 
-  if (!process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID) {
+  if (!PAYPAL_CONFIG.clientId) {
     return (
       <div className="p-4 border border-red-200 bg-red-50 rounded-lg">
         <p className="text-sm text-red-600">
@@ -45,6 +45,10 @@ export function PayPalButtonsWrapper({
       </div>
     )
   }
+
+  useEffect(() => {
+    logPayPalEnvironment()
+  }, [])
 
   return (
     <div className="w-full">
@@ -56,6 +60,11 @@ export function PayPalButtonsWrapper({
         </div>
       )}
 
+      {PAYPAL_CONFIG.isSandbox && (
+        <div className="mb-4 px-3 py-2 bg-yellow-100 border border-yellow-400 text-yellow-800 text-xs rounded-lg font-medium">
+          🧪 Mode Sandbox - Paiements de test uniquement
+        </div>
+      )}
       <PayPalScriptProvider options={initialOptions}>
         <PayPalButtons
           style={{
