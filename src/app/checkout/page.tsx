@@ -1,342 +1,382 @@
-// src/app/checkout/page.tsx - ULTRA-SIMPLE ENGLISH VERSION
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useCartStore } from '@/store/useCartStore'
-import HeaderMinimal from '@/components/layout/HeaderMinimal'
-import FooterMinimal from '@/components/layout/FooterMinimal'
-import { Heart } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { PayPalButtonsWrapper } from '@/components/checkout/PayPalButtons'
+import { toast } from 'sonner'
+import { calculateShippingCost } from '@/lib/shipping/calculator'
 
-export default function CheckoutPage() {
-  const { items, totalPrice } = useCartStore()
-  const [isLoading, setIsLoading] = useState(false)
-  const [isMounted, setIsMounted] = useState(false)
-  const [isSubmitted, setIsSubmitted] = useState(false)
-  const [error, setError] = useState('')
+interface ShippingAddress {
+  first_name: string
+  last_name: string
+  email: string
+  phone: string
+  address_line1: string
+  address_line2?: string
+  city: string
+  postal_code: string
+  country: string
+}
 
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+export default function CheckoutPayPalPage() {
+  const router = useRouter()
+  const { items, totalPrice, clearCart } = useCartStore()
+
+  const [showPayPal, setShowPayPal] = useState(false)
+  const [shippingCost, setShippingCost] = useState(5.9)
+  const [shippingMethod] = useState('france_standard')
+
+  const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
+    first_name: '',
+    last_name: '',
     email: '',
     phone: '',
+    address_line1: '',
+    address_line2: '',
+    city: '',
+    postal_code: '',
+    country: 'FR',
   })
 
   useEffect(() => {
-    setIsMounted(true)
-  }, [])
+    const country = shippingAddress.country || 'FR'
+    const method =
+      country === 'FR' || country === 'MC'
+        ? 'france_standard'
+        : 'europe_standard'
 
-  const handleSubmit = async (e: React.FormEvent) => {
+    const calculation = calculateShippingCost(method, country, totalPrice)
+
+    if (calculation) {
+      setShippingCost(calculation.cost)
+    } else {
+      setShippingCost(country === 'FR' || country === 'MC' ? 5.9 : 12.9)
+    }
+  }, [totalPrice, shippingAddress.country])
+
+  const handleContinueToPayment = (e: React.FormEvent) => {
     e.preventDefault()
 
-    console.log('🔘 Form submitted!')
-
-    if (isLoading) {
-      console.log('⚠️ Already loading')
+    if (
+      !shippingAddress.first_name ||
+      !shippingAddress.last_name ||
+      !shippingAddress.email ||
+      !shippingAddress.address_line1 ||
+      !shippingAddress.city ||
+      !shippingAddress.postal_code
+    ) {
+      toast.error('Please fill in all required fields')
       return
     }
 
-    setIsLoading(true)
-    setError('')
-
-    try {
-      console.log('📡 Sending to API...')
-
-      const response = await fetch(
-        `${window.location.origin}/api/launch-notifications`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            ...formData,
-            cartItems: items.map((item) => ({
-              productId: item.productId,
-              name: item.name,
-              quantity: item.quantity,
-              price: item.price,
-            })),
-            cartTotal: totalPrice,
-            timestamp: new Date().toISOString(),
-          }),
-        }
-      )
-
-      console.log('📬 Response status:', response.status)
-
-      if (!response.ok) {
-        throw new Error('API error')
-      }
-
-      const data = await response.json()
-      console.log('✅ Success!', data)
-
-      setIsSubmitted(true)
-    } catch (error: any) {
-      console.error('❌ Error:', error)
-      setError('An error occurred. Please try again.')
-    } finally {
-      setIsLoading(false)
+    if (items.length === 0) {
+      toast.error('Your cart is empty')
+      router.push('/cart')
+      return
     }
+
+    setShowPayPal(true)
+    toast.success('Information saved')
+
+    setTimeout(() => {
+      document.getElementById('paypal-section')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      })
+    }, 100)
   }
 
-  if (!isMounted) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-sm">loading...</div>
-      </div>
-    )
-  }
-
-  // Thank you page
-  if (isSubmitted) {
-    return (
-      <div className="min-h-screen bg-white">
-        <HeaderMinimal />
-        <main className="pt-32 pb-24 px-4">
-          <div className="max-w-2xl mx-auto text-center">
-            <div className="mb-8 flex justify-center">
-              <div className="w-20 h-20 rounded-full bg-violet/10 flex items-center justify-center">
-                <Heart className="w-10 h-10 text-violet" />
-              </div>
-            </div>
-
-            <h1 className="text-4xl font-bold mb-6 lowercase">.thank you</h1>
-
-            <p className="text-base text-gray-600 mb-8">
-              Your interest means everything to us.
-              <br />
-              We'll notify you by email as soon as payment becomes available.
-            </p>
-
-            <p className="text-sm font-semibold lowercase mb-12">
-              expected launch: within few days
-            </p>
-
-            <Link
-              href="/"
-              className="inline-block py-3 px-8 text-sm font-semibold lowercase bg-black text-white hover:bg-gray-800 transition-colors"
-            >
-              back to home
-            </Link>
-
-            <p className="text-xs text-gray-500 mt-12">
-              Questions? Contact us at{' '}
-              <a
-                href="mailto:contact@blancherenaudin.com"
-                className="underline hover:text-black"
-              >
-                contact@blancherenaudin.com
-              </a>
-            </p>
-          </div>
-        </main>
-        <FooterMinimal />
-      </div>
-    )
-  }
-
-  // Empty cart
-  if (items.length === 0) {
-    return (
-      <div className="min-h-screen bg-white">
-        <HeaderMinimal />
-        <main className="pt-32 pb-24 px-4">
-          <div className="max-w-7xl mx-auto text-center">
-            <h1 className="text-4xl font-bold mb-6 lowercase">.empty cart</h1>
-            <p className="text-base text-gray-600 mb-12">
-              Your cart is empty. Please add items before proceeding.
-            </p>
-            <Link
-              href="/products"
-              className="inline-block py-3 px-8 text-sm font-semibold lowercase border border-black hover:bg-black hover:text-white transition-colors"
-            >
-              view collections
-            </Link>
-          </div>
-        </main>
-        <FooterMinimal />
-      </div>
-    )
-  }
-
-  // Main page - ULTRA SIMPLE
   return (
-    <div className="min-h-screen bg-white">
-      <HeaderMinimal />
+    <div className="max-w-4xl mx-auto px-4 py-16">
+      <h1 className="text-3xl font-bold mb-2 font-['Archivo_Black'] uppercase tracking-[0.05em]">
+        Complete your order
+      </h1>
+      <p className="text-sm text-gray-500 mb-8">Secure payment with PayPal</p>
 
-      {/* Banner */}
-      <div className="bg-violet text-white py-3 px-4 text-center">
-        <span className="text-xs font-semibold lowercase">
-          official launch coming soon — be the first to know
-        </span>
-      </div>
+      <form onSubmit={handleContinueToPayment}>
+        <div className="space-y-4 mb-8 bg-white p-6 rounded-lg border">
+          <h2 className="text-xl font-semibold mb-4 uppercase tracking-wider">
+            Shipping information
+          </h2>
 
-      <main className="pt-8 pb-12 px-4">
-        <div className="max-w-2xl mx-auto">
-          {/* Title */}
-          <h1 className="text-3xl font-bold mb-6 text-center lowercase">
-            .launching soon
-          </h1>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="first_name">First name *</Label>
+              <Input
+                id="first_name"
+                value={shippingAddress.first_name}
+                onChange={(e) =>
+                  setShippingAddress({
+                    ...shippingAddress,
+                    first_name: e.target.value,
+                  })
+                }
+                required
+                disabled={showPayPal}
+              />
+            </div>
 
-          {/* Message */}
-          <div className="mb-8 text-sm text-gray-600 space-y-4">
-            <p>
-              We're in the final stages of preparing a seamless payment
-              experience for you.
-            </p>
-            <p className="font-bold text-black">
-              Payment will be available within few days.
-            </p>
-            <p>
-              Leave your details below and we'll notify you the moment we launch
-              — your items will be waiting for you.
-            </p>
+            <div>
+              <Label htmlFor="last_name">Last name *</Label>
+              <Input
+                id="last_name"
+                value={shippingAddress.last_name}
+                onChange={(e) =>
+                  setShippingAddress({
+                    ...shippingAddress,
+                    last_name: e.target.value,
+                  })
+                }
+                required
+                disabled={showPayPal}
+              />
+            </div>
           </div>
 
-          {/* Cart summary - SIMPLIFIED */}
-          <div className="border border-gray-200 p-4 mb-8">
-            <h2 className="font-bold mb-4 lowercase">your selection</h2>
+          <div>
+            <Label htmlFor="email">Email *</Label>
+            <Input
+              id="email"
+              type="email"
+              value={shippingAddress.email}
+              onChange={(e) =>
+                setShippingAddress({
+                  ...shippingAddress,
+                  email: e.target.value,
+                })
+              }
+              required
+              disabled={showPayPal}
+            />
+          </div>
 
-            {items.map((item) => (
-              <div key={item.id} className="flex justify-between py-2 text-sm">
-                <span className="lowercase">
-                  {item.name} x{item.quantity}
-                </span>
-                <span className="font-semibold">
-                  €{(item.price * item.quantity).toFixed(2)}
-                </span>
+          <div>
+            <Label htmlFor="phone">Phone</Label>
+            <Input
+              id="phone"
+              type="tel"
+              value={shippingAddress.phone}
+              onChange={(e) =>
+                setShippingAddress({
+                  ...shippingAddress,
+                  phone: e.target.value,
+                })
+              }
+              placeholder="+33..."
+              disabled={showPayPal}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="address_line1">Address *</Label>
+            <Input
+              id="address_line1"
+              value={shippingAddress.address_line1}
+              onChange={(e) =>
+                setShippingAddress({
+                  ...shippingAddress,
+                  address_line1: e.target.value,
+                })
+              }
+              required
+              disabled={showPayPal}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="address_line2">Address line 2</Label>
+            <Input
+              id="address_line2"
+              value={shippingAddress.address_line2}
+              onChange={(e) =>
+                setShippingAddress({
+                  ...shippingAddress,
+                  address_line2: e.target.value,
+                })
+              }
+              placeholder="Apartment, floor, etc."
+              disabled={showPayPal}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="postal_code">Postal code *</Label>
+              <Input
+                id="postal_code"
+                value={shippingAddress.postal_code}
+                onChange={(e) =>
+                  setShippingAddress({
+                    ...shippingAddress,
+                    postal_code: e.target.value,
+                  })
+                }
+                required
+                disabled={showPayPal}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="city">City *</Label>
+              <Input
+                id="city"
+                value={shippingAddress.city}
+                onChange={(e) =>
+                  setShippingAddress({
+                    ...shippingAddress,
+                    city: e.target.value,
+                  })
+                }
+                required
+                disabled={showPayPal}
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="country">Country *</Label>
+            <select
+              id="country"
+              value={shippingAddress.country}
+              onChange={(e) => {
+                setShippingAddress({
+                  ...shippingAddress,
+                  country: e.target.value,
+                })
+              }}
+              disabled={showPayPal}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+              required
+            >
+              <option value="FR">France</option>
+              <option value="MC">Monaco</option>
+              <option value="BE">Belgium</option>
+              <option value="LU">Luxembourg</option>
+              <option value="DE">Germany</option>
+              <option value="IT">Italy</option>
+              <option value="ES">Spain</option>
+              <option value="PT">Portugal</option>
+              <option value="NL">Netherlands</option>
+              <option value="AT">Austria</option>
+              <option value="CH">Switzerland</option>
+            </select>
+          </div>
+
+          {showPayPal && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowPayPal(false)}
+              className="w-full"
+            >
+              Edit address
+            </Button>
+          )}
+        </div>
+
+        <div className="bg-white border-2 border-gray-200 p-6 rounded-lg mb-8 shadow-sm">
+          <h2 className="text-xl font-semibold mb-4 uppercase tracking-wider">
+            Order summary
+          </h2>
+
+          {items.length === 0 ? (
+            <p className="text-gray-500 text-center py-4">Your cart is empty</p>
+          ) : (
+            <>
+              <div className="space-y-2 mb-4">
+                {items.map((item) => (
+                  <div
+                    key={`${item.productId}-${item.variantId || 'default'}`}
+                    className="flex justify-between text-sm"
+                  >
+                    <span>
+                      {item.name}
+                      {item.size && ` - ${item.size}`}
+                      {item.color && ` - ${item.color}`}
+                      {' � '}
+                      {item.quantity}
+                    </span>
+                    <span>{(item.price * item.quantity).toFixed(2)}�</span>
+                  </div>
+                ))}
               </div>
-            ))}
 
-            <div className="border-t border-gray-200 pt-4 mt-4 flex justify-between font-bold">
-              <span className="lowercase">total</span>
-              <span>€{totalPrice.toFixed(2)}</span>
-            </div>
-          </div>
+              <div className="border-t pt-4 space-y-2">
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span>{totalPrice.toFixed(2)}�</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Shipping</span>
+                  <span>{shippingCost.toFixed(2)}�</span>
+                </div>
+                <div className="flex justify-between font-bold text-lg border-t pt-2">
+                  <span>Total</span>
+                  <span>{(totalPrice + shippingCost).toFixed(2)}�</span>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
 
-          {/* ULTRA-SIMPLE FORM */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* First name */}
-            <div>
-              <label className="block text-xs font-semibold mb-2 lowercase">
-                first name *
-              </label>
-              <input
-                type="text"
-                value={formData.firstName}
-                onChange={(e) =>
-                  setFormData({ ...formData, firstName: e.target.value })
-                }
-                required
-                disabled={isLoading}
-                autoComplete="given-name"
-                className="w-full border-b-2 border-gray-300 focus:border-black outline-none py-2 px-0 text-base bg-transparent lowercase"
-                placeholder="jane"
-              />
-            </div>
+        {!showPayPal ? (
+          <Button
+            type="submit"
+            disabled={items.length === 0}
+            className="w-full bg-black hover:bg-black/90 text-white font-['Archivo_Narrow'] uppercase tracking-wider"
+            size="lg"
+          >
+            Confirm and pay
+          </Button>
+        ) : (
+          <div id="paypal-section" className="bg-white p-6 rounded-lg border">
+            <h2 className="text-xl font-semibold mb-4 uppercase tracking-wider">
+              PayPal payment
+            </h2>
 
-            {/* Last name */}
-            <div>
-              <label className="block text-xs font-semibold mb-2 lowercase">
-                last name *
-              </label>
-              <input
-                type="text"
-                value={formData.lastName}
-                onChange={(e) =>
-                  setFormData({ ...formData, lastName: e.target.value })
-                }
-                required
-                disabled={isLoading}
-                autoComplete="family-name"
-                className="w-full border-b-2 border-gray-300 focus:border-black outline-none py-2 px-0 text-base bg-transparent lowercase"
-                placeholder="doe"
-              />
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className="block text-xs font-semibold mb-2 lowercase">
-                email *
-              </label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                required
-                disabled={isLoading}
-                autoComplete="email"
-                className="w-full border-b-2 border-gray-300 focus:border-black outline-none py-2 px-0 text-base bg-transparent lowercase"
-                placeholder="jane@example.com"
-              />
-            </div>
-
-            {/* Phone */}
-            <div>
-              <label className="block text-xs font-semibold mb-2 lowercase">
-                phone (optional)
-              </label>
-              <input
-                type="tel"
-                value={formData.phone}
-                onChange={(e) =>
-                  setFormData({ ...formData, phone: e.target.value })
-                }
-                disabled={isLoading}
-                autoComplete="tel"
-                className="w-full border-b-2 border-gray-300 focus:border-black outline-none py-2 px-0 text-base bg-transparent lowercase"
-                placeholder="+33 6 12 34 56 78"
-              />
-            </div>
-
-            {/* Error message */}
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 p-3 text-sm lowercase">
-                {error}
+            {process.env.NEXT_PUBLIC_PAYPAL_MODE === 'sandbox' && (
+              <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg mb-4 text-xs">
+                <p className="text-amber-800">
+                  Test mode: Use a PayPal Sandbox account
+                </p>
               </div>
             )}
 
-            {/* NATIVE HTML BUTTON - GUARANTEED TO WORK */}
-            <button
-              type="submit"
-              disabled={isLoading}
-              style={{
-                width: '100%',
-                padding: '16px',
-                fontSize: '16px',
-                fontWeight: 600,
-                textTransform: 'lowercase',
-                backgroundColor: isLoading ? '#666' : '#000',
-                color: '#fff',
-                border: 'none',
-                cursor: isLoading ? 'not-allowed' : 'pointer',
-                touchAction: 'manipulation',
-                WebkitTapHighlightColor: 'transparent',
+            <PayPalButtonsWrapper
+              shippingCost={shippingCost}
+              items={items.map((item) => ({
+                product_id: item.productId,
+                variant_id: item.variantId,
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity,
+                variant_name: [item.size, item.color]
+                  .filter(Boolean)
+                  .join(' - '),
+                image: item.image,
+              }))}
+              shippingAddress={shippingAddress}
+              billingAddress={shippingAddress}
+              customerEmail={shippingAddress.email}
+              customerName={`${shippingAddress.first_name} ${shippingAddress.last_name}`}
+              onSuccess={() => {
+                clearCart()
               }}
-            >
-              {isLoading ? 'submitting...' : 'notify me at launch'}
-            </button>
-
-            <p className="text-xs text-gray-500 text-center lowercase">
-              we respect your privacy. no spam, just launch notifications.
-            </p>
-          </form>
-
-          {/* Back link */}
-          <div className="mt-6 text-center">
-            <Link
-              href="/"
-              className="text-sm text-gray-500 hover:text-black transition-colors lowercase"
-            >
-              continue shopping
-            </Link>
+            />
           </div>
-        </div>
-      </main>
+        )}
 
-      <FooterMinimal />
+        <div className="text-xs text-gray-500 text-center mt-6 space-y-1">
+          <p>100% secure payment</p>
+          <p className="text-gray-400">
+            Your banking information is never stored on our servers
+          </p>
+        </div>
+      </form>
     </div>
   )
 }
