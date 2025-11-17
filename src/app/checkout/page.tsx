@@ -1,4 +1,4 @@
-'use client'
+ï»¿'use client'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -297,10 +297,10 @@ export default function CheckoutPayPalPage() {
                       {item.name}
                       {item.size && ` - ${item.size}`}
                       {item.color && ` - ${item.color}`}
-                      {' × '}
+                      {' Ã— '}
                       {item.quantity}
                     </span>
-                    <span>{(item.price * item.quantity).toFixed(2)}€</span>
+                    <span>{(item.price * item.quantity).toFixed(2)}â‚¬</span>
                   </div>
                 ))}
               </div>
@@ -308,15 +308,15 @@ export default function CheckoutPayPalPage() {
               <div className="border-t pt-4 space-y-2">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>{totalPrice.toFixed(2)}€</span>
+                  <span>{totalPrice.toFixed(2)}â‚¬</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping</span>
-                  <span>{shippingCost.toFixed(2)}€</span>
+                  <span>{shippingCost.toFixed(2)}â‚¬</span>
                 </div>
                 <div className="flex justify-between font-bold text-lg border-t pt-2">
                   <span>Total</span>
-                  <span>{(totalPrice + shippingCost).toFixed(2)}€</span>
+                  <span>{(totalPrice + shippingCost).toFixed(2)}â‚¬</span>
                 </div>
               </div>
             </>
