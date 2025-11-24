@@ -2,6 +2,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
+import HeaderMinimal from '@/components/layout/HeaderMinimal'
+import FooterMinimal from '@/components/layout/FooterMinimal'
 import { sanityClient } from '@/lib/sanity.client'
 import { urlFor } from '@/lib/sanity.image'
 import {
@@ -109,7 +111,9 @@ export default async function EditionRoomPage() {
   const regularPosts = allPosts.filter((p) => !featuredIds.has(p._id))
 
   return (
-    <div className="min-h-screen">
+    <>
+      <HeaderMinimal />
+      <div className="min-h-screen">
       <section className="py-20 lg:py-28 px-6 lg:px-16">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="font-['Archivo_Black'] text-5xl lg:text-7xl uppercase tracking-[0.02em] mb-6">
@@ -162,5 +166,7 @@ export default async function EditionRoomPage() {
         </>
       )}
     </div>
+      <FooterMinimal />
+    </>
   )
 }

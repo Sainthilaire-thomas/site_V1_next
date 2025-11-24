@@ -3,6 +3,8 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import HeaderMinimal from '@/components/layout/HeaderMinimal'
+import FooterMinimal from '@/components/layout/FooterMinimal'
 import { sanityClient } from '@/lib/sanity.client'
 import { urlFor } from '@/lib/sanity.image'
 import {
@@ -105,94 +107,100 @@ export default async function PostPage({
     : null
 
   return (
-    <article className="min-h-screen">
-      {/* Back link */}
-      <div className="px-6 lg:px-16 py-6">
-        <Link
-          href="/edition-room"
-          className="inline-flex items-center gap-2 text-sm uppercase tracking-widest text-gray-500 hover:text-black transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          .edition room
-        </Link>
-      </div>
+    <>
+      <HeaderMinimal />
+      <article className="min-h-screen">
+        {/* Back link */}
+        <div className="px-6 lg:px-16 py-6">
+          <Link
+            href="/edition-room"
+            className="inline-flex items-center gap-2 text-sm uppercase tracking-widest text-gray-500 hover:text-black transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            .edition room
+          </Link>
+        </div>
 
-      {/* Header */}
-      <header className="px-6 lg:px-16 pb-12">
-        <div className="max-w-3xl mx-auto">
-          {post.category && (
-            <span className="text-[11px] uppercase tracking-[0.15em] text-[hsl(271,74%,37%)] block mb-4">
-              {post.category.title}
-            </span>
-          )}
-          <h1 className="font-['Archivo_Black'] text-4xl lg:text-5xl uppercase tracking-[0.02em] mb-6">
-            {post.title}
-          </h1>
-          <p className="text-sm text-gray-500 mb-6">
-            {format(new Date(post.publishedAt), 'd MMMM yyyy', { locale: fr })}
-            {post.author?.name && ` · par ${post.author.name}`}
-          </p>
-          {post.excerpt && (
-            <p className="text-xl text-gray-600 leading-relaxed">
-              {post.excerpt}
+        {/* Header */}
+        <header className="px-6 lg:px-16 pb-12">
+          <div className="max-w-3xl mx-auto">
+            {post.category && (
+              <span className="text-[11px] uppercase tracking-[0.15em] text-[hsl(271,74%,37%)] block mb-4">
+                {post.category.title}
+              </span>
+            )}
+            <h1 className="font-['Archivo_Black'] text-4xl lg:text-5xl uppercase tracking-[0.02em] mb-6">
+              {post.title}
+            </h1>
+            <p className="text-sm text-gray-500 mb-6">
+              {format(new Date(post.publishedAt), 'd MMMM yyyy', {
+                locale: fr,
+              })}
+              {post.author?.name && ` · par ${post.author.name}`}
             </p>
-          )}
-        </div>
-      </header>
-
-      {/* Main Image */}
-      {mainImg && (
-        <div className="px-6 lg:px-16 mb-16">
-          <div className="max-w-5xl mx-auto">
-            <div className="relative aspect-[16/9]">
-              <Image
-                src={mainImg}
-                alt={post.mainImage?.alt || post.title}
-                fill
-                className="object-cover"
-                priority
-              />
-            </div>
+            {post.excerpt && (
+              <p className="text-xl text-gray-600 leading-relaxed">
+                {post.excerpt}
+              </p>
+            )}
           </div>
-        </div>
-      )}
+        </header>
 
-      {/* Content */}
-      <div className="px-6 lg:px-16 pb-16">
-        <div className="max-w-3xl mx-auto">
-          {post.content && (
-            <PortableText value={post.content} components={ptComponents} />
-          )}
-        </div>
-      </div>
-
-      {/* Gallery */}
-      {post.gallery && post.gallery.length > 0 && (
-        <section className="px-6 lg:px-16 py-16 bg-gray-50">
-          <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-            {post.gallery.map((img: any, i: number) => (
-              <div key={i} className="relative aspect-[4/5]">
+        {/* Main Image */}
+        {mainImg && (
+          <div className="px-6 lg:px-16 mb-16">
+            <div className="max-w-5xl mx-auto">
+              <div className="relative aspect-[16/9]">
                 <Image
-                  src={urlFor(img).width(800).height(1000).url()}
-                  alt={img.alt || `Image ${i + 1}`}
+                  src={mainImg}
+                  alt={post.mainImage?.alt || post.title}
                   fill
                   className="object-cover"
+                  priority
                 />
               </div>
-            ))}
+            </div>
           </div>
-        </section>
-      )}
+        )}
 
-      {/* Back to list */}
-      <section className="px-6 lg:px-16 py-16 border-t text-center">
-        <Link
-          href="/edition-room"
-          className="text-sm uppercase tracking-widest border-b border-black pb-1 hover:text-[hsl(271,74%,37%)] hover:border-[hsl(271,74%,37%)] transition-colors"
-        >
-          Voir tous les articles
-        </Link>
-      </section>
-    </article>
+        {/* Content */}
+        <div className="px-6 lg:px-16 pb-16">
+          <div className="max-w-3xl mx-auto">
+            {post.content && (
+              <PortableText value={post.content} components={ptComponents} />
+            )}
+          </div>
+        </div>
+
+        {/* Gallery */}
+        {post.gallery && post.gallery.length > 0 && (
+          <section className="px-6 lg:px-16 py-16 bg-gray-50">
+            <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+              {post.gallery.map((img: any, i: number) => (
+                <div key={i} className="relative aspect-[4/5]">
+                  <Image
+                    src={urlFor(img).width(800).height(1000).url()}
+                    alt={img.alt || `Image ${i + 1}`}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Back to list */}
+        <section className="px-6 lg:px-16 py-16 border-t text-center">
+          <Link
+            href="/edition-room"
+            className="text-sm uppercase tracking-widest border-b border-black pb-1 hover:text-[hsl(271,74%,37%)] hover:border-[hsl(271,74%,37%)] transition-colors"
+          >
+            See all articles
+          </Link>
+        </section>
+      </article>
+      <FooterMinimal />
+    </>
   )
 }
