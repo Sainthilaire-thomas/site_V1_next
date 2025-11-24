@@ -123,6 +123,7 @@ export default function HeaderMinimal() {
     { label: '.bottoms', href: '/products/bas' },
     { label: '.accessories', href: '/products/accessoires' },
     { label: '.silhouettes', href: '/silhouettes' },
+    { label: '.edition room', href: '/edition-room', nowrap: true },
     { label: '.impact', href: '/impact' },
     { label: '.essence', href: '/about', nowrap: true },
     { label: '.contact', href: '/contact' },

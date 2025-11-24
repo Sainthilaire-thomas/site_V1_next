@@ -3,7 +3,7 @@
 ║                          ARBORESCENCE DU PROJET                             ║
 ║                                                                              ║
 ║  Projet: site_v1_next                                                    ║
-║  Généré: 07/11/2025 15:42:07                                            ║
+║  Généré: 17/11/2025 09:43:18                                            ║
 ║                                                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -20,6 +20,7 @@
 │   ├── 📝 ARCHITECTURE-migration-archi-modulaire.md
 │   ├── 📝 Bug-shipping-address.md
 │   ├── 📝 description-projet.md
+│   ├── 📝 DOC-FINALE-CHECKOUT-PAYPAL.md
 │   ├── 📝 elements-desing-brouillon-blanche.md
 │   ├── 📝 etats-des-lieux-admin-photos.md
 │   ├── 📝 gestion-automatique-stock.md
@@ -306,6 +307,12 @@
 │   │   │   ├── 📁 cancel
 │   │   │   │   └── 🔷 page.tsx
 │   │   │   ├── 📁 success
+│   │   │   │   └── 🔷 page.tsx
+│   │   │   └── 🔷 page.tsx
+│   │   ├── 📁 checkout-OLD-BACKUP
+│   │   │   ├── 📁 cancel
+│   │   │   │   └── 🔷 page.tsx
+│   │   │   ├── 📁 success
 │   │   │   │   ├── 🔷 CheckoutSuccessContent.tsx
 │   │   │   │   └── 🔷 page.tsx
 │   │   │   └── 🔷 page.tsx
@@ -517,6 +524,7 @@
 │   │   ├── 🔷 image-helpers.ts
 │   │   ├── 🔷 images.ts
 │   │   ├── 📄 logsstripe.txt
+│   │   ├── 🔷 paypal-config.ts
 │   │   ├── 🔷 paypal.ts
 │   │   ├── 🔷 products.ts
 │   │   ├── 🔷 queries.ts
@@ -571,8 +579,8 @@
 
 
 📈 Statistiques :
-   • Dossiers : 188
-   • Fichiers : 309
-   • Total : 497 éléments
+   • Dossiers : 191
+   • Fichiers : 313
+   • Total : 504 éléments
 
 💡 Généré automatiquement - Ne pas modifier manuellement

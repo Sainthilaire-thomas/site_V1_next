@@ -1,17 +1,18 @@
-// sanity/structure.ts
-import type { StructureBuilder } from 'sanity/desk'
+﻿// sanity/structure.ts
+import type { StructureBuilder } from 'sanity/structure'
 
 export const structure = (S: StructureBuilder) =>
   S.list()
     .title('Contenu')
     .items([
+      // Homepage
       S.listItem()
         .title('Homepage')
         .child(
           S.document().schemaType('homepage').documentId('homepage-singleton')
         ),
 
-      // ← AJOUTER LA PAGE IMPACT ICI
+      // Page Impact
       S.listItem()
         .title('Page Impact')
         .child(
@@ -20,6 +21,50 @@ export const structure = (S: StructureBuilder) =>
 
       S.divider(),
 
+      // .edition room (Blog)
+      S.listItem()
+        .title('.edition room')
+        .child(
+          S.list()
+            .title('.edition room')
+            .items([
+              S.listItem()
+                .title('Tous les articles')
+                .child(
+                  S.documentTypeList('editionRoomPost')
+                    .title('Articles')
+                    .defaultOrdering([{ field: 'publishedAt', direction: 'desc' }])
+                ),
+              S.listItem()
+                .title('Publies')
+                .child(
+                  S.documentList()
+                    .title('Articles publies')
+                    .filter('_type == "editionRoomPost" && status == "published"')
+                    .defaultOrdering([{ field: 'publishedAt', direction: 'desc' }])
+                ),
+              S.listItem()
+                .title('Brouillons')
+                .child(
+                  S.documentList()
+                    .title('Brouillons')
+                    .filter('_type == "editionRoomPost" && status == "draft"')
+                    .defaultOrdering([{ field: '_updatedAt', direction: 'desc' }])
+                ),
+              S.divider(),
+              S.listItem()
+                .title('Categories')
+                .child(
+                  S.documentTypeList('editionRoomCategory')
+                    .title('Categories')
+                    .defaultOrdering([{ field: 'order', direction: 'asc' }])
+                ),
+            ])
+        ),
+
+      S.divider(),
+
+      // Pages
       S.listItem()
         .title('Pages')
         .child(
@@ -36,26 +81,20 @@ export const structure = (S: StructureBuilder) =>
             .title('Lookbooks')
             .items([
               S.listItem()
-                .title('Publiés')
+                .title('Publies')
                 .child(
                   S.documentTypeList('lookbook')
-                    .title('Lookbooks publiés')
-                    .filter(
-                      '_type == "lookbook" && coalesce(published, true) == true'
-                    )
-                    .defaultOrdering([
-                      { field: '_createdAt', direction: 'desc' },
-                    ])
+                    .title('Lookbooks publies')
+                    .filter('_type == "lookbook" && coalesce(published, true) == true')
+                    .defaultOrdering([{ field: '_createdAt', direction: 'desc' }])
                 ),
               S.listItem()
-                .title('Dépubliés')
+                .title('Depublies')
                 .child(
                   S.documentTypeList('lookbook')
-                    .title('Lookbooks dépubliés')
+                    .title('Lookbooks depublies')
                     .filter('_type == "lookbook" && published == false')
-                    .defaultOrdering([
-                      { field: '_createdAt', direction: 'desc' },
-                    ])
+                    .defaultOrdering([{ field: '_createdAt', direction: 'desc' }])
                 ),
               S.divider(),
               S.listItem()
@@ -63,64 +102,19 @@ export const structure = (S: StructureBuilder) =>
                 .child(
                   S.documentTypeList('lookbook')
                     .title('Tous les lookbooks')
-                    .defaultOrdering([
-                      { field: '_createdAt', direction: 'desc' },
-                    ])
-                ),
-            ])
-        ),
-
-      // Collections éditoriales
-      S.listItem()
-        .title('Collections éditoriales')
-        .child(
-          S.list()
-            .title('Collections éditoriales')
-            .items([
-              S.listItem()
-                .title('Publiées')
-                .child(
-                  S.documentTypeList('collectionEditoriale')
-                    .title('Collections publiées')
-                    .filter(
-                      '_type == "collectionEditoriale" && coalesce(published, true) == true'
-                    )
-                    .defaultOrdering([
-                      { field: '_createdAt', direction: 'desc' },
-                    ])
-                ),
-              S.listItem()
-                .title('Dépubliées')
-                .child(
-                  S.documentTypeList('collectionEditoriale')
-                    .title('Collections dépubliées')
-                    .filter(
-                      '_type == "collectionEditoriale" && published == false'
-                    )
-                    .defaultOrdering([
-                      { field: '_createdAt', direction: 'desc' },
-                    ])
-                ),
-              S.divider(),
-              S.listItem()
-                .title('Toutes')
-                .child(
-                  S.documentTypeList('collectionEditoriale')
-                    .title('Toutes les collections éditoriales')
-                    .defaultOrdering([
-                      { field: '_createdAt', direction: 'desc' },
-                    ])
+                    .defaultOrdering([{ field: '_createdAt', direction: 'desc' }])
                 ),
             ])
         ),
 
       S.divider(),
 
+      // Legacy - Collections editoriales
       S.listItem()
-        .title('SEO (réutilisable)')
+        .title('Collections editoriales (legacy)')
         .child(
-          S.documentTypeList('seo')
-            .title('Entrées SEO')
+          S.documentTypeList('collectionEditoriale')
+            .title('Collections editoriales')
             .defaultOrdering([{ field: '_createdAt', direction: 'desc' }])
         ),
     ])

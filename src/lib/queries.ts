@@ -119,3 +119,62 @@ export const PAGES_QUERY = groq`*[_type=="page"] | order(_createdAt desc) {
   content,
   seo
 }`
+
+// === .edition room (Blog) ===
+
+// Liste des articles publiés
+export const EDITION_ROOM_POSTS_QUERY = groq`*[
+  _type == "editionRoomPost" && status == "published"
+] | order(publishedAt desc) {
+  _id,
+  title,
+  slug,
+  excerpt,
+  publishedAt,
+  "author": author.name,
+  mainImage,
+  "category": category->{title, slug},
+  tags,
+  featured
+}`
+
+// Article par slug
+export const EDITION_ROOM_POST_QUERY = groq`*[
+  _type == "editionRoomPost" && 
+  slug.current == $slug && 
+  status == "published"
+][0] {
+  _id,
+  title,
+  slug,
+  excerpt,
+  publishedAt,
+  author,
+  mainImage,
+  "category": category->{title, slug},
+  tags,
+  content,
+  gallery,
+  seo
+}`
+
+// Articles featured
+export const EDITION_ROOM_FEATURED_QUERY = groq`*[
+  _type == "editionRoomPost" && 
+  status == "published" && 
+  featured == true
+] | order(publishedAt desc)[0...2] {
+  _id,
+  title,
+  slug,
+  excerpt,
+  publishedAt,
+  "author": author.name,
+  mainImage,
+  "category": category->{title, slug}
+}`
+
+// Tous les slugs (pour generateStaticParams)
+export const EDITION_ROOM_SLUGS_QUERY = groq`*[
+  _type == "editionRoomPost" && status == "published"
+] { "slug": slug.current }`
